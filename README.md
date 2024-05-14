@@ -8,6 +8,6 @@ Bridgewatcher is intended to be a useful and functional discord bot that crushes
 3. Traders. Traders should be able to ask the bot to send direct messages to users whenever the price of an item has reached one state or another.
 4. And more!
 
-The project doesn't have a central host, so anyone who wants to you the bot, should check if the creator's instance is currently running () or should host the bot themselves.
+The project doesn't have a central host, so anyone who wants to you the bot, should check if the creator's instance is currently running (`Bridgewatcher#4742`) or should host the bot themselves.
 
 You can find and install the list of the requirements within the `requirements.txt` file.
