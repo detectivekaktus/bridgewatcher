@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from src import DISCORD_TOKEN
 from src.client import bot
+import src.commands
 
 def main() -> int:
     if not DISCORD_TOKEN:
