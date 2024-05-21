@@ -6,6 +6,8 @@ from datetime import datetime
 INTENTS: Intents = Intents.default()
 INTENTS.message_content = True
 bot: Bot = Bot(command_prefix=";", intents=INTENTS)
+bot.remove_command("help")
+
 
 @bot.event
 async def on_ready() -> None:
