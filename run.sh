@@ -1,4 +1,6 @@
 #!/bin/bash
 
-chmod +x bot.py
+if [ ! -x bot.py ]; then
+  chmod +x bot.py
+fi
 ./bot.py
