@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-from dotenv import load_dotenv
-from typing import Final
 import os
+from typing import Final
+from dotenv import load_dotenv
 
 ERROR:   Final = 0xff1231
 GOLD:    Final = 0xf5d62a

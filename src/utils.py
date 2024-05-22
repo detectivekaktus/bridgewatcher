@@ -33,4 +33,4 @@ def get_percent_variation(data: List[dict], index: int) -> float:
 
 
 def convert_api_timestamp(date: str) -> str:
-    return datetime.strptime(date, "%Y-%m-%dT%H:%M:%S").strftime("%d %B %Y, %H:%M:%S %p")
+    return datetime.strptime(date, "%Y-%m-%dT%H:%M:%S").strftime("%d %B %Y, %H:%M:%S")

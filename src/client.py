@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
+from datetime import datetime
 from discord import Intents
 from discord.ext.commands import Bot
-from datetime import datetime
 
 INTENTS: Intents = Intents.default()
 INTENTS.message_content = True
