@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from datetime import datetime
-from typing import Any, Final, List, Tuple
+from typing import Any, Final, List
 from requests import ReadTimeout, Response, get
 from . import Server
 
@@ -26,7 +26,7 @@ class AODFetcher:
         except ReadTimeout:
             return None
 
-    def fetch_price(self, item_name: str, qualities: int = 1, cities: Tuple[str, ...] = ()) -> List[dict[str, Any]] | None:
+    def fetch_price(self, item_name: str, qualities: int = 1, cities: List[str] = []) -> List[dict[str, Any]] | None:
         try:
             if cities:
                 response: Response = get(f"https://{self.__server_prefix}.albion-online-data.com/api/v2/stats/prices/{item_name}.json?qualities={qualities}&locations={",".join(cities)}", timeout=self.__timeout)

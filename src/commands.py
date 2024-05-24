@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from typing import Any, List
+from typing import Any, List, Tuple
 from discord.ext.commands import BadArgument, Context
 from discord import Embed
 from .api import AODFetcher, SBIRenderFetcher, get_percent_variation, convert_api_timestamp, is_valid_city
@@ -48,24 +48,31 @@ async def raise_gold_error(context: Context, error: Any) -> None:
 
 
 @bot.command()
-async def price(context: Context, item_name: str, quality: int = 1, *cities: str) -> None:
-    if quality not in range(1, 6) or not item_name:
-        await context.send(embed=Embed(title=":red_circle: Invalid argument!",
-                                       color=ERROR,
-                                       description="Please, specify a valid integer value in range between 1 and 5 for the `qualities`."))
+async def price(context: Context, item_name: str, *args: str) -> None:
+    quality: int = 1
+    cities: List[str] = []
 
-    if cities:
-        for city in cities:
-            if not is_valid_city(city):
-                await context.send(embed=Embed(title=":red_circle: Unexpected market found!",
-                                         color=ERROR,
-                                         description=f"{city} doesn't appear to be a valid city to ask prices from."))
+    for arg in args:
+        if arg.isdigit():
+            quality = int(arg)
+            if quality not in range(1, 6):
+                await context.send(embed=Embed(title=":red_cicle: Invalid argument!",
+                                               color=ERROR,
+                                               description="Please, specify a valid integer value in range between 1 and 5 for `quality`."))
                 return
+        else:
+            cities.append(arg)
+
+    for city in cities:
+        if not is_valid_city(city):
+            await context.send(embed=Embed(title=":red_cirlce: Invalid argument!",
+                                           color=ERROR,
+                                           description=f"{city} doesn't appear to be a valid city to ask prices from."))
+            return
 
     fetcher: AODFetcher = AODFetcher(Server.EUROPE)
     image_render: SBIRenderFetcher = SBIRenderFetcher()
-
-    data: List[dict[str, Any]] | None = fetcher.fetch_price(item_name, quality, cities if cities else ())
+    data: List[dict[str, Any]] | None = fetcher.fetch_price(item_name, quality, cities)
     if not data:
         await context.send(embed=Embed(title=":red_cirlce: There was an error",
                                        color=ERROR,
@@ -81,9 +88,9 @@ async def price(context: Context, item_name: str, quality: int = 1, *cities: str
 
     for entry in data:
         embed.add_field(name=f"{entry["city"]}",
-                        value=f"Updated at: {convert_api_timestamp(entry["sell_price_min_date"])} and {convert_api_timestamp(entry["buy_price_max_date"])}\n"
-                        f"Sold at: {entry["sell_price_min"]}\n"
-                        f"Bought at: {entry["buy_price_max"]}")
+                        value=f"Updated at: **{convert_api_timestamp(entry["sell_price_min_date"])}** and **{convert_api_timestamp(entry["buy_price_max_date"])}**\n"
+                        f"Sold at: **{entry["sell_price_min"]}**\n"
+                        f"Bought at: **{entry["buy_price_max"]}**")
     await context.send(embed=embed)
 
 
