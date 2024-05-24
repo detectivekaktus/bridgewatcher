@@ -98,11 +98,15 @@ async def raise_price_error(context: Context, error: Any) -> None:
 
 @bot.command()
 async def help(context: Context) -> None:
-    await context.send(embed=Embed(title=":wave: Hello!",
+    embed = Embed(title=":wave: Hello!",
                                    color=SUCCESS,
                                    description="I'm Bridgewatcher, a discord bot created by <@692305905123065918> to simplify "
                                    "Albion Online crafting, refining and trading for the players that enjoy pieceful activities "
                                    "in the game.\n\n" "Use `;gold <hours>` to check the gold price and its changements on the European "
                                    "server. You can check up to 24 prices at once. The default number of prices fetched is 3.\n\n"
                                    "Use `;price <item_name> <quality> <cities>` to check the item price in all the in-game markets"
-                                   "(black market included)."))
+                                   "(black market included).\n\n" "This project is made thanks to the Albion Online Data Project "
+                                   "which provides the bot with all the necessary data. If you want to help this project, install "
+                                   "the [Albion Online Data Project client](https://albion-online-data.com/).")
+    embed.set_author(name="Made by DetectiveKaktus", url="https://github.com/detectivekaktus")
+    await context.send(embed=embed)
