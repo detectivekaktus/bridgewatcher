@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from typing import Any, List, Tuple
+from typing import Any, List
 from discord.ext.commands import BadArgument, Context
 from discord import Embed
 from .api import AODFetcher, SBIRenderFetcher, get_percent_variation, convert_api_timestamp, is_valid_city
