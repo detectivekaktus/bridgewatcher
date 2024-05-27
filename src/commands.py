@@ -38,7 +38,7 @@ async def gold(context: Context, count: int = 3) -> None:
 
     embed: Embed = Embed(title=":coin: Gold prices",
                          color=GOLD,
-                         description=f"Here are the past {count} gold prices on the :flag_eu: European server.\n"
+                         description=f"Here are the past {count} gold prices.\n"
                          f"Total percent variation in the specified period: **{round((data[0]["price"] / data[-1]["price"] - 1) * 100, 2)}%**\n"
                          f"Total numeric variation in the specified period: **{(data[0]["price"] - data[-1]["price"])}**")
     embed.set_footer(text="The data is provided by the Albion Online Data Project\n")
