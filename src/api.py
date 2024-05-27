@@ -2,18 +2,17 @@
 from datetime import datetime
 from typing import Any, Final, List
 from requests import ReadTimeout, Response, get
-from . import Server
 
 
 SERVER_URLS_PREFIX: Final = {
-    Server.AMERICA: "west",
-    Server.ASIA:    "east",
-    Server.EUROPE:  "europe"
+    1: "west",
+    2: "europe",
+    3: "east"
 }
 
 
 class AODFetcher:
-    def __init__(self, server: Server, timeout: int = 5) -> None:
+    def __init__(self, server: int, timeout: int = 5) -> None:
         self.__server_prefix: str | None = SERVER_URLS_PREFIX.get(server)
         self.__timeout: int = timeout
 

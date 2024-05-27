@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from json import load
 from typing import Any, List
 from discord.ext.commands import BadArgument, Context
 from discord import Embed
@@ -9,16 +10,25 @@ from . import ERROR, GOLD, PRICE, SUCCESS
 
 @bot.command()
 async def gold(context: Context, count: int = 3) -> None:
-    if not has_config(context.guild):
-        create_server_config(context.guild)
+    if not context.guild:
+        await context.send(embed=Embed(title=":red_circle: Fatal error!",
+                                       color=ERROR,
+                                       description="This command can be invoked only on a server!"))
+        return
 
     if count not in range(1, 25):
         await context.send(embed=Embed(title=":red_circle: Invalid argument!",
                                        color=ERROR,
                                        description="Please, specify a valid integer value in range between 1 and 24."))
         return
+    
+    if not has_config(context.guild):
+        create_server_config(context.guild)
 
-    fetcher: AODFetcher = AODFetcher(Server.EUROPE)
+    with open(f"servers/{context.guild.id}.json", "r") as f:
+        cfg = load(f)
+
+    fetcher: AODFetcher = AODFetcher(cfg.get("fetch_server"))
     data: List[dict[str, Any]] | None = fetcher.fetch_gold(count + 1)
     if not data:
         await context.send(embed=Embed(title=":red_circle: There was an error",
@@ -52,9 +62,12 @@ async def raise_gold_error(context: Context, error: Any) -> None:
 
 @bot.command()
 async def price(context: Context, item_name: str, *args: str) -> None:
-    if not has_config(context.guild):
-        create_server_config(context.guild)
-    
+    if not context.guild:
+        await context.send(embed=Embed(title=":red_circle: Fatal error!",
+                                       color=ERROR,
+                                       description="This command can be invoked only on a server!"))
+        return
+
     quality: int = 1
     cities: List[str] = []
 
@@ -75,8 +88,14 @@ async def price(context: Context, item_name: str, *args: str) -> None:
                                            color=ERROR,
                                            description=f"{city} doesn't appear to be a valid city to ask prices from."))
             return
+    
+    if not has_config(context.guild):
+        create_server_config(context.guild)
 
-    fetcher: AODFetcher = AODFetcher(Server.EUROPE)
+    with open(f"servers/{context.guild.id}.json", "r") as f:
+        cfg = load(f)
+
+    fetcher: AODFetcher = AODFetcher(cfg.get("fetch_server"))
     image_render: SBIRenderFetcher = SBIRenderFetcher()
     data: List[dict[str, Any]] | None = fetcher.fetch_price(item_name, quality, cities)
     if not data:
@@ -111,6 +130,12 @@ async def raise_price_error(context: Context, error: Any) -> None:
 
 @bot.command()
 async def set_server(context: Context, server: int) -> None:
+    if not context.guild:
+        await context.send(embed=Embed(title=":red_circle: Fatal error!",
+                                       color=ERROR,
+                                       description="This command can be invoked only on a server!"))
+        return
+
     if server not in range(1, 4):
         await context.send(embed=Embed(title=":red_circle: Invalid argument!",
                                        color=ERROR,
@@ -140,6 +165,15 @@ async def raise_set_server_error(context: Context, error: Any) -> None:
 
 @bot.command()
 async def help(context: Context) -> None:
+    if not context.guild:
+        await context.send(embed=Embed(title=":red_circle: Fatal error!",
+                                       color=ERROR,
+                                       description="This command can be invoked only on a server!"))
+        return
+
+    with open(f"servers/{context.guild.id}.json", "r") as f:
+        cfg = load(f)
+
     embed = Embed(title=":wave: Hello!",
                                    color=SUCCESS,
                                    description="I'm Bridgewatcher, a discord bot created by <@692305905123065918> to simplify "
@@ -151,4 +185,11 @@ async def help(context: Context) -> None:
                                    "which provides the bot with all the necessary data. If you want to help this project, install "
                                    "the [Albion Online Data Project client](https://albion-online-data.com/).")
     embed.set_author(name="Made by DetectiveKaktus", url="https://github.com/detectivekaktus")
+    match cfg.get("fetch_server"):
+        case 1:
+            embed.add_field(name="Currently fetching on :flag_us: American server", value="")
+        case 2:
+            embed.add_field(name="Currently fetching on :flag_eu: European server", value="")
+        case 3:
+            embed.add_field(name="Currently fetching on :flag_cn: Asian server", value="")
     await context.send(embed=embed)

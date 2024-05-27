@@ -13,14 +13,14 @@ bot: Bot = Bot(command_prefix=";",
 bot.remove_command("help")
 
 
-def create_server_config(guild: Guild | None) -> None:
+def create_server_config(guild: Guild) -> None:
     if not guild: return
     if not path.exists("servers/"):
         makedirs("servers/")
     write_config(guild, 1)
 
 
-def update_server_config(guild: Guild | None, fetch_server: int) -> None:
+def update_server_config(guild: Guild, fetch_server: int) -> None:
     if not guild: return
     if not has_config(guild):
         create_server_config(guild)
@@ -37,7 +37,7 @@ def write_config(guild: Guild, fetch_server: int) -> None:
         config.write("}\n")
 
 
-def has_config(guild: Guild | None) -> bool:
+def has_config(guild: Guild) -> bool:
     if not guild: return False
     if not path.exists(f"servers/{guild.id}.json") or not path.exists("servers/"): return False
     return True
