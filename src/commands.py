@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-from json import load
-from typing import Any, List
+from typing import Any, List, cast
 from discord.ext.commands import BadArgument, Context
 from discord import Embed
 from .api import AODFetcher, SBIRenderFetcher, get_percent_variation, convert_api_timestamp, is_valid_city
-from .client import bot, create_server_config, has_config, update_server_config
+from .client import bot, create_server_config, get_server_config, has_config, update_server_config
 from . import ERROR, GOLD, PRICE, SUCCESS
 
 
@@ -22,13 +21,8 @@ async def gold(context: Context, count: int = 3) -> None:
                                        description="Please, specify a valid integer value in range between 1 and 24."))
         return
     
-    if not has_config(context.guild):
-        create_server_config(context.guild)
-
-    with open(f"servers/{context.guild.id}.json", "r") as f:
-        cfg = load(f)
-
-    fetcher: AODFetcher = AODFetcher(cfg.get("fetch_server"))
+    cfg: dict[str, Any] = get_server_config(context.guild)
+    fetcher: AODFetcher = AODFetcher(cast(int, cfg.get("fetch_server")))
     data: List[dict[str, Any]] | None = fetcher.fetch_gold(count + 1)
     if not data:
         await context.send(embed=Embed(title=":red_circle: There was an error",
@@ -80,22 +74,15 @@ async def price(context: Context, item_name: str, *args: str) -> None:
                                                description="Please, specify a valid integer value in range between 1 and 5 for `quality`."))
                 return
         else:
-            cities.append(arg)
-
-    for city in cities:
-        if not is_valid_city(city):
-            await context.send(embed=Embed(title=":red_cirlce: Invalid argument!",
+            if not is_valid_city(arg):
+                await context.send(embed=Embed(title=":red_cirlce: Invalid argument!",
                                            color=ERROR,
-                                           description=f"{city} doesn't appear to be a valid city to ask prices from."))
-            return
+                                           description=f"{arg} doesn't appear to be a valid city to ask prices from."))
+                return
+            cities.append(arg)
     
-    if not has_config(context.guild):
-        create_server_config(context.guild)
-
-    with open(f"servers/{context.guild.id}.json", "r") as f:
-        cfg = load(f)
-
-    fetcher: AODFetcher = AODFetcher(cfg.get("fetch_server"))
+    cfg: dict[str, Any] = get_server_config(context.guild)
+    fetcher: AODFetcher = AODFetcher(cast(int, cfg.get("fetch_server")))
     image_render: SBIRenderFetcher = SBIRenderFetcher()
     data: List[dict[str, Any]] | None = fetcher.fetch_price(item_name, quality, cities)
     if not data:
@@ -171,9 +158,7 @@ async def help(context: Context) -> None:
                                        description="This command can be invoked only on a server!"))
         return
 
-    with open(f"servers/{context.guild.id}.json", "r") as f:
-        cfg = load(f)
-
+    cfg: dict[str, Any] = get_server_config(context.guild)
     embed = Embed(title=":wave: Hello!",
                                    color=SUCCESS,
                                    description="I'm Bridgewatcher, a discord bot created by <@692305905123065918> to simplify "

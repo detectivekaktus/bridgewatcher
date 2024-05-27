@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 from datetime import datetime
+from json import load
 from os import makedirs, path
+from typing import Any
 from discord import Activity, ActivityType, Guild, Intents, Status
 from discord.ext.commands import Bot
+
 
 INTENTS: Intents = Intents.default()
 INTENTS.message_content = True
@@ -18,6 +21,15 @@ def create_server_config(guild: Guild) -> None:
     if not path.exists("servers/"):
         makedirs("servers/")
     write_config(guild, 1)
+
+
+def get_server_config(guild: Guild) -> dict[str, Any]:
+    if not has_config(guild):
+        create_server_config(guild)
+
+    with open(f"servers/{guild.id}.json", "r") as fconf:
+        cfg = load(fconf)
+    return cfg
 
 
 def update_server_config(guild: Guild, fetch_server: int) -> None:
