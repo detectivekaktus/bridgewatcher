@@ -4,5 +4,7 @@
 venv/
 .env
 
+servers/
+
 __pycache__
 *.pyc
