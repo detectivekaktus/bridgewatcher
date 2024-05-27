@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-from enum import Enum
-import os
+from os import getenv
 from typing import Final
 from dotenv import load_dotenv
 
@@ -9,10 +8,9 @@ GOLD:    Final = 0xf5d62a
 PRICE:   Final = 0x2465ff
 SUCCESS: Final = 0x66f542
 
-class Server(Enum):
-    AMERICA = 1
-    EUROPE  = 2
-    ASIA    = 3
+AMERICA: Final = 1
+EUROPE:  Final = 2
+ASIA:    Final = 3
 
 load_dotenv()
-DISCORD_TOKEN: str | None = os.getenv("DISCORD_TOKEN")
+DISCORD_TOKEN: str | None = getenv("DISCORD_TOKEN")

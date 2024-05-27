@@ -3,12 +3,15 @@ from typing import Any, List
 from discord.ext.commands import BadArgument, Context
 from discord import Embed
 from .api import AODFetcher, SBIRenderFetcher, get_percent_variation, convert_api_timestamp, is_valid_city
-from .client import bot
-from . import ERROR, GOLD, PRICE, SUCCESS, Server
+from .client import bot, create_server_config, has_config, update_server_config
+from . import ERROR, GOLD, PRICE, SUCCESS
 
 
 @bot.command()
 async def gold(context: Context, count: int = 3) -> None:
+    if not has_config(context.guild):
+        create_server_config(context.guild)
+
     if count not in range(1, 25):
         await context.send(embed=Embed(title=":red_circle: Invalid argument!",
                                        color=ERROR,
@@ -49,6 +52,9 @@ async def raise_gold_error(context: Context, error: Any) -> None:
 
 @bot.command()
 async def price(context: Context, item_name: str, *args: str) -> None:
+    if not has_config(context.guild):
+        create_server_config(context.guild)
+    
     quality: int = 1
     cities: List[str] = []
 
@@ -101,6 +107,35 @@ async def raise_price_error(context: Context, error: Any) -> None:
                                        color=ERROR,
                                        description="Please, specify valid `item_name` and `quality` for the item you want to find.\n"
                                        "You can find the list of items [here](https://github.com/ao-data/ao-bin-dumps/blob/master/formatted/items.txt)."))
+
+
+@bot.command()
+async def set_server(context: Context, server: int) -> None:
+    if server not in range(1, 4):
+        await context.send(embed=Embed(title=":red_circle: Invalid argument!",
+                                       color=ERROR,
+                                       description="Please, specify a valid integer value in range from 1 to 3 for `server` argument."))
+        return
+
+    if not has_config(context.guild):
+        create_server_config(context.guild)
+
+    update_server_config(context.guild, server)
+    match server:
+        case 1:
+            await context.send("Server successfully changed to :flag_us: America.")
+        case 2:
+            await context.send("Server successfully changed to :flag_eu: Europe.")
+        case 3:
+            await context.send("Server successfully changed to :flag_cn: Asia.")
+
+
+@set_server.error
+async def raise_set_server_error(context: Context, error: Any) -> None:
+    if isinstance(error, BadArgument):
+        await context.send(embed=Embed(title=":red_circle: Invalid argument!",
+                                       color=ERROR,
+                                       description="Please, specify a valid integer value in range from 1 to 3 for `server` argument."))
 
 
 @bot.command()
