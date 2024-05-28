@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 from sys import argv
-from typing import List
+from os import path
+from typing import List, cast
 from src import DISCORD_TOKEN
 from src.client import bot
+from src.db.manager import DatabaseManager
 import src.commands
 
 
@@ -14,6 +16,17 @@ def usage() -> None:
     print("    --upgrade:  update the data in the database           ")
 
 
+def verify_configuration() -> None:
+    if not DISCORD_TOKEN:
+        print("ERROR: Your configuration is missing DISCORD_TOKEN environment variable.")
+        exit(1)
+
+    if not path.exists("res/items.db"):
+        print("ERROR: Your configuration is missing items database.")
+        print("Execute ./bot.py database --populate to create one.")
+        exit(1)
+
+
 def crash(msg: str) -> None:
     print(msg)
     usage()
@@ -21,9 +34,6 @@ def crash(msg: str) -> None:
 
 
 def main() -> None:
-    if not DISCORD_TOKEN:
-        raise KeyError("Your configuration is missing DISCORD_TOKEN environment variable.")
-
     if len(argv) < 2:
         crash("ERROR: no subcommand specified.")
 
@@ -31,8 +41,10 @@ def main() -> None:
     i = 0
     match cliargs[i]:
         case "run":
+            verify_configuration()
+
             if len(cliargs) - 1 == i:
-                bot.run(DISCORD_TOKEN)
+                bot.run(cast(str, DISCORD_TOKEN))
                 exit(0)
             else:
                 crash(f"ERROR: unknown flag {cliargs[i + 1]} specified for the run subcommand.")
@@ -42,9 +54,14 @@ def main() -> None:
                 crash("ERROR: no flag specified for the database subcommand.")
 
             if cliargs[i] == "--populate":
-                raise NotImplementedError()
+                manager: DatabaseManager = DatabaseManager("res/items.db")
+                manager.create_items_table()
+                manager.populate_table()
+                exit(0)
             elif cliargs[i] == "--upgrade":
-                raise NotImplementedError()
+                manager: DatabaseManager = DatabaseManager("res/items.db")
+                manager.upgrade_database()
+                exit(0)
             else:
                 crash(f"ERROR: unknown parameter {cliargs[i]} for the database subcommand.")
         case _:

@@ -27,4 +27,4 @@ After cloning the repository, create a `.env` file in the root directory and ins
 
 Create a new Python environment using `python3 -m venv venv`, activate it with `source venv/bin/activate` and synchronize the dependencies using `pip3 install -r requirements.txt`.
 
-Run the bot from `run.sh` script.
+To run the bot, execute `./bot.py run`.
