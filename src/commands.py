@@ -18,7 +18,8 @@ async def gold(context: Context, count: int = 3) -> None:
     if count not in range(1, 25):
         await context.send(embed=Embed(title=":red_circle: Invalid argument!",
                                        color=ERROR,
-                                       description="Please, specify a valid integer value in range between 1 and 24."))
+                                       description="Please, specify a valid integer value in "
+                                       "range between 1 and 24."))
         return
     
     cfg: dict[str, Any] = get_server_config(context.guild)
@@ -27,14 +28,17 @@ async def gold(context: Context, count: int = 3) -> None:
     if not data:
         await context.send(embed=Embed(title=":red_circle: There was an error",
                                        color=ERROR,
-                                       description="I've encountered an error trying to get item prices from the API. Please, try again later."))
+                                       description="I've encountered an error trying to get item "
+                                       "prices from the API. Please, try again later."))
         return
 
     embed: Embed = Embed(title=":coin: Gold prices",
                          color=GOLD,
                          description=f"Here are the past {count} gold prices.\n"
-                         f"Total percent variation in the specified period: **{round((data[0]["price"] / data[-1]["price"] - 1) * 100, 2)}%**\n"
-                         f"Total numeric variation in the specified period: **{(data[0]["price"] - data[-1]["price"])}**")
+                         "Total percent variation in the specified period: "
+                         f"**{round((data[0]["price"] / data[-1]["price"] - 1) * 100, 2)}%**\n"
+                         "Total numeric variation in the specified period: "
+                         f"**{(data[0]["price"] - data[-1]["price"])}**")
     embed.set_footer(text="The data is provided by the Albion Online Data Project\n")
 
     for i in range(len(data) - 1):
@@ -51,7 +55,8 @@ async def raise_gold_error(context: Context, error: Any) -> None:
     if isinstance(error, BadArgument):
         await context.send(embed=Embed(title=":red_circle: Invalid argument!",
                                        color=ERROR,
-                                       description="Please, specify a valid integer value in range between 1 and 24."))
+                                       description="Please, specify a valid integer value in range "
+                                       "between 1 and 24."))
 
 
 @bot.command()
@@ -71,13 +76,15 @@ async def price(context: Context, item_name: str, *args: str) -> None:
             if quality not in range(1, 6):
                 await context.send(embed=Embed(title=":red_cicle: Invalid argument!",
                                                color=ERROR,
-                                               description="Please, specify a valid integer value in range between 1 and 5 for `quality`."))
+                                               description="Please, specify a valid integer value "
+                                               "in range between 1 and 5 for `quality`."))
                 return
         else:
             if not is_valid_city(arg):
                 await context.send(embed=Embed(title=":red_cirlce: Invalid argument!",
-                                           color=ERROR,
-                                           description=f"{arg} doesn't appear to be a valid city to ask prices from."))
+                                               color=ERROR,
+                                               description=f"{arg} doesn't appear to be a valid city "
+                                               "to ask prices from."))
                 return
             cities.append(arg)
     
@@ -88,19 +95,22 @@ async def price(context: Context, item_name: str, *args: str) -> None:
     if not data:
         await context.send(embed=Embed(title=":red_cirlce: There was an error",
                                        color=ERROR,
-                                       description="I've encountered an error trying to get gold prices from the API. Please, try again later."))
+                                       description="I've encountered an error trying to get gold "
+                                       "prices from the API. Please, try again later."))
         return
     
     embed: Embed = Embed(title=f"{data[0]["item_id"]} price.",
                          color=PRICE,
-                         description=f"Here are the price of {data[0]["item_id"]} in different cities on the :flag_eu: "
-                         "European server. You can find the full list of items [here](https://github.com/ao-data/ao-bin-dumps/blob/master/formatted/items.txt).")
+                         description=f"Here are the price of {data[0]["item_id"]} in different "
+                         "cities. You can find the full list of items [here](https://github.com/"
+                         "ao-data/ao-bin-dumps/blob/master/formatted/items.txt).")
     embed.set_thumbnail(url=image_render.fetch_item(item_name, quality))
     embed.set_footer(text="The data is provided by the Albion Online Data Project\n")
 
     for entry in data:
         embed.add_field(name=f"{entry["city"]}",
-                        value=f"Updated at: **{convert_api_timestamp(entry["sell_price_min_date"])}** and **{convert_api_timestamp(entry["buy_price_max_date"])}**\n"
+                        value=f"Updated at: **{convert_api_timestamp(entry["sell_price_min_date"])}**"
+                        f" and **{convert_api_timestamp(entry["buy_price_max_date"])}**\n"
                         f"Sold at: **{entry["sell_price_min"]}**\n"
                         f"Bought at: **{entry["buy_price_max"]}**")
     await context.send(embed=embed)
@@ -111,8 +121,10 @@ async def raise_price_error(context: Context, error: Any) -> None:
     if isinstance(error, BadArgument):
         await context.send(embed=Embed(title=":red_circle: Invalid argument!",
                                        color=ERROR,
-                                       description="Please, specify valid `item_name` and `quality` for the item you want to find.\n"
-                                       "You can find the list of items [here](https://github.com/ao-data/ao-bin-dumps/blob/master/formatted/items.txt)."))
+                                       description="Please, specify valid `item_name` and `quality` "
+                                       "for the item you want to find.\n"
+                                       "You can find the list of items [here](https://github.com/ao-"
+                                       "data/ao-bin-dumps/blob/master/formatted/items.txt)."))
 
 
 @bot.command()
@@ -126,7 +138,8 @@ async def set_server(context: Context, server: int) -> None:
     if server not in range(1, 4):
         await context.send(embed=Embed(title=":red_circle: Invalid argument!",
                                        color=ERROR,
-                                       description="Please, specify a valid integer value in range from 1 to 3 for `server` argument."))
+                                       description="Please, specify a valid integer value in range "
+                                       "from 1 to 3 for `server` argument."))
         return
 
     if not has_config(context.guild):
@@ -147,7 +160,8 @@ async def raise_set_server_error(context: Context, error: Any) -> None:
     if isinstance(error, BadArgument):
         await context.send(embed=Embed(title=":red_circle: Invalid argument!",
                                        color=ERROR,
-                                       description="Please, specify a valid integer value in range from 1 to 3 for `server` argument."))
+                                       description="Please, specify a valid integer value in range"
+                                       "from 1 to 3 for `server` argument."))
 
 
 @bot.command()
@@ -160,21 +174,32 @@ async def help(context: Context) -> None:
 
     cfg: dict[str, Any] = get_server_config(context.guild)
     embed = Embed(title=":wave: Hello!",
-                                   color=SUCCESS,
-                                   description="I'm Bridgewatcher, a discord bot created by <@692305905123065918> to simplify "
-                                   "Albion Online crafting, refining and trading for the players that enjoy pieceful activities "
-                                   "in the game.\n\n" "Use `;gold <hours>` to check the gold price and its changements on the European "
-                                   "server. You can check up to 24 prices at once. The default number of prices fetched is 3.\n\n"
-                                   "Use `;price <item_name> <quality> <cities>` to check the item price in all the in-game markets"
-                                   "(black market included).\n\n" "This project is made thanks to the Albion Online Data Project "
-                                   "which provides the bot with all the necessary data. If you want to help this project, install "
-                                   "the [Albion Online Data Project client](https://albion-online-data.com/).")
+                  color=SUCCESS,
+                  description="I'm Bridgewatcher, a Discord bot created by <@692305905123065918>.\n"
+                  "I can help you with crafting, refining, trading, and transporting goods all"
+                  " arround Albion on all the servers.\n\n"
+
+                  "Use `;gold <hours>` to get recent gold prices on the selected server. You "
+                  "can obtain up to 24 prices with this command.\n\n"
+
+                  "Use `;price <item_name> <quality> <cities>` to retrieve the price of an item."
+                  "The item name is a name required by the Albion Online Project API, the list of "
+                  "which you can find [here](https://github.com/ao-data/ao-bin-dumps/blob/master/"
+                  "formatted/items.txt). The quality represents the quality level of the item, and"
+                  " the cities are the points of sale where you want to get information.\n\n"
+
+                  "If you want to help this project, please install the [Albion Online Data "
+                  "Project client](https://albion-online-data.com/) that can fetch the latest"
+                  " data from the game.")
     embed.set_author(name="Made by DetectiveKaktus", url="https://github.com/detectivekaktus")
     match cfg.get("fetch_server"):
         case 1:
-            embed.add_field(name="Currently fetching on :flag_us: American server", value="")
+            embed.add_field(name="Currently fetching on :flag_us: American server",
+                            value="You can change the fetching server with `;set_server`.")
         case 2:
-            embed.add_field(name="Currently fetching on :flag_eu: European server", value="")
+            embed.add_field(name="Currently fetching on :flag_eu: European server",
+                            value="You can change the fetching server with `;set_server`.")
         case 3:
-            embed.add_field(name="Currently fetching on :flag_cn: Asian server", value="")
+            embed.add_field(name="Currently fetching on :flag_cn: Asian server",
+                            value="You can change the fetching server with `;set_server`.")
     await context.send(embed=embed)
