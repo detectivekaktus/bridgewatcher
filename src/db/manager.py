@@ -12,7 +12,7 @@ class DatabaseManager:
     def create_items_table(self) -> None:
         conn: Connection = connect(self.db_path)
         curs: Cursor = conn.cursor()
-        curs.execute("CREATE TABLE IF NOT EXISTS items(id INTEGER PRIMARY KEY, name TEXT, crafting_requirements TEXT)")
+        curs.execute("CREATE TABLE IF NOT EXISTS items(id INTEGER PRIMARY KEY, name TEXT, shop_category TEXT, shop_subcategory TEXT, crafting_requirements TEXT)")
         conn.commit()
         conn.close()
 
@@ -28,8 +28,11 @@ class DatabaseManager:
         for category in categories:
             for item in items["items"][category]:
                 if not isinstance(item, dict): continue
-                curs.execute("INSERT INTO items (name, crafting_requirements) VALUES (?, ?)",
-                             (item["@uniquename"], str(item["craftingrequirements"]) if "craftingrequirements" in item else None))
+                curs.execute("INSERT INTO items (name, shop_category, shop_subcategory, crafting_requirements) VALUES (?, ?, ?, ?)",
+                             (item["@uniquename"],
+                              item["@shopcategory"] if "@shopcategory" in item else None,
+                              item["@shopsubcategory1"] if "@shopsubcategory1" in item else None,
+                              str(item["craftingrequirements"]) if "craftingrequirements" in item else None))
                 conn.commit()
                 items_added += 1
 

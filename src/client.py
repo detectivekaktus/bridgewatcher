@@ -1,58 +1,53 @@
 #!/usr/bin/env python3
 from datetime import datetime
-from json import load
-from os import makedirs, path
-from typing import Any
-from discord import Activity, ActivityType, Guild, Intents, Status
-from discord.ext.commands import Bot
+from typing import Literal, Optional
+from discord import Activity, ActivityType, Guild, HTTPException, Intents, Object, Status
+from discord.ext.commands import Bot, Context, Greedy, guild_only, is_owner
+from src.commands.info import InfoCog
+from src.commands.settings import SettingsCog
+from src.config.config import create_server_config
 
 
 INTENTS: Intents = Intents.default()
 INTENTS.message_content = True
 bot: Bot = Bot(command_prefix=";",
                intents=INTENTS,
+               owner_id = 692305905123065918,
                activity=Activity(type=ActivityType.listening, name=";help"),
                status=Status.do_not_disturb)
 bot.remove_command("help")
 
 
-def create_server_config(guild: Guild) -> None:
-    if not guild: return
-    if not path.exists("servers/"):
-        makedirs("servers/")
-    write_config(guild, 1)
+@bot.command()
+@guild_only()
+@is_owner()
+async def sync(context: Context, guilds: Greedy[Object], spec: Optional[Literal["~", "*"]] = None) -> None:
+    if not guilds:
+        if spec == "~":
+            synced = await bot.tree.sync(guild=context.guild)
+            await context.send(f"Successfully synchronized {len(synced)} commands in the current server.")
+            return
+        elif spec == "*":
+            synced = await bot.tree.sync()
+            await context.send(f"Successfully synchronized {len(synced)} commands globally.")
+            return
+        elif spec != None:
+            await context.send(f"Unknown spec {spec}. No commands synchronized.")
+            return
+
+    synced = 0
+    for guild in guilds:
+        try:
+            await bot.tree.sync(guild=guild)
+        except HTTPException: pass
+        else:
+           synced += 1
+    await context.send(f"Successfully synchronized {synced} commands in {len(guilds)} servers.")
 
 
-def get_server_config(guild: Guild) -> dict[str, Any]:
-    if not has_config(guild):
-        create_server_config(guild)
-
-    with open(f"servers/{guild.id}.json", "r") as fconf:
-        cfg = load(fconf)
-    return cfg
-
-
-def update_server_config(guild: Guild, fetch_server: int) -> None:
-    if not guild: return
-    if not has_config(guild):
-        create_server_config(guild)
-        return
-    write_config(guild, fetch_server)
-
-
-def write_config(guild: Guild, fetch_server: int) -> None:
-    with open(f"servers/{guild.id}.json", "w") as config:
-        config.write("{\n")
-        config.write(f"  \"name\": \"{guild.name}\",\n")
-        config.write(f"  \"owner_id\": {guild.owner_id},\n")
-        config.write(f"  \"fetch_server\": {fetch_server}\n")
-        config.write("}\n")
-
-
-def has_config(guild: Guild) -> bool:
-    if not guild: return False
-    if not path.exists(f"servers/{guild.id}.json") or not path.exists("servers/"): return False
-    return True
+async def setup_bot(bot: Bot) -> None:
+    await bot.add_cog(InfoCog(bot))
+    await bot.add_cog(SettingsCog(bot))
 
 
 @bot.event

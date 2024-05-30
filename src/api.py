@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 from datetime import datetime
-from typing import Any, Final, List
+from typing import Any, Final, List, Optional
 from requests import ReadTimeout, Response, get
 
 
-SERVER_URLS_PREFIX: Final = {
+SERVER_URLS: Final = {
     1: "west",
     2: "europe",
     3: "east"
@@ -13,24 +13,27 @@ SERVER_URLS_PREFIX: Final = {
 
 class AODFetcher:
     def __init__(self, server: int, timeout: int = 5) -> None:
-        self.__server_prefix: str | None = SERVER_URLS_PREFIX.get(server)
+        self.__server_prefix: str | None = SERVER_URLS.get(server)
         self.__timeout: int = timeout
 
 
-    def fetch_gold(self, count: int = 3) -> List[dict[str, Any]] | None:
+    def fetch_gold(self, count: int = 3) -> Optional[List[dict[str, Any]]]:
         try:
-            response: Response = get(f"https://{self.__server_prefix}.albion-online-data.com/api/v2/stats/gold?count={count}", timeout=self.__timeout)
+            response: Response = get(f"https://{self.__server_prefix}.albion-online-data.com/api/v2/stats/gold?count={count}",
+                                     timeout=self.__timeout)
             if not response.ok: return None
             return response.json()
         except ReadTimeout:
             return None
 
-    def fetch_price(self, item_name: str, qualities: int = 1, cities: List[str] = []) -> List[dict[str, Any]] | None:
+    def fetch_price(self, item_name: str, qualities: int = 1, cities: List[str] = []) -> Optional[List[dict[str, Any]]]:
         try:
             if cities:
-                response: Response = get(f"https://{self.__server_prefix}.albion-online-data.com/api/v2/stats/prices/{item_name}.json?qualities={qualities}&locations={",".join(cities)}", timeout=self.__timeout)
+                response: Response = get(f"https://{self.__server_prefix}.albion-online-data.com/api/v2/stats/prices/{item_name}.json?qualities={qualities}&locations={",".join(cities)}",
+                                         timeout=self.__timeout)
             else:
-                response: Response = get(f"https://{self.__server_prefix}.albion-online-data.com/api/v2/stats/prices/{item_name}.json?qualities={qualities}", timeout=self.__timeout)
+                response: Response = get(f"https://{self.__server_prefix}.albion-online-data.com/api/v2/stats/prices/{item_name}.json?qualities={qualities}",
+                                         timeout=self.__timeout)
             if not response.ok: return None
             return response.json()
         except ReadTimeout:

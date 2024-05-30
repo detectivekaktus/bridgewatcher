@@ -3,6 +3,7 @@ from os import getenv
 from typing import Final
 from dotenv import load_dotenv
 
+
 ERROR:   Final = 0xff1231
 GOLD:    Final = 0xf5d62a
 PRICE:   Final = 0x2465ff

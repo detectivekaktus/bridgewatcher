@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
+from asyncio import run
 from sys import argv
 from os import path
 from typing import List, cast
 from src import DISCORD_TOKEN
-from src.client import bot
+from src.client import bot, setup_bot
 from src.db.manager import DatabaseManager
-import src.commands
 
 
 def usage() -> None:
@@ -44,6 +44,7 @@ def main() -> None:
             verify_configuration()
 
             if len(cliargs) - 1 == i:
+                run(setup_bot(bot))
                 bot.run(cast(str, DISCORD_TOKEN))
                 exit(0)
             else:
@@ -63,7 +64,7 @@ def main() -> None:
                 manager.upgrade_database()
                 exit(0)
             else:
-                crash(f"ERROR: unknown parameter {cliargs[i]} for the database subcommand.")
+                crash(f"ERROR: unknown flag {cliargs[i]} for the database subcommand.")
         case _:
             crash(f"ERROR: unknown subcommand {cliargs[i]}.")
 
