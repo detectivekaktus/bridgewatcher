@@ -9,11 +9,13 @@ from src.db.manager import DatabaseManager
 
 
 def usage() -> None:
-    print("Usage: ./bot.py [run | database] [--populate | --upgrade] ")
-    print("  run:      run the bot                                   ")
-    print("  database: access the bot's items database               ")
-    print("    --populate: insert data into database if doesn't exist")
-    print("    --upgrade:  update the data in the database           ")
+    print("Usage: ./bot.py [run | database] [--populate | --upgrade]  ")
+    print("  run:      run the bot                                    ")
+    print("  database: access the bot's items database                ")
+    print("    --populate: insert data into database if doesn't exist ")
+    print("    --upgrade:  update the data in the database            ")
+    print("    --destroy:  delete the entire bot's database           ")
+    print("    Use --entire to delete the database file from the disk.")
 
 
 def verify_configuration() -> None:
@@ -62,6 +64,16 @@ def main() -> None:
             elif cliargs[i] == "--upgrade":
                 manager: DatabaseManager = DatabaseManager("res/items.db")
                 manager.upgrade_database()
+                exit(0)
+            elif cliargs[i] == "--destroy":
+                manager: DatabaseManager = DatabaseManager("res/items.db")
+                i += 1
+                if len(cliargs) == i:
+                    manager.destroy(True)
+                elif cliargs[i] == "--entire":
+                    manager.destroy()
+                else:
+                    crash(f"ERROR: Unexpected flag {cliargs[i]} in sequence of `database` and `destroy` commands.")
                 exit(0)
             else:
                 crash(f"ERROR: unknown flag {cliargs[i]} for the database subcommand.")

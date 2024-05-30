@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from os import path
+from os import path, remove
 from sqlite3 import Connection, Cursor, connect
 from json import load
 
@@ -54,3 +54,13 @@ class DatabaseManager:
 
         self.create_items_table()
         self.populate_table()
+
+    def destroy(self, keep_file: bool = False) -> None:
+        if not keep_file:
+            remove(self.db_path)
+        else:
+            conn: Connection = connect(self.db_path)
+            curs: Cursor = conn.cursor()
+            curs.execute("DROP TABLE items")
+            conn.commit()
+            conn.close()
