@@ -154,11 +154,11 @@ class InfoCog(Cog):
             renderer: SBIRenderFetcher = SBIRenderFetcher()
             data: Optional[List[dict[str, Any]]] = fetcher.fetch_price(item_name, quality, cities)
             if not data:
-                await interaction.response.send_message(embed=Embed(title=":red_circle: Error!",
-                                                                    color=ERROR,
-                                                                    description="I couldn't handle you request due to "
-                                                                    "a server problem. Try again later."),
-                                                        ephemeral=True)
+                await interaction.followup.send(embed=Embed(title=":red_circle: Error!",
+                                                            color=ERROR,
+                                                            description="I couldn't handle you request due to "
+                                                            "a server problem. Try again later."),
+                                                ephemeral=True)
 
                 return
 
