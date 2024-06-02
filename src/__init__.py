@@ -13,5 +13,6 @@ AMERICA: Final = 1
 EUROPE:  Final = 2
 ASIA:    Final = 3
 
+
 load_dotenv()
 DISCORD_TOKEN: str | None = getenv("DISCORD_TOKEN")

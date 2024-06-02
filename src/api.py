@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from datetime import datetime
 from typing import Any, Final, List, Optional
+from sqlite3 import Connection, Cursor, connect
 from requests import ReadTimeout, Response, get
 
 
@@ -38,7 +39,19 @@ class AODFetcher:
             return response.json()
         except ReadTimeout:
             return None
-    
+
+    @staticmethod
+    def exists(item_name: str) -> bool:
+        if item_name[-2:] == "@1" or item_name[-2:] == "@2" or item_name[-2:] == "@3" or item_name[-2:] == "@4":
+            item_name = item_name[:-2]
+        conn: Connection = connect("res/items.db")
+        curs: Cursor = conn.cursor()
+        curs.execute("SELECT * FROM items WHERE name = ?", (item_name, ))
+        res = curs.fetchone()
+        conn.commit()
+        conn.close()
+        return True if res != None else False
+
 
 class SBIRenderFetcher:
     def fetch_item(self, identifier: str, quality: int = 1) -> str:
@@ -57,6 +70,30 @@ def get_percent_variation(data: List[dict], index: int) -> float:
 
 def convert_api_timestamp(date: str) -> str:
     return datetime.strptime(date, "%Y-%m-%dT%H:%M:%S").strftime("%d %B %Y, %H:%M:%S UTC")
+
+
+def parse_cities(cities: str) -> List[str]:
+    cities = cities.strip()
+    opened_quote = False
+    res: List[str] = []
+    word: str = ""
+
+    i = 0
+    while i < len(cities):
+        if cities[i] == '"':
+            opened_quote = not opened_quote
+        elif cities[i] == " ":
+            if not opened_quote:
+                res.append(word)
+                word = ""
+            else:
+                word += cities[i]
+        else:
+            word += cities[i]
+        i += 1
+    res.append(word)
+
+    return res
 
 
 def is_valid_city(city: str) -> bool:
