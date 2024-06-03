@@ -1,9 +1,21 @@
 #!/usr/bin/env python3
-from typing import Any
-from discord import Embed
-from discord.ext.commands import BadArgument, Bot, Cog, Context, command, guild_only
+from typing import Any, cast
+from discord import Embed, Guild
+from discord.ext.commands import BadArgument, Bot, Cog, Context, NoPrivateMessage, command, guild_only
 from src import ERROR_COLOR, SUCCESS_COLOR
 from src.config.config import create_server_config, get_server_config, has_config, update_server_config
+
+
+def strtoint_server(server: str) -> int:
+    match server.lower():
+        case "america":
+            return 1
+        case "europe":
+            return 2
+        case "asia":
+            return 3
+        case _:
+            return 1
 
 
 class SettingsCog(Cog):
@@ -14,24 +26,14 @@ class SettingsCog(Cog):
 
     @command()
     @guild_only()
-    async def set_server(self, context: Context, server: int) -> None:
-        if not context.guild:
-            await context.send(embed=Embed(title=":red_circle: Fatal error!",
-                                           color=ERROR_COLOR,
-                                           description="This command can be invoked only on a server!"))
-            return
+    async def set_server(self, context: Context, server: str | int) -> None:
+        if isinstance(server, str):
+            server = strtoint_server(server)
+
+        if not has_config(cast(Guild, context.guild)):
+            create_server_config(cast(Guild, context.guild))
     
-        if server not in range(1, 4):
-            await context.send(embed=Embed(title=":red_circle: Invalid argument!",
-                                           color=ERROR_COLOR,
-                                           description="Please, specify a valid integer value in range "
-                                           "from 1 to 3 for `server` argument."))
-            return
-    
-        if not has_config(context.guild):
-            create_server_config(context.guild)
-    
-        update_server_config(context.guild, server)
+        update_server_config(cast(Guild, context.guild), server)
         match server:
             case 1:
                 await context.send("Server successfully changed to :flag_us: America.")
@@ -52,28 +54,19 @@ class SettingsCog(Cog):
     @command()
     @guild_only()
     async def help(self, context: Context) -> None:
-        if not context.guild:
-            await context.send(embed=Embed(title=":red_circle: Fatal error!",
-                                           color=ERROR_COLOR,
-                                           description="This command can be invoked only on a server!"))
-            return
-    
-        cfg: dict[str, Any] = get_server_config(context.guild)
+        cfg: dict[str, Any] = get_server_config(cast(Guild, context.guild))
         embed = Embed(title=":wave: Hello!",
                       color=SUCCESS_COLOR,
                       description="I'm Bridgewatcher, a Discord bot created by <@692305905123065918>.\n"
                       "I can help you with crafting, refining, trading, and transporting goods all"
                       " arround Albion on all the servers.\n\n"
     
-                      "Use `;gold <hours>` to get recent gold prices on the selected server. You "
-                      "can obtain up to 24 prices with this command.\n\n"
+                      "Use `;gold <hours>` or `/gold <hours>` to get recent gold prices on the selected"
+                      " server. You can obtain up to 24 prices with this command.\n\n"
     
-                      "Use `;price <item_name> <quality> <cities>` to retrieve the price of an item."
-                      "The item name is a name required by the Albion Online Project API, the list of "
-                      "which you can find [here](https://github.com/ao-data/ao-bin-dumps/blob/master/"
-                      "formatted/items.txt). The quality represents the quality level of the item, and"
-                      " the cities are the points of sale where you want to get information.\n\n"
-    
+                      "Use `/price <item_name>` to get the most recent price of an item in different"
+                      " in-game markets.\n\n"
+
                       "If you want to help this project, please install the [Albion Online Data "
                       "Project client](https://albion-online-data.com/) that can fetch the latest"
                       " data from the game.")
@@ -89,3 +82,8 @@ class SettingsCog(Cog):
                 embed.add_field(name="Currently fetching on :flag_cn: Asian server",
                                 value="You can change the fetching server with `;set_server`.")
         await context.send(embed=embed)
+
+    @help.error
+    async def raise_help_error(self, context: Context, error: Any) -> None:
+        if isinstance(error, NoPrivateMessage):
+            await context.send("You can't use this command in private messages.")
