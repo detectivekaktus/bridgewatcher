@@ -2,7 +2,7 @@
 from typing import Any
 from discord import Embed
 from discord.ext.commands import BadArgument, Bot, Cog, Context, command, guild_only
-from src import ERROR, SUCCESS
+from src import ERROR_COLOR, SUCCESS_COLOR
 from src.config.config import create_server_config, get_server_config, has_config, update_server_config
 
 
@@ -17,13 +17,13 @@ class SettingsCog(Cog):
     async def set_server(self, context: Context, server: int) -> None:
         if not context.guild:
             await context.send(embed=Embed(title=":red_circle: Fatal error!",
-                                           color=ERROR,
+                                           color=ERROR_COLOR,
                                            description="This command can be invoked only on a server!"))
             return
     
         if server not in range(1, 4):
             await context.send(embed=Embed(title=":red_circle: Invalid argument!",
-                                           color=ERROR,
+                                           color=ERROR_COLOR,
                                            description="Please, specify a valid integer value in range "
                                            "from 1 to 3 for `server` argument."))
             return
@@ -44,7 +44,7 @@ class SettingsCog(Cog):
     async def raise_set_server_error(self, context: Context, error: Any) -> None:
         if isinstance(error, BadArgument):
             await context.send(embed=Embed(title=":red_circle: Invalid argument!",
-                                           color=ERROR,
+                                           color=ERROR_COLOR,
                                            description="Please, specify a valid integer value in range"
                                            "from 1 to 3 for `server` argument."))
     
@@ -54,13 +54,13 @@ class SettingsCog(Cog):
     async def help(self, context: Context) -> None:
         if not context.guild:
             await context.send(embed=Embed(title=":red_circle: Fatal error!",
-                                           color=ERROR,
+                                           color=ERROR_COLOR,
                                            description="This command can be invoked only on a server!"))
             return
     
         cfg: dict[str, Any] = get_server_config(context.guild)
         embed = Embed(title=":wave: Hello!",
-                      color=SUCCESS,
+                      color=SUCCESS_COLOR,
                       description="I'm Bridgewatcher, a Discord bot created by <@692305905123065918>.\n"
                       "I can help you with crafting, refining, trading, and transporting goods all"
                       " arround Albion on all the servers.\n\n"

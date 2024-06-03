@@ -4,10 +4,10 @@ from typing import Final
 from dotenv import load_dotenv
 
 
-ERROR:   Final = 0xff1231
-GOLD:    Final = 0xf5d62a
-PRICE:   Final = 0x2465ff
-SUCCESS: Final = 0x66f542
+ERROR_COLOR:   Final = 0xff1231
+GOLD_COLOR:    Final = 0xf5d62a
+PRICE_COLOR:   Final = 0x2465ff
+SUCCESS_COLOR: Final = 0x66f542
 
 AMERICA: Final = 1
 EUROPE:  Final = 2

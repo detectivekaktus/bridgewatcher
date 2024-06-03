@@ -6,51 +6,58 @@ from discord.ext.commands import BadArgument, Bot, Cog, guild_only
 from discord.ui import Button, Modal, TextInput, View, button
 from src.api import AODFetcher, SBIRenderFetcher, convert_api_timestamp, get_percent_variation, is_valid_city, parse_cities
 from src.config.config import get_server_config
-from src import ERROR, GOLD, PRICE
+from src import ERROR_COLOR, GOLD_COLOR, PRICE_COLOR
 
 
 class PriceView(View):
     def __init__(self, *, timeout: Optional[float] = 180) -> None:
         super().__init__(timeout=timeout)
-        self.quality_modal = QualityModal()
-        self.cities_modal = CitiesModal()
+        self.quality: int = 1
+        self.cities: List[str] = []
 
 
-    @button(label="Quality", style=ButtonStyle.blurple)
+    @button(label="Quality", style=ButtonStyle.gray)
     async def quality_button(self, interaction: Interaction, button: Button) -> None:
-        await interaction.response.send_modal(self.quality_modal)
+        await interaction.response.send_modal(QualityModal(self))
 
     @button(label="Cities", style=ButtonStyle.gray)
     async def cities_button(self, interaction: Interaction, button: Button) -> None:
-        await interaction.response.send_modal(self.cities_modal)
+        await interaction.response.send_modal(CitiesModal(self))
 
     @button(label="Submit", style=ButtonStyle.green)
     async def submit_button(self, interaction: Interaction, button: Button) -> None:
-        await interaction.response.send_message("Processing...", ephemeral=True)
+        await interaction.response.defer()
+        self.stop()
+
+    @button(label="Quit", style=ButtonStyle.red)
+    async def quit_button(self, interaction: Interaction, button: Button) -> None:
+        await interaction.response.defer()
         self.stop()
 
 
 class QualityModal(Modal):
-    def __init__(self, *, title: str = "Quality", timeout: Optional[float] = None, custom_id: str = "qualmod") -> None:
+    def __init__(self, view: PriceView, *, title: str = "Quality", timeout: Optional[float] = None, custom_id: str = "qualmod") -> None:
         super().__init__(title=title, timeout=timeout, custom_id=custom_id)
+        self.view = view
         self.quality = TextInput(label="Quality", placeholder="Enter a number from 1 to 5 here")
         self.add_item(self.quality)
 
     async def on_submit(self, interaction: Interaction) -> None:
         try:
             quality = int(self.quality.value)
-            await interaction.response.send_message(f"Successfully added {quality} as the quality parameter.",
-                                                    ephemeral=True)
-            self.stop()
+            if quality not in range(1, 6):
+                raise ValueError(f"{quality} is not in range from 1 to 5.")
+            self.view.quality = quality
+            await interaction.response.defer()
         except:
-            await interaction.response.send_message(f"{self.quality.value} is not valid integer from 1 to 5.\n\n"
-                                                    "Start a new conversation with the bot.",
+            await interaction.response.send_message(f"{self.quality.value} is not valid integer from 1 to 5.\n\n",
                                                     ephemeral=True)
 
 
 class CitiesModal(Modal):
-    def __init__(self, *, title: str = "Cities", timeout: Optional[float] = None, custom_id: str = "citmod") -> None:
+    def __init__(self, view: PriceView, *, title: str = "Cities", timeout: Optional[float] = None, custom_id: str = "citmod") -> None:
         super().__init__(title=title, timeout=timeout, custom_id=custom_id)
+        self.view = view
         self.cities = TextInput(label="Cities", placeholder="Enter a city here")
         self.add_item(self.cities)
 
@@ -58,13 +65,11 @@ class CitiesModal(Modal):
         cities = parse_cities(self.cities.value)
         for city in cities:
             if not is_valid_city(city):
-                await interaction.response.send_message(f"{city} doesn't appear to be a valid city.\n\n"
-                                                        "Start a new conversation with the bot.",
+                await interaction.response.send_message(f"{city} doesn't appear to be a valid city.\n\n",
                                                         ephemeral=True)
                 return
-        await interaction.response.send_message(f"Added {", ".join(cities)} cities to the list.",
-                                                ephemeral=True)
-        self.stop()
+        self.view.cities = cities
+        await interaction.response.defer()
 
 
 class InfoCog(Cog):
@@ -79,7 +84,7 @@ class InfoCog(Cog):
     async def gold(self, interaction: Interaction, count: int = 3) -> None:
         if count not in range(1, 25):
             await interaction.response.send_message(embed=Embed(title=":red_circle: Invalid argument!",
-                                                                color=ERROR,
+                                                                color=ERROR_COLOR,
                                                                 description="Please, specify a valid integer value in "
                                                                 "range between 1 and 24."))
             return
@@ -89,13 +94,13 @@ class InfoCog(Cog):
         data: Optional[List[dict[str, Any]]] = fetcher.fetch_gold(count + 1)
         if not data:
             await interaction.response.send_message(embed=Embed(title=":red_circle: There was an error",
-                                                                color=ERROR,
+                                                                color=ERROR_COLOR,
                                                                 description="I've encountered an error trying to get item "
                                                                 "prices from the API. Please, try again later."))
             return
 
         embed: Embed = Embed(title=":coin: Gold prices",
-                             color=GOLD,
+                             color=GOLD_COLOR,
                              description=f"Here are the past {count} gold prices.\n"
                              "Total percent variation in the specified period: "
                              f"**{round((data[0]["price"] / data[-1]["price"] - 1) * 100, 2)}%**\n"
@@ -115,7 +120,7 @@ class InfoCog(Cog):
     async def raise_gold_error(self, interaction: Interaction, error: Any) -> None:
         if isinstance(error, BadArgument):
             await interaction.response.send_message(embed=Embed(title=":red_circle: Invalid argument!",
-                                                                color=ERROR,
+                                                                color=ERROR_COLOR,
                                                                 description="Please, specify a valid integer value in range "
                                                                 "between 1 and 24."))
 
@@ -126,13 +131,13 @@ class InfoCog(Cog):
     async def price(self, interaction: Interaction, item_name: str) -> None:
         if not AODFetcher.exists(item_name):
             await interaction.response.send_message(embed=Embed(title=f":red_circle: {item_name} doesn't exist!",
-                                                          color=ERROR,
+                                                          color=ERROR_COLOR,
                                                           description=f"{item_name} is not an existing item!"))
             return
 
         view = PriceView(timeout=60)
         await interaction.response.send_message(embed=Embed(title="Price fetcher",
-                                                            color=PRICE,
+                                                            color=PRICE_COLOR,
                                                             description="Welcome to an updated version of the price"
                                                             " fetcher component of Bridgewatcher! Here you can modify"
                                                             " the data you want to fetch.\n\n"
@@ -144,18 +149,14 @@ class InfoCog(Cog):
                                                 view=view,
                                                 ephemeral=True)
         if not await view.wait():
-            quality_input: TextInput = cast(TextInput, view.quality_modal.children[0])
-            cities_input: TextInput = cast(TextInput, view.cities_modal.children[0])
-            quality: int = 1 if not quality_input.value else int(quality_input.value)
-            cities: List[str] = [] if not cities_input.value else parse_cities(cities_input.value)
-
-            cfg = get_server_config(cast(Guild, interaction.guild))
-            fetcher: AODFetcher = AODFetcher(cfg["fetch_server"])
+            message = await interaction.original_response()
+            await message.delete()
+            fetcher: AODFetcher = AODFetcher(get_server_config(cast(Guild, interaction.guild))["fetch_server"])
             renderer: SBIRenderFetcher = SBIRenderFetcher()
-            data: Optional[List[dict[str, Any]]] = fetcher.fetch_price(item_name, quality, cities)
+            data: Optional[List[dict[str, Any]]] = fetcher.fetch_price(item_name, view.quality, cast(List[str], view.cities))
             if not data:
                 await interaction.followup.send(embed=Embed(title=":red_circle: Error!",
-                                                            color=ERROR,
+                                                            color=ERROR_COLOR,
                                                             description="I couldn't handle you request due to "
                                                             "a server problem. Try again later."),
                                                 ephemeral=True)
@@ -163,11 +164,11 @@ class InfoCog(Cog):
                 return
 
             embed: Embed = Embed(title=f"{data[0]["item_id"]} price",
-                                 color=PRICE,
+                                 color=PRICE_COLOR,
                                  description=f"Here are the prices of {data[0]["item_id"]} in different "
                                  "cities. You can find the full list of item [here](https://github.com/"
                                  "ao-data/ao-bin-dumps/blob/master/formatted/items.txt).")
-            embed.set_thumbnail(url=renderer.fetch_item(item_name, quality))
+            embed.set_thumbnail(url=renderer.fetch_item(item_name, view.quality))
             embed.set_footer(text="The data is provided by the Albion Online Data Project.")
 
             for entry in data:
@@ -179,7 +180,7 @@ class InfoCog(Cog):
             await interaction.followup.send(embed=embed)
         else:
             await interaction.followup.send(embed=Embed(title=":red_circle: Timed out!",
-                                                        color=ERROR,
+                                                        color=ERROR_COLOR,
                                                         description="Your time has run out. Start a new "
                                                         "conversation with the bot to get the price."),
                                             ephemeral=True)
@@ -188,4 +189,4 @@ class InfoCog(Cog):
     async def raise_price_error(self, interaction: Interaction, error: Any) -> None:
         if isinstance(error, BadArgument):
             await interaction.response.send_message(embed=Embed(title=":red_circle: Invalid argument!",
-                                                                color=ERROR))
+                                                                color=ERROR_COLOR))
