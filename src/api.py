@@ -43,7 +43,7 @@ class AODFetcher:
 
     @staticmethod
     def exists(item_name: str) -> bool:
-        if item_name[-2:] in ("@1", "@2", "@3", "@4"):
+        if AODFetcher.is_enchanted(item_name):
             item_name = item_name[:-2]
         conn: Connection = connect("res/items.db")
         curs: Cursor = conn.cursor()
@@ -55,6 +55,8 @@ class AODFetcher:
 
     @staticmethod
     def is_craftable(item_name: str) -> bool:
+        if AODFetcher.is_enchanted(item_name):
+            item_name = item_name[:-2]
         conn: Connection = connect("res/items.db")
         curs: Cursor = conn.cursor()
         curs.execute("SELECT * FROM items WHERE name = ?", (item_name, ))
@@ -67,6 +69,19 @@ class AODFetcher:
     @staticmethod
     def is_enchanted(item_name: str) -> bool:
         return item_name[-2:] in ENCHANTMENTS
+
+    @staticmethod
+    def is_resource(item_name: str) -> bool:
+        if AODFetcher.is_enchanted(item_name):
+            item_name = item_name[:-2]
+        conn: Connection = connect("res/items.db")
+        curs: Cursor = conn.cursor()
+        curs.execute("SELECT * FROM items WHERE name = ?", (item_name, ))
+        item: Tuple = curs.fetchone()
+        conn.commit()
+        conn.close()
+
+        return item[2] == "resources"
 
 
 class SBIRenderFetcher:

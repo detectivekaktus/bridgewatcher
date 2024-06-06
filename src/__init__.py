@@ -20,12 +20,12 @@ ENCHANTMENTS: Final[Tuple[str, ...]] = ("@1", "@2", "@3", "@4")
 BONUS_RATE: Final = 28
 CRAFTING_BONUSES: Final[dict[str, Tuple]] = {
     "brecilien":     ("cape", "bag", "potion"),
-    "bridgewatch":   ("crossbow", "dagger", "cursestaff", "plate_armor", "cloth_shoes"),
-    "fort sterling": ("hammer", "spear", "holystaff", "plate_helmet", "cloth_armor"),
+    "bridgewatch":   ("rock", "crossbow", "dagger", "cursestaff", "plate_armor", "cloth_shoes"),
+    "fort sterling": ("planks", "hammer", "spear", "holystaff", "plate_helmet", "cloth_armor"),
     "caerleon":      ("gatherergear", "tools", "knuckles", "shapeshifterstaff"),
-    "lymhurst":      ("sword", "bow", "arcanestaff", "leather_helmet", "leather_shoes"),
-    "martlock":      ("axe", "quarterstaff", "froststaff", "plate_shoes", "offhand"),
-    "thetford":      ("mace", "naturestaff", "firestaff", "leather_armor", "cloth_helmet")
+    "lymhurst":      ("cloth", "sword", "bow", "arcanestaff", "leather_helmet", "leather_shoes"),
+    "martlock":      ("leather", "axe", "quarterstaff", "froststaff", "plate_shoes", "offhand"),
+    "thetford":      ("metalbar", "mace", "naturestaff", "firestaff", "leather_armor", "cloth_helmet")
 }
 
 

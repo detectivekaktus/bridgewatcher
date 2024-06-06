@@ -6,8 +6,7 @@ from src import CRAFTING_BONUSES
 
 
 class Crafter:
-    def __init__(self, item_name: str, resource_prices: dict[str, int], resources: dict[str, int], requirements: dict[str, int], bonus: float) -> None:
-        self._item_name: str = item_name
+    def __init__(self, resource_prices: dict[str, int], resources: dict[str, int], requirements: dict[str, int], bonus: float) -> None:
         self._resource_prices: dict[str, int] = resource_prices
         self._resources: dict[str, int] = resources
         self._requirements: dict[str, int] = requirements

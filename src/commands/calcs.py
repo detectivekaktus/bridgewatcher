@@ -17,6 +17,7 @@ class CraftingView(View):
     def __init__(self, item_name: str, *, timeout: Optional[float] = 180):
         super().__init__(timeout=timeout)
         self.item_name: str = item_name
+        self.is_enchanted: bool = False
         self.craft_city: Optional[str] = None
         self.sell_city: Optional[str] = None
         self.resources: dict[str, int] = {}
@@ -83,16 +84,22 @@ class ResourcesModal(Modal):
 
         conn: Connection = connect("res/items.db")
         curs: Cursor = conn.cursor()
-        curs.execute("SELECT * FROM items WHERE name = ?", (self.view.item_name, ))
+        if view.is_enchanted:
+            curs.execute("SELECT * FROM items WHERE name = ?", (self.view.item_name[:-2], ))
+        else:
+            curs.execute("SELECT * FROM items WHERE name = ?", (self.view.item_name, ))
         res: List[dict[str, Any]] | dict[str, Any] = loads(curs.fetchone()[4])
         requirements: List[dict[str, Any]] = res["craftresource"] if isinstance(res, dict) else res[0]["craftresource"]
         conn.commit()
         conn.close()
+        print(res)
         
         self.txt_inputs: List[TextInput] = []
         placeholders = ("Eg. 100", "Eg. 3350", "Eg. 305", "Eg. 777")
         
         for requirement in requirements:
+            if self.view.is_enchanted and int(requirement["@uniquename"][1]) > 3:
+                requirement["@uniquename"] = f"{requirement["@uniquename"]}{view.item_name[-2:]}"
             self.view.crafting_requirements[requirement["@uniquename"]] = int(requirement["@count"])
             txt_input = TextInput(label=requirement["@uniquename"], placeholder=choice(placeholders))
             self.txt_inputs.append(txt_input)
@@ -142,15 +149,7 @@ class CalcsCog(Cog):
     async def craft(self, interaction: Interaction, item_name: str) -> None:
         item_name = item_name.upper()
 
-        if AODFetcher.is_enchanted(item_name):
-            await interaction.response.send_message(embed=Embed(title=f":red_circle: I am a potato!",
-                                                                color=ERROR_COLOR,
-                                                                description="My master haven't taught me how to craft"
-                                                                " enchanted items! Wait for an update to start crafting"
-                                                                " enchanted items with me."))
-            return
-
-        if not AODFetcher.exists(item_name):
+        if (AODFetcher.is_enchanted(item_name) and int(item_name[1]) < 4) or (not AODFetcher.exists(item_name)):
             await interaction.response.send_message(embed=Embed(title=f":red_circle: {item_name} doesn't exist!",
                                                                 color=ERROR_COLOR,
                                                                 description=f"{item_name} is not an existing item!"))
@@ -163,6 +162,7 @@ class CalcsCog(Cog):
             return
 
         view: CraftingView = CraftingView(item_name, timeout=120)
+        view.is_enchanted = AODFetcher.is_enchanted(item_name)
         await interaction.response.send_message(embed=Embed(title="Crafting calculator",
                                                             color=CRAFTING_COLOR,
                                                             description="Let's craft something! Use the buttons below"
@@ -204,7 +204,7 @@ class CalcsCog(Cog):
 
                 return
             if not view.craft_city:
-                if (city := find_crafting_bonus_city(item_name)) != None:
+                if (city := find_crafting_bonus_city(item_name[:-2] if view.is_enchanted else item_name)) != None:
                     view.craft_city = city
                     if view.return_rate == 15:
                         view.return_rate = BONUS_RATE
@@ -226,10 +226,8 @@ class CalcsCog(Cog):
 
                 resource_prices[resource] = resource_data[0]["sell_price_min"]
 
-            print(data[CITIES.index(view.sell_city.lower())])
-            [print(title, price) for title, price in resource_prices.items()]
-
-            crafter: Crafter = Crafter(item_name, resource_prices, view.resources, view.crafting_requirements, view.return_rate)
+            print(resource_prices)
+            crafter: Crafter = Crafter(resource_prices, view.resources, view.crafting_requirements, view.return_rate)
             result: dict[str, Any] = crafter.printable(data[CITIES.index(view.sell_city.lower())])
             embed: Embed = Embed(title=f"Crafting {item_name}...",
                                  color=CRAFTING_COLOR,
