@@ -15,6 +15,7 @@ EUROPE:  Final = 2
 ASIA:    Final = 3
 
 CITIES: Final[Tuple[str, ...]] = ("black market", "brecilien", "bridgewatch", "caerleon", "fort sterling", "lymhurst", "thetford")
+ENCHANTMENTS: Final[Tuple[str, ...]] = ("@1", "@2", "@3", "@4")
 
 BONUS_RATE: Final = 28
 CRAFTING_BONUSES: Final[dict[str, Tuple]] = {

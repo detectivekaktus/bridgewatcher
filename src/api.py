@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Any, Final, List, Optional, Tuple
 from sqlite3 import Connection, Cursor, connect
 from requests import ReadTimeout, Response, get
-from src import CITIES
+from src import CITIES, ENCHANTMENTS
 
 
 SERVER_URLS: Final = {
@@ -66,7 +66,7 @@ class AODFetcher:
 
     @staticmethod
     def is_enchanted(item_name: str) -> bool:
-        return item_name[-2:] in CITIES
+        return item_name[-2:] in ENCHANTMENTS
 
 
 class SBIRenderFetcher:
