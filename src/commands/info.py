@@ -99,9 +99,9 @@ class InfoCog(Cog):
                              color=GOLD_COLOR,
                              description=f"Here are the past {count} gold prices.\n"
                              "Total percent variation in the specified period: "
-                             f"**{round((data[0]["price"] / data[-1]["price"] - 1) * 100, 2)}%**\n"
+                             f"**{round((data[0]["price"] / data[-1]["price"] - 1) * 100, 2):,}%**\n"
                              "Total numeric variation in the specified period: "
-                             f"**{(data[0]["price"] - data[-1]["price"])}**")
+                             f"**{(data[0]["price"] - data[-1]["price"]):,}**")
         embed.set_footer(text="The data is provided by the Albion Online Data Project\n")
 
         for i in range(len(data) - 1):
@@ -172,8 +172,8 @@ class InfoCog(Cog):
                 embed.add_field(name=f"{entry["city"]}",
                                 value=f"Updated at: **{convert_api_timestamp(entry["sell_price_min_date"])}** "
                                 f"and **{convert_api_timestamp(entry["buy_price_max_date"])}**\n"
-                                f"Sold at: **{entry["sell_price_min"]}**\n"
-                                f"Bought at: **{entry["buy_price_max"]}**")
+                                f"Sold at: **{entry["sell_price_min"]:,}**\n"
+                                f"Bought at: **{entry["buy_price_max"]:,}**")
             await interaction.followup.send(embed=embed)
         else:
             message = await interaction.original_response()

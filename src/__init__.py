@@ -14,7 +14,7 @@ AMERICA: Final = 1
 EUROPE:  Final = 2
 ASIA:    Final = 3
 
-CITIES: Final[Tuple[str, ...]] = ("black market", "brecilien", "bridgewatch", "caerleon", "fort sterling", "lymhurst", "thetford")
+CITIES: Final[Tuple[str, ...]] = ("black market", "brecilien", "bridgewatch", "caerleon", "fort sterling", "lymhurst", "martlock", "thetford")
 ENCHANTMENTS: Final[Tuple[str, ...]] = ("@1", "@2", "@3", "@4")
 
 BONUS_RATE: Final = 28

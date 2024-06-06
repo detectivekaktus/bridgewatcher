@@ -92,7 +92,6 @@ class ResourcesModal(Modal):
         requirements: List[dict[str, Any]] = res["craftresource"] if isinstance(res, dict) else res[0]["craftresource"]
         conn.commit()
         conn.close()
-        print(res)
         
         self.txt_inputs: List[TextInput] = []
         placeholders = ("Eg. 100", "Eg. 3350", "Eg. 305", "Eg. 777")
@@ -114,6 +113,7 @@ class ResourcesModal(Modal):
                 await interaction.response.send_message("Some of your resource values are not valid.",
                                                         ephemeral=True,
                                                         delete_after=5)
+                return
 
         await interaction.response.defer()
 
@@ -135,6 +135,7 @@ class ReturnModal(Modal):
             await interaction.response.defer()
         except ValueError:
             await interaction.response.send_message(f"{self.return_rate.value} is not a valid return rate.")
+            return
 
 
 class CalcsCog(Cog):
@@ -226,7 +227,6 @@ class CalcsCog(Cog):
 
                 resource_prices[resource] = resource_data[0]["sell_price_min"]
 
-            print(resource_prices)
             crafter: Crafter = Crafter(resource_prices, view.resources, view.crafting_requirements, view.return_rate)
             result: dict[str, Any] = crafter.printable(data[CITIES.index(view.sell_city.lower())])
             embed: Embed = Embed(title=f"Crafting {item_name}...",
