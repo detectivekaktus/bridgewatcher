@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Literal, Optional
 from discord import Activity, ActivityType, Guild, HTTPException, Intents, Object, Status
 from discord.ext.commands import Bot, Context, Greedy, guild_only, is_owner
+from src.commands.calcs import CalcsCog
 from src.commands.info import InfoCog
 from src.commands.settings import SettingsCog
 from src.config.config import create_server_config
@@ -48,6 +49,7 @@ async def sync(context: Context, guilds: Greedy[Object], spec: Optional[Literal[
 async def setup_bot(bot: Bot) -> None:
     await bot.add_cog(InfoCog(bot))
     await bot.add_cog(SettingsCog(bot))
+    await bot.add_cog(CalcsCog(bot))
 
 
 @bot.event

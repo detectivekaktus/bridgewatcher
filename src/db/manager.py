@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from os import path, remove
 from sqlite3 import Connection, Cursor, connect
-from json import load
+from json import dumps, load
 
 
 class DatabaseManager:
@@ -32,7 +32,8 @@ class DatabaseManager:
                              (item["@uniquename"],
                               item["@shopcategory"] if "@shopcategory" in item else None,
                               item["@shopsubcategory1"] if "@shopsubcategory1" in item else None,
-                              str(item["craftingrequirements"]) if "craftingrequirements" in item else None))
+                              dumps(item["craftingrequirements"]) if "craftingrequirements" in item else None
+))
                 conn.commit()
                 items_added += 1
 

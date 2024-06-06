@@ -4,7 +4,7 @@ from discord import ButtonStyle, Embed, Guild, Interaction
 from discord.app_commands import command, describe
 from discord.ext.commands import BadArgument, Bot, Cog, guild_only
 from discord.ui import Button, Modal, TextInput, View, button
-from src.api import AODFetcher, SBIRenderFetcher, convert_api_timestamp, get_percent_variation, is_valid_city, parse_cities
+from src.api import AODFetcher, SBIRenderFetcher, are_valid_cities, convert_api_timestamp, get_percent_variation, parse_cities
 from src.config.config import get_server_config
 from src import ERROR_COLOR, GOLD_COLOR, PRICE_COLOR
 
@@ -29,17 +29,12 @@ class PriceView(View):
         await interaction.response.defer()
         self.stop()
 
-    @button(label="Quit", style=ButtonStyle.red)
-    async def quit_button(self, interaction: Interaction, button: Button) -> None:
-        await interaction.response.defer()
-        self.stop()
-
 
 class QualityModal(Modal):
     def __init__(self, view: PriceView, *, title: str = "Quality", timeout: Optional[float] = None, custom_id: str = "qualmod") -> None:
         super().__init__(title=title, timeout=timeout, custom_id=custom_id)
-        self.view = view
-        self.quality = TextInput(label="Quality", placeholder="Enter a number from 1 to 5 here")
+        self.view: PriceView = view
+        self.quality: TextInput = TextInput(label=title, placeholder="Enter a number from 1 to 5 here")
         self.add_item(self.quality)
 
     async def on_submit(self, interaction: Interaction) -> None:
@@ -51,23 +46,24 @@ class QualityModal(Modal):
             await interaction.response.defer()
         except:
             await interaction.response.send_message(f"{self.quality.value} is not valid integer from 1 to 5.\n\n",
-                                                    ephemeral=True)
+                                                    ephemeral=True,
+                                                    delete_after=5)
 
 
 class CitiesModal(Modal):
     def __init__(self, view: PriceView, *, title: str = "Cities", timeout: Optional[float] = None, custom_id: str = "citmod") -> None:
         super().__init__(title=title, timeout=timeout, custom_id=custom_id)
-        self.view = view
-        self.cities = TextInput(label="Cities", placeholder="Enter a city here")
+        self.view: PriceView = view
+        self.cities: TextInput = TextInput(label=title, placeholder="Enter a city here")
         self.add_item(self.cities)
 
     async def on_submit(self, interaction: Interaction) -> None:
-        cities = parse_cities(self.cities.value)
-        for city in cities:
-            if not is_valid_city(city):
-                await interaction.response.send_message(f"{city} doesn't appear to be a valid city.\n\n",
-                                                        ephemeral=True)
-                return
+        cities: List[str] = parse_cities(self.cities.value)
+        if not are_valid_cities(cities):
+            await interaction.response.send_message(f"Some city doesn't appear to be a valid city.\n\n",
+                                                    ephemeral=True,
+                                                    delete_after=5)
+            return
         self.view.cities = cities
         await interaction.response.defer()
 
@@ -129,6 +125,8 @@ class InfoCog(Cog):
     @describe(item_name="The Albion Online Data Project API item name.")
     @guild_only()
     async def price(self, interaction: Interaction, item_name: str) -> None:
+        item_name = item_name.upper()
+
         if not AODFetcher.exists(item_name):
             await interaction.response.send_message(embed=Embed(title=f":red_circle: {item_name} doesn't exist!",
                                                           color=ERROR_COLOR,
@@ -152,7 +150,6 @@ class InfoCog(Cog):
             message = await interaction.original_response()
             await message.delete()
             fetcher: AODFetcher = AODFetcher(get_server_config(cast(Guild, interaction.guild))["fetch_server"])
-            renderer: SBIRenderFetcher = SBIRenderFetcher()
             data: Optional[List[dict[str, Any]]] = fetcher.fetch_price(item_name, view.quality, cast(List[str], view.cities))
             if not data:
                 await interaction.followup.send(embed=Embed(title=":red_circle: Error!",
@@ -168,7 +165,7 @@ class InfoCog(Cog):
                                  description=f"Here are the prices of {data[0]["item_id"]} in different "
                                  "cities. You can find the full list of item [here](https://github.com/"
                                  "ao-data/ao-bin-dumps/blob/master/formatted/items.txt).")
-            embed.set_thumbnail(url=renderer.fetch_item(item_name, view.quality))
+            embed.set_thumbnail(url=SBIRenderFetcher.fetch_item(item_name, view.quality))
             embed.set_footer(text="The data is provided by the Albion Online Data Project.")
 
             for entry in data:
@@ -179,6 +176,8 @@ class InfoCog(Cog):
                                 f"Bought at: **{entry["buy_price_max"]}**")
             await interaction.followup.send(embed=embed)
         else:
+            message = await interaction.original_response()
+            await message.delete()
             await interaction.followup.send(embed=Embed(title=":red_circle: Timed out!",
                                                         color=ERROR_COLOR,
                                                         description="Your time has run out. Start a new "

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 from datetime import datetime
-from typing import Any, Final, List, Optional
+from typing import Any, Final, List, Optional, Tuple
 from sqlite3 import Connection, Cursor, connect
 from requests import ReadTimeout, Response, get
+from src import CITIES
 
 
 SERVER_URLS: Final = {
@@ -42,25 +43,43 @@ class AODFetcher:
 
     @staticmethod
     def exists(item_name: str) -> bool:
-        if item_name[-2:] == "@1" or item_name[-2:] == "@2" or item_name[-2:] == "@3" or item_name[-2:] == "@4":
+        if item_name[-2:] in ("@1", "@2", "@3", "@4"):
             item_name = item_name[:-2]
         conn: Connection = connect("res/items.db")
         curs: Cursor = conn.cursor()
         curs.execute("SELECT * FROM items WHERE name = ?", (item_name, ))
-        res = curs.fetchone()
+        res: Tuple = curs.fetchone()
         conn.commit()
         conn.close()
         return True if res != None else False
 
+    @staticmethod
+    def is_craftable(item_name: str) -> bool:
+        conn: Connection = connect("res/items.db")
+        curs: Cursor = conn.cursor()
+        curs.execute("SELECT * FROM items WHERE name = ?", (item_name, ))
+        item: Tuple = curs.fetchone()
+        conn.commit()
+        conn.close()
+
+        return all([item[4] != None, item[2] != "artefacts"])
+
+    @staticmethod
+    def is_enchanted(item_name: str) -> bool:
+        return item_name[-2:] in CITIES
+
 
 class SBIRenderFetcher:
-    def fetch_item(self, identifier: str, quality: int = 1) -> str:
+    @staticmethod
+    def fetch_item(identifier: str, quality: int = 1) -> str:
         return f"https://render.albiononline.com/v1/item/{identifier}.png?quality={quality}"
 
-    def fetch_spell(self, identifier: str) -> str:
+    @staticmethod
+    def fetch_spell(identifier: str) -> str:
         return f"https://render.albiononline.com/v1/spell/{identifier}.png"
 
-    def fetch_wardrobe(self, identifier: str) -> str:
+    @staticmethod
+    def fetch_wardrobe(identifier: str) -> str:
         return f"https://render.albiononline.com/v1/wardrobe/{identifier}.png" 
 
 
@@ -97,4 +116,11 @@ def parse_cities(cities: str) -> List[str]:
 
 
 def is_valid_city(city: str) -> bool:
-    return city.lower() in ("black market", "brecilien", "bridgewatch", "caerleon", "fort sterling", "lymhurst", "martlock", "thetford")
+    return city.lower() in CITIES
+
+def are_valid_cities(cities: List[str]) -> bool:
+    for city in cities:
+        if not is_valid_city(city):
+            return False
+
+    return True
