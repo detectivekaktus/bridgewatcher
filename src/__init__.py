@@ -16,8 +16,10 @@ ASIA:    Final = 3
 
 CITIES: Final[Tuple[str, ...]] = ("black market", "brecilien", "bridgewatch", "caerleon", "fort sterling", "lymhurst", "martlock", "thetford")
 ENCHANTMENTS: Final[Tuple[str, ...]] = ("@1", "@2", "@3", "@4")
+NON_CRAFTABLE: Final[Tuple[str, ...]] = ("artefacts", "mounts")
 
-BONUS_RATE: Final = 28
+DEFAULT_RATE: Final[int] = 15
+BONUS_RATE: Final[int]   = 28
 CRAFTING_BONUSES: Final[dict[str, Tuple]] = {
     "brecilien":     ("cape", "bag", "potion"),
     "bridgewatch":   ("rock", "crossbow", "dagger", "cursestaff", "plate_armor", "cloth_shoes"),

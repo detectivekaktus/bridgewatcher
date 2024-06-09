@@ -7,7 +7,7 @@ from discord import ButtonStyle, Embed, Guild, Interaction
 from discord.app_commands import command, describe, guild_only
 from discord.ext.commands import Bot, Cog
 from discord.ui import Button, Modal, TextInput, View, button
-from src import CITIES, CRAFTING_COLOR, ERROR_COLOR, BONUS_RATE
+from src import CITIES, CRAFTING_COLOR, DEFAULT_RATE, ERROR_COLOR, BONUS_RATE
 from src.api import AODFetcher, SBIRenderFetcher, is_valid_city, parse_cities
 from src.config.config import get_server_config
 from src.calc import Crafter, find_crafting_bonus_city, find_least_expensive_city, find_most_expensive_city
@@ -22,7 +22,7 @@ class CraftingView(View):
         self.sell_city: Optional[str] = None
         self.resources: dict[str, int] = {}
         self.crafting_requirements: dict[str, int] = {}
-        self.return_rate: float = 15
+        self.return_rate: float = DEFAULT_RATE
 
 
     @button(label="Craft city", style=ButtonStyle.gray)
@@ -84,7 +84,9 @@ class ResourcesModal(Modal):
 
         conn: Connection = connect("res/items.db")
         curs: Cursor = conn.cursor()
-        if view.is_enchanted:
+        if self.view.is_enchanted and AODFetcher.is_resource(self.view.item_name):
+            curs.execute("SELECT * FROM items WHERE name = ?", (self.view.item_name[:-9], ))
+        elif self.view.is_enchanted:
             curs.execute("SELECT * FROM items WHERE name = ?", (self.view.item_name[:-2], ))
         else:
             curs.execute("SELECT * FROM items WHERE name = ?", (self.view.item_name, ))
@@ -98,7 +100,11 @@ class ResourcesModal(Modal):
         
         for requirement in requirements:
             if self.view.is_enchanted and int(requirement["@uniquename"][1]) > 3:
-                requirement["@uniquename"] = f"{requirement["@uniquename"]}{view.item_name[-2:]}"
+                if not AODFetcher.is_resource(requirement["@uniquename"]) and not AODFetcher.is_artefact(requirement["@uniquename"]):
+                    requirement["@uniquename"] = f"{requirement["@uniquename"]}{view.item_name[-2:]}" 
+                elif AODFetcher.is_resource(requirement["@uniquename"]):
+                    requirement["@uniquename"] = f"{requirement["@uniquename"]}_LEVEL{view.item_name[-1]}@{view.item_name[-1]}"
+
             self.view.crafting_requirements[requirement["@uniquename"]] = int(requirement["@count"])
             txt_input = TextInput(label=requirement["@uniquename"], placeholder=choice(placeholders))
             self.txt_inputs.append(txt_input)
@@ -207,7 +213,7 @@ class CalcsCog(Cog):
             if not view.craft_city:
                 if (city := find_crafting_bonus_city(item_name[:-2] if view.is_enchanted else item_name)) != None:
                     view.craft_city = city
-                    if view.return_rate == 15:
+                    if view.return_rate == DEFAULT_RATE:
                         view.return_rate = BONUS_RATE
                 else:
                     view.craft_city = find_least_expensive_city(data)
@@ -224,9 +230,10 @@ class CalcsCog(Cog):
                                                                 "a server problem. Try again later."),
                                                     ephemeral=True)
                     return
-
+                print(resource_data)
                 resource_prices[resource] = resource_data[0]["sell_price_min"]
 
+            print(resource_prices)
             crafter: Crafter = Crafter(resource_prices, view.resources, view.crafting_requirements, view.return_rate)
             result: dict[str, Any] = crafter.printable(data[CITIES.index(view.sell_city.lower())])
             embed: Embed = Embed(title=f"Crafting {item_name}...",

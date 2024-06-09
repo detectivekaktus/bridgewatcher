@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Any, Final, List, Optional, Tuple
 from sqlite3 import Connection, Cursor, connect
 from requests import ReadTimeout, Response, get
-from src import CITIES, ENCHANTMENTS
+from src import CITIES, ENCHANTMENTS, NON_CRAFTABLE
 
 
 SERVER_URLS: Final = {
@@ -43,6 +43,9 @@ class AODFetcher:
 
     @staticmethod
     def exists(item_name: str) -> bool:
+        if int(item_name[1]) < 4 and AODFetcher.is_enchanted(item_name):
+            return False
+
         if AODFetcher.is_enchanted(item_name):
             item_name = item_name[:-2]
         conn: Connection = connect("res/items.db")
@@ -64,7 +67,14 @@ class AODFetcher:
         conn.commit()
         conn.close()
 
-        return all([item[4] != None, item[2] != "artefacts"])
+        if not item[4]:
+            return False
+
+        for type in NON_CRAFTABLE:
+            if type in item:
+                return False
+
+        return True
 
     @staticmethod
     def is_enchanted(item_name: str) -> bool:
@@ -81,7 +91,21 @@ class AODFetcher:
         conn.commit()
         conn.close()
 
-        return item[2] == "resources"
+        return "resources" in item
+
+    @staticmethod
+    def is_artefact(item_name: str) -> bool:
+        if AODFetcher.is_enchanted(item_name):
+            return False
+
+        conn: Connection = connect("res/items.db")
+        curs: Cursor = conn.cursor()
+        curs.execute("SELECT * FROM items where name = ?", (item_name, ))
+        item: Tuple = curs.fetchone()
+        conn.commit()
+        conn.close()
+
+        return "artefacts" in item
 
 
 class SBIRenderFetcher:
