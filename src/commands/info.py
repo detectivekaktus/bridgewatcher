@@ -4,7 +4,7 @@ from discord import ButtonStyle, Embed, Guild, Interaction
 from discord.app_commands import command, describe
 from discord.ext.commands import BadArgument, Bot, Cog, guild_only
 from discord.ui import Button, Modal, TextInput, View, button
-from src.api import AODFetcher, SBIRenderFetcher, are_valid_cities, convert_api_timestamp, get_percent_variation, parse_cities
+from src.api import AODFetcher, ItemManager, SBIRenderFetcher, are_valid_cities, convert_api_timestamp, get_percent_variation, parse_cities
 from src.config.config import get_server_config
 from src import ERROR_COLOR, GOLD_COLOR, PRICE_COLOR
 
@@ -127,7 +127,7 @@ class InfoCog(Cog):
     async def price(self, interaction: Interaction, item_name: str) -> None:
         item_name = item_name.upper()
 
-        if not AODFetcher.exists(item_name):
+        if not ItemManager.exists(item_name):
             await interaction.response.send_message(embed=Embed(title=f":red_circle: {item_name} doesn't exist!",
                                                           color=ERROR_COLOR,
                                                           description=f"{item_name} is not an existing item!"))
@@ -149,6 +149,7 @@ class InfoCog(Cog):
         if not await view.wait():
             message = await interaction.original_response()
             await message.delete()
+
             fetcher: AODFetcher = AODFetcher(get_server_config(cast(Guild, interaction.guild))["fetch_server"])
             data: Optional[List[dict[str, Any]]] = fetcher.fetch_price(item_name, view.quality, cast(List[str], view.cities))
             if not data:

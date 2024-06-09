@@ -41,12 +41,14 @@ class AODFetcher:
         except ReadTimeout:
             return None
 
+
+class ItemManager:
     @staticmethod
     def exists(item_name: str) -> bool:
-        if int(item_name[1]) < 4 and AODFetcher.is_enchanted(item_name):
+        if int(item_name[1]) < 4 and ItemManager.is_enchanted(item_name):
             return False
 
-        if AODFetcher.is_enchanted(item_name):
+        if ItemManager.is_enchanted(item_name):
             item_name = item_name[:-2]
         conn: Connection = connect("res/items.db")
         curs: Cursor = conn.cursor()
@@ -58,7 +60,7 @@ class AODFetcher:
 
     @staticmethod
     def is_craftable(item_name: str) -> bool:
-        if AODFetcher.is_enchanted(item_name):
+        if ItemManager.is_enchanted(item_name):
             item_name = item_name[:-2]
         conn: Connection = connect("res/items.db")
         curs: Cursor = conn.cursor()
@@ -82,7 +84,7 @@ class AODFetcher:
 
     @staticmethod
     def is_resource(item_name: str) -> bool:
-        if AODFetcher.is_enchanted(item_name):
+        if ItemManager.is_enchanted(item_name):
             item_name = item_name[:-2]
         conn: Connection = connect("res/items.db")
         curs: Cursor = conn.cursor()
@@ -95,7 +97,7 @@ class AODFetcher:
 
     @staticmethod
     def is_artefact(item_name: str) -> bool:
-        if AODFetcher.is_enchanted(item_name):
+        if ItemManager.is_enchanted(item_name):
             return False
 
         conn: Connection = connect("res/items.db")

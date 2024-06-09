@@ -26,15 +26,17 @@ class SettingsCog(Cog):
 
     @command()
     @guild_only()
-    async def set_server(self, context: Context, server: str | int) -> None:
-        if isinstance(server, str):
-            server = strtoint_server(server)
+    async def set_server(self, context: Context, server: str) -> None:
+        if server.lower() not in ("america", "europe", "asia"):
+            await context.send(f"Unknown server {server}. Please, select a valid server.")
+            return
 
+        fetch_server: int = strtoint_server(server.lower())
         if not has_config(cast(Guild, context.guild)):
             create_server_config(cast(Guild, context.guild))
     
-        update_server_config(cast(Guild, context.guild), server)
-        match server:
+        update_server_config(cast(Guild, context.guild), fetch_server)
+        match fetch_server:
             case 1:
                 await context.send("Server successfully changed to :flag_us: America.")
             case 2:
@@ -71,7 +73,7 @@ class SettingsCog(Cog):
                       "Project client](https://albion-online-data.com/) that can fetch the latest"
                       " data from the game.")
         embed.set_author(name="Made by DetectiveKaktus", url="https://github.com/detectivekaktus")
-        match cfg.get("fetch_server"):
+        match cfg["fetch_server"]:
             case 1:
                 embed.add_field(name="Currently fetching on :flag_us: American server",
                                 value="You can change the fetching server with `;set_server`.")

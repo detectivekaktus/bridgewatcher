@@ -1,14 +1,20 @@
 #!/usr/bin/env pytnon3
-from json import load
 from os import makedirs, path
-from typing import Any
+from sqlite3 import Connection, Cursor, connect
+from typing import Any, Tuple
 from discord import Guild
 
 
 def create_server_config(guild: Guild) -> None:
-    if not guild: return
     if not path.exists("servers/"):
         makedirs("servers/")
+
+    conn: Connection = connect("servers/servers.db")
+    curs: Cursor = conn.cursor()
+    curs.execute("CREATE TABLE IF NOT EXISTS servers(name TEXT, id INTEGER PRIMARY KEY, owner_id INTEGER, fetch_server INTEGER)")
+    conn.commit()
+    conn.close()
+
     write_config(guild, 1)
 
 
@@ -16,13 +22,22 @@ def get_server_config(guild: Guild) -> dict[str, Any]:
     if not has_config(guild):
         create_server_config(guild)
 
-    with open(f"servers/{guild.id}.json", "r") as fconf:
-        cfg = load(fconf)
-    return cfg
+    conn: Connection = connect("servers/servers.db")
+    curs: Cursor = conn.cursor()
+    curs.execute("SELECT * FROM servers WHERE id = ?", (guild.id, ))
+    res: Tuple = curs.fetchone()
+    conn.commit()
+    conn.close()
+
+    return {
+        "name": res[0],
+        "id": res[1],
+        "owner_id": res[2],
+        "fetch_server": res[3]
+    }
 
 
 def update_server_config(guild: Guild, fetch_server: int) -> None:
-    if not guild: return
     if not has_config(guild):
         create_server_config(guild)
         return
@@ -30,15 +45,25 @@ def update_server_config(guild: Guild, fetch_server: int) -> None:
 
 
 def write_config(guild: Guild, fetch_server: int) -> None:
-    with open(f"servers/{guild.id}.json", "w") as config:
-        config.write("{\n")
-        config.write(f"  \"name\": \"{guild.name}\",\n")
-        config.write(f"  \"owner_id\": {guild.owner_id},\n")
-        config.write(f"  \"fetch_server\": {fetch_server}\n")
-        config.write("}\n")
-
+    conn: Connection = connect("servers/servers.db")
+    curs: Cursor = conn.cursor()
+    curs.execute("INSERT OR REPLACE INTO servers (name, id, owner_id, fetch_server) VALUES (?, ?, ?, ?)",
+                 (guild.name, guild.id, guild.owner_id, fetch_server))
+    conn.commit()
+    conn.close()
 
 def has_config(guild: Guild) -> bool:
-    if not guild: return False
-    if not path.exists(f"servers/{guild.id}.json") or not path.exists("servers/"): return False
+    if not path.exists(f"servers/"):
+        return False
+
+    conn: Connection = connect("servers/servers.db")
+    curs: Cursor = conn.cursor()
+    curs.execute("SELECT * FROM servers WHERE id = ?", (guild.id, ))
+    res: Tuple = curs.fetchone()
+    conn.commit()
+    conn.close()
+
+    if not res:
+        return False
+
     return True
