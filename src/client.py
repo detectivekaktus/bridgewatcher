@@ -13,7 +13,7 @@ INTENTS: Intents = Intents.default()
 INTENTS.message_content = True
 bot: Bot = Bot(command_prefix=";",
                intents=INTENTS,
-               owner_id = 692305905123065918,
+               owner_id=692305905123065918,
                activity=Activity(type=ActivityType.listening, name=";help"),
                status=Status.do_not_disturb)
 bot.remove_command("help")
@@ -29,6 +29,10 @@ async def setup_bot(bot: Bot) -> None:
 @bot.event
 async def on_ready() -> None:
     print(f"Successfully logged as {bot.user} on {datetime.now().strftime("%d.%m.%Y %I:%M:%S %p")}.")
+
+    synched = await bot.tree.sync()
+    print(f"Successfully synched {len(synched)} commands globally.")
+
 
 
 @bot.event

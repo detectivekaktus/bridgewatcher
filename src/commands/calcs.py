@@ -90,8 +90,8 @@ class ResourcesModal(Modal):
             curs.execute("SELECT * FROM items WHERE name = ?", (self.view.item_name[:-2], ))
         else:
             curs.execute("SELECT * FROM items WHERE name = ?", (self.view.item_name, ))
-        res: List[dict[str, Any]] | dict[str, Any] = loads(curs.fetchone()[4])
-        requirements: List[dict[str, Any]] = res["craftresource"] if isinstance(res, dict) else res[0]["craftresource"]
+        res: List[dict[str, Any]] | dict[str, Any] = loads(curs.fetchone()[4])["craftresource"]
+        requirements: List[dict[str, Any]] = [res] if isinstance(res, dict) else res
         conn.commit()
         conn.close()
         
@@ -230,10 +230,8 @@ class CalcsCog(Cog):
                                                                 "a server problem. Try again later."),
                                                     ephemeral=True)
                     return
-                print(resource_data)
                 resource_prices[resource] = resource_data[0]["sell_price_min"]
 
-            print(resource_prices)
             crafter: Crafter = Crafter(resource_prices, view.resources, view.crafting_requirements, view.return_rate)
             result: dict[str, Any] = crafter.printable(data[CITIES.index(view.sell_city.lower())])
             embed: Embed = Embed(title=f"Crafting {item_name}...",

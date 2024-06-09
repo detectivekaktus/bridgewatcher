@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 from typing import Any, cast
 from discord import Embed, Guild
-from discord.ext.commands import BadArgument, Bot, Cog, Context, NoPrivateMessage, command, guild_only
-from src import ERROR_COLOR, SUCCESS_COLOR
+from discord.ext.commands import Bot, Cog, Context, command, guild_only
+from src import SUCCESS_COLOR, WHITE
 from src.config.config import create_server_config, get_server_config, has_config, update_server_config
 
 
@@ -16,6 +16,18 @@ def strtoint_server(server: str) -> int:
             return 3
         case _:
             return 1
+
+
+def inttostr_server(server: int) -> str:
+    match server:
+        case 1:
+            return "america"
+        case 2:
+            return "europe"
+        case 3:
+            return "asia"
+        case _:
+            return "america"
 
 
 class SettingsCog(Cog):
@@ -47,32 +59,27 @@ class SettingsCog(Cog):
 
     @command()
     @guild_only()
+    async def info(self, context: Context) -> None:
+        guild: Guild = cast(Guild, context.guild)
+        cfg: dict[str, Any] = get_server_config(guild)
+        embed: Embed = Embed(title=f":book: Information about {guild.name}",
+                             color=WHITE,
+                             description=f"There you have a configuration info about the {guild.name}.")
+        embed.add_field(name="Albion Online server", value=inttostr_server(cfg["fetch_server"]).capitalize())
+        embed.add_field(name="Members of the server", value=guild.member_count)
+        embed.add_field(name="Server owner", value=f"<@{guild.owner_id}>")
+        await context.send(embed=embed)
+
+
+    @command(name="help", description="Provides basic information over the bot.")
     async def help(self, context: Context) -> None:
-        cfg: dict[str, Any] = get_server_config(cast(Guild, context.guild))
         embed = Embed(title=":wave: Hello!",
                       color=SUCCESS_COLOR,
                       description="I'm Bridgewatcher, a Discord bot created by <@692305905123065918>.\n"
                       "I can help you with crafting, refining, trading, and transporting goods all"
                       " arround Albion on all the servers.\n\n"
     
-                      "Use `;gold <hours>` or `/gold <hours>` to get recent gold prices on the selected"
-                      " server. You can obtain up to 24 prices with this command.\n\n"
-    
-                      "Use `/price <item_name>` to get the most recent price of an item in different"
-                      " in-game markets.\n\n"
-
-                      "If you want to help this project, please install the [Albion Online Data "
-                      "Project client](https://albion-online-data.com/) that can fetch the latest"
-                      " data from the game.")
+                      "You can find the full list of command following [this link](https://github.com/d"
+                      "etectivekaktus/bridgewatcher?tab=readme-ov-file#how-do-i-use-this).")
         embed.set_author(name="Made by DetectiveKaktus", url="https://github.com/detectivekaktus")
-        match cfg["fetch_server"]:
-            case 1:
-                embed.add_field(name="Currently fetching on :flag_us: American server",
-                                value="You can change the fetching server with `;set_server`.")
-            case 2:
-                embed.add_field(name="Currently fetching on :flag_eu: European server",
-                                value="You can change the fetching server with `;set_server`.")
-            case 3:
-                embed.add_field(name="Currently fetching on :flag_cn: Asian server",
-                                value="You can change the fetching server with `;set_server`.")
         await context.send(embed=embed)
