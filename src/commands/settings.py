@@ -44,15 +44,7 @@ class SettingsCog(Cog):
             case 3:
                 await context.send("Server successfully changed to :flag_cn: Asia.")
     
-    @set_server.error
-    async def raise_set_server_error(self, context: Context, error: Any) -> None:
-        if isinstance(error, BadArgument):
-            await context.send(embed=Embed(title=":red_circle: Invalid argument!",
-                                           color=ERROR_COLOR,
-                                           description="Please, specify a valid integer value in range"
-                                           "from 1 to 3 for `server` argument."))
-    
-    
+
     @command()
     @guild_only()
     async def help(self, context: Context) -> None:
@@ -84,8 +76,3 @@ class SettingsCog(Cog):
                 embed.add_field(name="Currently fetching on :flag_cn: Asian server",
                                 value="You can change the fetching server with `;set_server`.")
         await context.send(embed=embed)
-
-    @help.error
-    async def raise_help_error(self, context: Context, error: Any) -> None:
-        if isinstance(error, NoPrivateMessage):
-            await context.send("You can't use this command in private messages.")

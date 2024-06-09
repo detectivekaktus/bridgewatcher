@@ -112,14 +112,6 @@ class InfoCog(Cog):
 
         await interaction.response.send_message(embed=embed)
 
-    @gold.error
-    async def raise_gold_error(self, interaction: Interaction, error: Any) -> None:
-        if isinstance(error, BadArgument):
-            await interaction.response.send_message(embed=Embed(title=":red_circle: Invalid argument!",
-                                                                color=ERROR_COLOR,
-                                                                description="Please, specify a valid integer value in range "
-                                                                "between 1 and 24."))
-
 
     @command(name="price", description="Retrieves price of an item.")
     @describe(item_name="The Albion Online Data Project API item name.")
@@ -184,9 +176,3 @@ class InfoCog(Cog):
                                                         description="Your time has run out. Start a new "
                                                         "conversation with the bot to get the price."),
                                             ephemeral=True)
-
-    @price.error
-    async def raise_price_error(self, interaction: Interaction, error: Any) -> None:
-        if isinstance(error, BadArgument):
-            await interaction.response.send_message(embed=Embed(title=":red_circle: Invalid argument!",
-                                                                color=ERROR_COLOR))
