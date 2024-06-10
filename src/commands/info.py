@@ -1,71 +1,12 @@
 #!/usr/bin/env python3
 from typing import Any, List, Optional, cast
-from discord import ButtonStyle, Embed, Guild, Interaction
+from discord import Embed, Guild, Interaction
 from discord.app_commands import command, describe
-from discord.ext.commands import BadArgument, Bot, Cog, guild_only
-from discord.ui import Button, Modal, TextInput, View, button
-from src.api import AODFetcher, ItemManager, SBIRenderFetcher, are_valid_cities, convert_api_timestamp, get_percent_variation, parse_cities
+from discord.ext.commands import Bot, Cog, guild_only
+from src.api import AODFetcher, ItemManager, SBIRenderFetcher, convert_api_timestamp, get_percent_variation, strquality_toint
+from src.components.ui import PriceView
 from src.config.config import get_server_config
 from src import ERROR_COLOR, GOLD_COLOR, PRICE_COLOR
-
-
-class PriceView(View):
-    def __init__(self, *, timeout: Optional[float] = 180) -> None:
-        super().__init__(timeout=timeout)
-        self.quality: int = 1
-        self.cities: List[str] = []
-
-
-    @button(label="Quality", style=ButtonStyle.gray)
-    async def quality_button(self, interaction: Interaction, button: Button) -> None:
-        await interaction.response.send_modal(QualityModal(self))
-
-    @button(label="Cities", style=ButtonStyle.gray)
-    async def cities_button(self, interaction: Interaction, button: Button) -> None:
-        await interaction.response.send_modal(CitiesModal(self))
-
-    @button(label="Submit", style=ButtonStyle.green)
-    async def submit_button(self, interaction: Interaction, button: Button) -> None:
-        await interaction.response.defer()
-        self.stop()
-
-
-class QualityModal(Modal):
-    def __init__(self, view: PriceView, *, title: str = "Quality", timeout: Optional[float] = None, custom_id: str = "qualmod") -> None:
-        super().__init__(title=title, timeout=timeout, custom_id=custom_id)
-        self.view: PriceView = view
-        self.quality: TextInput = TextInput(label=title, placeholder="Enter a number from 1 to 5 here")
-        self.add_item(self.quality)
-
-    async def on_submit(self, interaction: Interaction) -> None:
-        try:
-            quality = int(self.quality.value)
-            if quality not in range(1, 6):
-                raise ValueError(f"{quality} is not in range from 1 to 5.")
-            self.view.quality = quality
-            await interaction.response.defer()
-        except:
-            await interaction.response.send_message(f"{self.quality.value} is not valid integer from 1 to 5.\n\n",
-                                                    ephemeral=True,
-                                                    delete_after=5)
-
-
-class CitiesModal(Modal):
-    def __init__(self, view: PriceView, *, title: str = "Cities", timeout: Optional[float] = None, custom_id: str = "citmod") -> None:
-        super().__init__(title=title, timeout=timeout, custom_id=custom_id)
-        self.view: PriceView = view
-        self.cities: TextInput = TextInput(label=title, placeholder="Enter a city here")
-        self.add_item(self.cities)
-
-    async def on_submit(self, interaction: Interaction) -> None:
-        cities: List[str] = parse_cities(self.cities.value)
-        if not are_valid_cities(cities):
-            await interaction.response.send_message(f"Some city doesn't appear to be a valid city.\n\n",
-                                                    ephemeral=True,
-                                                    delete_after=5)
-            return
-        self.view.cities = cities
-        await interaction.response.defer()
 
 
 class InfoCog(Cog):
@@ -142,8 +83,10 @@ class InfoCog(Cog):
             message = await interaction.original_response()
             await message.delete()
 
+            quality: int = strquality_toint(view.quality)
+
             fetcher: AODFetcher = AODFetcher(get_server_config(cast(Guild, interaction.guild))["fetch_server"])
-            data: Optional[List[dict[str, Any]]] = fetcher.fetch_price(item_name, view.quality, cast(List[str], view.cities))
+            data: Optional[List[dict[str, Any]]] = fetcher.fetch_price(item_name, quality, cast(List[str], view.cities))
             if not data:
                 await interaction.followup.send(embed=Embed(title=":red_circle: Error!",
                                                             color=ERROR_COLOR,
@@ -158,7 +101,7 @@ class InfoCog(Cog):
                                  description=f"Here are the prices of {data[0]["item_id"]} in different "
                                  "cities. You can find the full list of item [here](https://github.com/"
                                  "ao-data/ao-bin-dumps/blob/master/formatted/items.txt).")
-            embed.set_thumbnail(url=SBIRenderFetcher.fetch_item(item_name, view.quality))
+            embed.set_thumbnail(url=SBIRenderFetcher.fetch_item(item_name, quality))
             embed.set_footer(text="The data is provided by the Albion Online Data Project.")
 
             for entry in data:

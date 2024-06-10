@@ -150,6 +150,22 @@ def convert_api_timestamp(date: str) -> str:
     return datetime.strptime(date, "%Y-%m-%dT%H:%M:%S").strftime("%d %B %Y, %H:%M:%S UTC")
 
 
+def strquality_toint(quality: str) -> int:
+    match quality.lower():
+        case "normal":
+            return 1
+        case "good":
+            return 2
+        case "outstanding":
+            return 3
+        case "excellent":
+            return 4
+        case "masterpiece":
+            return 5
+        case _:
+            return 1
+
+
 def parse_cities(cities: str) -> List[str]:
     cities = cities.strip()
     opened_quote = False
