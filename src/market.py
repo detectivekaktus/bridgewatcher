@@ -3,6 +3,7 @@ from math import floor
 from typing import Any, List, Optional, Tuple, cast
 from sqlite3 import Connection, Cursor, connect
 from src import CRAFTING_BONUSES
+from src.api import ItemManager
 
 
 class Crafter:
@@ -54,6 +55,10 @@ class Crafter:
         res: dict[str, int] = {}
 
         for key, value in self._resources.items():
+            if not ItemManager.is_returnable(key):
+                res[key] = 0
+                continue
+
             source: int = value
             res[key] = 0
             returned: int = 1
@@ -62,6 +67,7 @@ class Crafter:
                 returned += source
                 res[key] += source
 
+        print(res)
         return res
 
     def _get_items_crafted(self, total_resources: dict[str, int]) -> int:

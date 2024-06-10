@@ -102,12 +102,30 @@ class ItemManager:
 
         conn: Connection = connect("res/items.db")
         curs: Cursor = conn.cursor()
-        curs.execute("SELECT * FROM items where name = ?", (item_name, ))
+        curs.execute("SELECT * FROM items WHERE name = ?", (item_name, ))
         item: Tuple = curs.fetchone()
         conn.commit()
         conn.close()
 
         return "artefacts" in item
+
+    @staticmethod
+    def is_fractional(item_name: str) -> bool:
+        if ItemManager.is_enchanted(item_name):
+            return False
+
+        conn: Connection = connect("res/items.db")
+        curs: Cursor = conn.cursor()
+        curs.execute("SELECT * FROM items WHERE name = ?", (item_name, ))
+        item: Tuple = curs.fetchone()
+        conn.commit()
+        conn.close()
+
+        return "cityresources" in item
+
+    @staticmethod
+    def is_returnable(item_name: str) -> bool:
+        return not ItemManager.is_artefact(item_name) and not ItemManager.is_fractional(item_name)
 
 
 class SBIRenderFetcher:

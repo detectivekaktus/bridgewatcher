@@ -90,10 +90,17 @@ class ResourcesModal(Modal):
             curs.execute("SELECT * FROM items WHERE name = ?", (self.view.item_name[:-2], ))
         else:
             curs.execute("SELECT * FROM items WHERE name = ?", (self.view.item_name, ))
-        res: List[dict[str, Any]] | dict[str, Any] = loads(curs.fetchone()[4])["craftresource"]
-        requirements: List[dict[str, Any]] = [res] if isinstance(res, dict) else res
+        item: List[dict[str, Any]] | dict[str, Any] = loads(curs.fetchone()[4])
         conn.commit()
         conn.close()
+
+        if isinstance(item, list):
+            item = item[0]
+
+        if isinstance(item["craftresource"], dict):
+            requirements: List[dict[str, Any]] = [item["craftresource"]]
+        else:
+            requirements: List[dict[str, Any]] = item["craftresource"]
         
         self.txt_inputs: List[TextInput] = []
         placeholders = ("Eg. 100", "Eg. 3350", "Eg. 305", "Eg. 777")
