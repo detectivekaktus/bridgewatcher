@@ -67,7 +67,6 @@ class Crafter:
                 returned += source
                 res[key] += source
 
-        print(res)
         return res
 
     def _get_items_crafted(self, total_resources: dict[str, int]) -> int:

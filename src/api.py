@@ -166,36 +166,5 @@ def strquality_toint(quality: str) -> int:
             return 1
 
 
-def parse_cities(cities: str) -> List[str]:
-    cities = cities.strip()
-    opened_quote = False
-    res: List[str] = []
-    word: str = ""
-
-    i = 0
-    while i < len(cities):
-        if cities[i] == '"':
-            opened_quote = not opened_quote
-        elif cities[i] == " ":
-            if not opened_quote:
-                res.append(word)
-                word = ""
-            else:
-                word += cities[i]
-        else:
-            word += cities[i]
-        i += 1
-    res.append(word)
-
-    return res
-
-
 def is_valid_city(city: str) -> bool:
     return city.lower() in CITIES
-
-def are_valid_cities(cities: List[str]) -> bool:
-    for city in cities:
-        if not is_valid_city(city):
-            return False
-
-    return True
