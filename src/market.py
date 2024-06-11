@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 from math import floor
 from typing import Any, List, Optional, Tuple, cast
-from sqlite3 import Connection, Cursor, connect
 from src import CRAFTING_BONUSES
 from src.api import ItemManager
+from src.db.manager import DatabaseManager
 
 
 class Crafter:
@@ -98,12 +98,9 @@ class Crafter:
 
 
 def find_crafting_bonus_city(item_name: str) -> Optional[str]:
-    conn: Connection = connect("res/items.db")
-    curs: Cursor = conn.cursor()
-    curs.execute("SELECT * FROM items WHERE name = ?", (item_name,))
-    item: Tuple = curs.fetchone()
-    conn.commit()
-    conn.close()
+    item: Optional[Tuple] = DatabaseManager.get_item(item_name)
+    if not item:
+        return None
 
     for key, values in CRAFTING_BONUSES.items():
         for value in values:

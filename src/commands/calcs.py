@@ -3,9 +3,9 @@ from typing import Any, List, Optional, cast
 from discord import Embed, Guild, Interaction
 from discord.app_commands import command, describe, guild_only
 from discord.ext.commands import Bot, Cog
-from src import CITIES, CRAFTING_COLOR, DEFAULT_RATE, ERROR_COLOR, BONUS_RATE
-from src.api import AODFetcher, ItemManager, SBIRenderFetcher
-from src.components.ui import CraftingView
+from src import CITIES, CRAFTING_COLOR, DEFAULT_RATE, ERROR_COLOR, BONUS_RATE, WHITE
+from src.api import AODFetcher, ItemManager, SBIRenderFetcher, strquality_toint
+from src.components.ui import CraftingView, FlipView
 from src.config.config import get_server_config
 from src.market import Crafter, find_crafting_bonus_city, find_least_expensive_city, find_most_expensive_city
 
@@ -77,7 +77,6 @@ class CalcsCog(Cog):
                                                             description="I couldn't handle your request due to "
                                                             "a server problem. Try again later."),
                                                 ephemeral=True)
-
                 return
 
             craft_city: str = view.craft_city[0] if view.craft_city else ""
@@ -109,20 +108,94 @@ class CalcsCog(Cog):
             embed: Embed = Embed(title=f"Crafting {item_name}...",
                                  color=CRAFTING_COLOR,
                                  description=f"This is a brief summary of crafting {item_name}"
-                                 f" in **{craft_city.capitalize()}** with the sell destination"
-                                 f" in **{sell_city.capitalize()}**.\n\n"
+                                 f" in **{craft_city.title()}** with the sell destination"
+                                 f" in **{sell_city.title()}**.\n\n"
 
                                  f"You profit is expected to be **{result["profit"]:,} silver**, given by:\n"
                                  f"{result["sell_price"]:,} sell price\n"
                                  f"-{result["raw_cost"]:,} resource cost\n"
                                  f"+{result["unused_resources_price"]:,} unused resources")
-            embed.add_field(name="Craft city", value=f"**{craft_city.capitalize()}**")
-            embed.add_field(name="Sell city", value=f"**{sell_city.capitalize()}**")
+            embed.add_field(name="Craft city", value=f"**{craft_city.title()}**")
+            embed.add_field(name="Sell city", value=f"**{sell_city.title()}**")
             embed.set_thumbnail(url=SBIRenderFetcher.fetch_item(item_name, quality=1))
             embed.set_footer(text="The data is provided by the Albion Online Data Project.")
             for field in result["fields"]:
                 embed.add_field(name=field["title"], value=f"**{field["value"]}**")
 
+            await interaction.followup.send(embed=embed)
+        else:
+            message = await interaction.original_response()
+            await message.delete()
+            await interaction.followup.send(embed=Embed(title=":red_circle: Timed out!",
+                                                        color=ERROR_COLOR,
+                                                        description="Your time has run out. Start a new "
+                                                        "conversation with the bot to craft something."),
+                                            ephemeral=True)
+
+
+    @command(name="flip", description="Calculates profit of transportation of one item from city you select to the black market.")
+    @describe(item_name="The Albion Online Data Project API item name.")
+    @guild_only()
+    async def flip(self, interaction: Interaction, item_name: str) -> None:
+        item_name = item_name.upper()
+
+        if (ItemManager.is_enchanted(item_name) and int(item_name[1]) < 4) or (not ItemManager.exists(item_name)):
+            await interaction.response.send_message(embed=Embed(title=f":red_circle: {item_name} doesn't exist!",
+                                                                color=ERROR_COLOR,
+                                                                description=f"{item_name} is not an existing item!"))
+            return
+
+        if not ItemManager.is_sellable_on_black_market(item_name):
+            await interaction.response.send_message(embed=Embed(title=f":red_circle: {item_name} is not sellable on the Black market!",
+                                                                color=ERROR_COLOR,
+                                                                description="You can't sell artefacts or resources on"
+                                                                " the Black market in Caerleon. Please, select a vali"
+                                                                "d item."))
+            return
+
+        view: FlipView = FlipView(timeout=30)
+        await interaction.response.send_message(embed=Embed(title=f"Flipping the market for {item_name}",
+                                                            color=WHITE,
+                                                            description="Let's flip the market up! Customize the item"
+                                                            " you want to flip with the interaction buttons below. If"
+                                                            " you are completely new to this bot, follow the rules in"
+                                                            "dicated [right here](https://github.com/detectivekaktus/"
+                                                            "bridgewatcher?tab=readme-ov-file#how-do-i-use-this)."),
+                                                view=view,
+                                                ephemeral=True)
+
+        if not await view.wait():
+            message = await interaction.original_response()
+            await message.delete()
+
+            quality: int = strquality_toint(view.quality)
+            if view.cities:
+                view.cities.extend(["black market"])
+            else:
+                view.cities.extend([cast(str, find_crafting_bonus_city(item_name)), "black market"])
+            cities: List[str] = view.cities
+
+            fetcher: AODFetcher = AODFetcher(get_server_config(cast(Guild, interaction.guild))["fetch_server"])
+            data: Optional[List[dict[str, Any]]] = fetcher.fetch_price(item_name, quality, cities)
+            if not data:
+                await interaction.followup.send(embed=Embed(title=":red_circle: Error!",
+                                                            color=ERROR_COLOR,
+                                                            description="I couldn't handle your request due to "
+                                                            "a server problem. Try again later."),
+                                                ephemeral=True)
+                return
+            
+            embed: Embed = Embed(title=f"Flipping {item_name}",
+                                 color=WHITE,
+                                 description=f"The expected profit of transporting {item_name} of **{view.quality}"
+                                 f" quality** from **{view.cities[0].title()}** to the Black market is:\n"
+                                 f"* **{(data[0]["sell_price_min"] - data[1]["sell_price_min"]):,} silver**\n"
+                                 f"* **{round((data[0]["sell_price_min"] / data[1]["sell_price_min"] * 100) - 100, 2):,}%**")
+            embed.add_field(name="Start city", value=f"**{view.cities[0].title()}**")
+            embed.add_field(name="Buy price", value=f"**{data[1]["sell_price_min"]:,}**")
+            embed.add_field(name="Sell price", value=f"**{data[0]["sell_price_min"]:,}**")
+            embed.set_thumbnail(url=SBIRenderFetcher.fetch_item(item_name, quality=quality))
+            embed.set_footer(text="The data is provided by the Albion Online Data Project.")
             await interaction.followup.send(embed=embed)
         else:
             message = await interaction.original_response()

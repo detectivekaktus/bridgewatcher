@@ -2,6 +2,7 @@
 from os import path, remove
 from sqlite3 import Connection, Cursor, connect
 from json import dumps, load
+from typing import Optional, Tuple
 
 
 class DatabaseManager:
@@ -65,3 +66,15 @@ class DatabaseManager:
             curs.execute("DROP TABLE items")
             conn.commit()
             conn.close()
+
+
+    @staticmethod
+    def get_item(item_name: str) -> Optional[Tuple]:
+        conn: Connection = connect("res/items.db")
+        curs: Cursor = conn.cursor()
+        curs.execute("SELECT * FROM items WHERE name = ?", (item_name, ))
+        item: Optional[Tuple] = curs.fetchone()
+        conn.commit()
+        conn.close()
+
+        return item

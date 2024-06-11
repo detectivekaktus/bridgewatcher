@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 from datetime import datetime
 from typing import Any, Final, List, Optional, Tuple
-from sqlite3 import Connection, Cursor, connect
 from requests import ReadTimeout, Response, get
-from src import CITIES, ENCHANTMENTS, NON_CRAFTABLE
+from src import CITIES, ENCHANTMENTS, NON_CRAFTABLE, NON_SELLABLE_ON_BLACK_MARKET
+from src.db.manager import DatabaseManager
 
 
 SERVER_URLS: Final = {
@@ -50,24 +50,21 @@ class ItemManager:
 
         if ItemManager.is_enchanted(item_name):
             item_name = item_name[:-2]
-        conn: Connection = connect("res/items.db")
-        curs: Cursor = conn.cursor()
-        curs.execute("SELECT * FROM items WHERE name = ?", (item_name, ))
-        res: Tuple = curs.fetchone()
-        conn.commit()
-        conn.close()
+
+        if ItemManager.is_enchanted(item_name) and ItemManager.is_artefact(item_name):
+            return False
+
+        res: Optional[Tuple] = DatabaseManager.get_item(item_name)
+
         return True if res != None else False
 
     @staticmethod
     def is_craftable(item_name: str) -> bool:
         if ItemManager.is_enchanted(item_name):
             item_name = item_name[:-2]
-        conn: Connection = connect("res/items.db")
-        curs: Cursor = conn.cursor()
-        curs.execute("SELECT * FROM items WHERE name = ?", (item_name, ))
-        item: Tuple = curs.fetchone()
-        conn.commit()
-        conn.close()
+        item: Optional[Tuple] = DatabaseManager.get_item(item_name) 
+        if not item:
+            return False
 
         if not item[4]:
             return False
@@ -86,12 +83,9 @@ class ItemManager:
     def is_resource(item_name: str) -> bool:
         if ItemManager.is_enchanted(item_name):
             item_name = item_name[:-2]
-        conn: Connection = connect("res/items.db")
-        curs: Cursor = conn.cursor()
-        curs.execute("SELECT * FROM items WHERE name = ?", (item_name, ))
-        item: Tuple = curs.fetchone()
-        conn.commit()
-        conn.close()
+        item: Optional[Tuple] = DatabaseManager.get_item(item_name)
+        if not item:
+            return False
 
         return "resources" in item
 
@@ -100,12 +94,9 @@ class ItemManager:
         if ItemManager.is_enchanted(item_name):
             return False
 
-        conn: Connection = connect("res/items.db")
-        curs: Cursor = conn.cursor()
-        curs.execute("SELECT * FROM items WHERE name = ?", (item_name, ))
-        item: Tuple = curs.fetchone()
-        conn.commit()
-        conn.close()
+        item: Optional[Tuple] = DatabaseManager.get_item(item_name)
+        if not item:
+            return False
 
         return "artefacts" in item
 
@@ -114,18 +105,35 @@ class ItemManager:
         if ItemManager.is_enchanted(item_name):
             return False
 
-        conn: Connection = connect("res/items.db")
-        curs: Cursor = conn.cursor()
-        curs.execute("SELECT * FROM items WHERE name = ?", (item_name, ))
-        item: Tuple = curs.fetchone()
-        conn.commit()
-        conn.close()
+        item: Optional[Tuple] = DatabaseManager.get_item(item_name)
+        if not item:
+            return False
 
         return "cityresources" in item
 
     @staticmethod
+    def is_consumable(item_name: str) -> bool:
+        item: Optional[Tuple] = DatabaseManager.get_item(item_name)
+        if not item:
+            return False
+
+        return "consumables" in item
+
+    @staticmethod
     def is_returnable(item_name: str) -> bool:
         return not ItemManager.is_artefact(item_name) and not ItemManager.is_fractional(item_name)
+
+    @staticmethod
+    def is_sellable_on_black_market(item_name: str) -> bool:
+        item: Optional[Tuple] = DatabaseManager.get_item(item_name)
+        if not item:
+            return False
+
+        for type in NON_SELLABLE_ON_BLACK_MARKET:
+            if type in item:
+                return False
+
+        return True
 
 
 class SBIRenderFetcher:

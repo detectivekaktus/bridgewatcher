@@ -113,3 +113,25 @@ class CraftingView(View):
         await interaction.response.defer()
         self.stop()
 
+
+class FlipView(View):
+    def __init__(self, *, timeout: Optional[float] = 180):
+        super().__init__(timeout=timeout)
+        self.quality: str = "normal"
+        self.cities: List[str] = []
+
+        self.quality_select = QualitySelect(self,
+                                            [SelectOption(label=label) for label in QUALITIES],
+                                            placeholder="Enter item quality.")
+        self.cities_select = CitiesSelect(self.cities,
+                                              [SelectOption(label=label.capitalize()) for label in CITIES if label != "black market"],
+                                              placeholder="Enter start city.",
+                                              max_values=1)
+        self.add_item(self.quality_select)
+        self.add_item(self.cities_select)
+
+
+    @button(label="Submit", style=ButtonStyle.green)
+    async def submit_button(self, interaction: Interaction, button: Button) -> None:
+        await interaction.response.defer()
+        self.stop()

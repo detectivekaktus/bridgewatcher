@@ -11,10 +11,11 @@ PRICE_COLOR:    Final = 0x2465ff
 CRAFTING_COLOR: Final = 0x32c9b8
 SUCCESS_COLOR:  Final = 0x66f542
 
-CITIES: Final[Tuple[str, ...]]        = ("black market", "brecilien", "bridgewatch", "caerleon", "fort sterling", "lymhurst", "martlock", "thetford")
-QUALITIES: Final[Tuple[str, ...]] = ("Normal", "Good", "Outstanding", "Excellent", "Masterpiece")
-ENCHANTMENTS: Final[Tuple[str, ...]]  = ("@1", "@2", "@3", "@4")
-NON_CRAFTABLE: Final[Tuple[str, ...]] = ("artefacts", "mounts")
+CITIES: Final[Tuple[str, ...]]                       = ("black market", "brecilien", "bridgewatch", "caerleon", "fort sterling", "lymhurst", "martlock", "thetford")
+QUALITIES:     Final[Tuple[str, ...]]                = ("Normal", "Good", "Outstanding", "Excellent", "Masterpiece")
+ENCHANTMENTS: Final[Tuple[str, ...]]                 = ("@1", "@2", "@3", "@4")
+NON_CRAFTABLE: Final[Tuple[str, ...]]                = ("artefacts", "mounts", "labourers")
+NON_SELLABLE_ON_BLACK_MARKET: Final[Tuple[str, ...]] = ("artefacts", "mounts", "consumables", "food", "labourers")
 
 DEFAULT_RATE: Final[int] = 15
 BONUS_RATE: Final[int]   = 28
