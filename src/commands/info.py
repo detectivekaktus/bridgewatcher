@@ -25,8 +25,7 @@ class InfoCog(Cog):
                                                                 "range between 1 and 24."))
             return
 
-        cfg: dict[str, Any] = get_server_config(cast(Guild, interaction.guild))
-        fetcher: AODFetcher = AODFetcher(cfg["fetch_server"])
+        fetcher: AODFetcher = AODFetcher(get_server_config(cast(Guild, interaction.guild))["fetch_server"])
         data: Optional[List[dict[str, Any]]] = fetcher.fetch_gold(count + 1)
         if not data:
             await interaction.response.send_message(embed=Embed(title=":red_circle: There was an error",
@@ -51,6 +50,30 @@ class InfoCog(Cog):
                             f"Percent variation from the last value: **{get_percent_variation(data, i)}%**\n"
                             f"Numeric variation from the last value: **{data[i]["price"] - data[i + 1]["price"]}**")
 
+        await interaction.response.send_message(embed=embed)
+
+
+    @command(name="premium", description="Retrieves price of premium status in the game.")
+    @guild_only()
+    async def premium(self, interaction: Interaction) -> None:
+        fetcher: AODFetcher = AODFetcher(get_server_config(cast(Guild, interaction.guild))["fetch_server"])
+        data: Optional[List[dict[str, Any]]] = fetcher.fetch_gold(1)
+        
+        if not data:
+            await interaction.response.send_message(embed=Embed(title=":red_circle: There was an error",
+                                                                color=Color.red(),
+                                                                description="I've encountered an error trying to get item "
+                                                                "prices from the API. Please, try again later."))
+            return
+
+        embed: Embed = Embed(title=":crown: Premium status price",
+                             color=Color.gold())
+        embed.add_field(name="30 days", value=f"**{(data[0]["price"] * 3750):,}**")
+        embed.add_field(name="90 days", value=f"**{(data[0]["price"] * 10500):,}**")
+        embed.add_field(name="180 days", value=f"**{(data[0]["price"] * 19500):,}**")
+        embed.add_field(name="360 days", value=f"**{(data[0]["price"] * 36000):,}**")
+        embed.set_author(name=f"Requested by {interaction.user.name}", icon_url=interaction.user.avatar)
+        embed.set_footer(text="The data is provided by the Albion Online Data Project\n")
         await interaction.response.send_message(embed=embed)
 
 
