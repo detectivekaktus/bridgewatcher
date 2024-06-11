@@ -22,7 +22,7 @@ class CalcsCog(Cog):
     async def craft(self, interaction: Interaction, item_name: str) -> None:
         item_name = item_name.upper()
 
-        if (ItemManager.is_enchanted(item_name) and int(item_name[1]) < 4) or (not ItemManager.exists(item_name)):
+        if not ItemManager.exists(item_name):
             await interaction.response.send_message(embed=Embed(title=f":red_circle: {item_name} doesn't exist!",
                                                                 color=ERROR_COLOR,
                                                                 description=f"{item_name} is not an existing item!"))
@@ -36,24 +36,13 @@ class CalcsCog(Cog):
 
         view: CraftingView = CraftingView(item_name, timeout=120)
         view.is_enchanted = ItemManager.is_enchanted(item_name)
-        await interaction.response.send_message(embed=Embed(title="Crafting calculator",
+        await interaction.response.send_message(embed=Embed(title=":hammer_pick: Crafting calculator",
                                                             color=CRAFTING_COLOR,
                                                             description="Let's craft something! Use the buttons below"
-                                                            " to access the full power of the crafting calculator!\n\n"
-                                                            
-                                                            "Use `Craft city` button to set the city where you"
-                                                            " want to craft the item. Default is the city with "
-                                                            "crafting bonus.\n\n"
-
-                                                            "Use `Sell city` button to set the city where you "
-                                                            "want to sell the item. Default is the most expensive"
-                                                            " city.\n\n"
-
-                                                            "Use `Resouces` button to set the amount of resouces"
-                                                            " you have to produce the item you selected.\n\n"
-
-                                                            "Use `Return rate` button to set the return rate of"
-                                                            " the resources you're using to craft the item selected."),
+                                                            " to access the full power of the crafting calculator! If"
+                                                            " you are completely new to this bot, follow [this link]("
+                                                            "https://github.com/detectivekaktus/bridgewatcher?tab=rea"
+                                                            "dme-ov-file#how-do-i-use-this) to explore more."),
                                                 view=view,
                                                 ephemeral=True)
         if not await view.wait():
@@ -105,7 +94,7 @@ class CalcsCog(Cog):
 
             crafter: Crafter = Crafter(resource_prices, view.resources, view.crafting_requirements, view.return_rate)
             result: dict[str, Any] = crafter.printable(data[CITIES.index(sell_city.lower())])
-            embed: Embed = Embed(title=f"Crafting {item_name}...",
+            embed: Embed = Embed(title=f":hammer_pick: Crafting {item_name}",
                                  color=CRAFTING_COLOR,
                                  description=f"This is a brief summary of crafting {item_name}"
                                  f" in **{craft_city.title()}** with the sell destination"
@@ -121,7 +110,6 @@ class CalcsCog(Cog):
             embed.set_footer(text="The data is provided by the Albion Online Data Project.")
             for field in result["fields"]:
                 embed.add_field(name=field["title"], value=f"**{field["value"]}**")
-
             await interaction.followup.send(embed=embed)
         else:
             message = await interaction.original_response()
@@ -146,15 +134,13 @@ class CalcsCog(Cog):
             return
 
         if not ItemManager.is_sellable_on_black_market(item_name):
-            await interaction.response.send_message(embed=Embed(title=f":red_circle: {item_name} is not sellable on the Black market!",
+            await interaction.response.send_message(embed=Embed(title=f":red_circle: {item_name} is not sellable on the black market!",
                                                                 color=ERROR_COLOR,
-                                                                description="You can't sell artefacts or resources on"
-                                                                " the Black market in Caerleon. Please, select a vali"
-                                                                "d item."))
+                                                                description="You can't sell what is unsellable on the black market."))
             return
 
         view: FlipView = FlipView(timeout=30)
-        await interaction.response.send_message(embed=Embed(title=f"Flipping the market for {item_name}",
+        await interaction.response.send_message(embed=Embed(title=f":truck: Market flipper",
                                                             color=WHITE,
                                                             description="Let's flip the market up! Customize the item"
                                                             " you want to flip with the interaction buttons below. If"
@@ -185,10 +171,10 @@ class CalcsCog(Cog):
                                                 ephemeral=True)
                 return
             
-            embed: Embed = Embed(title=f"Flipping {item_name}",
+            embed: Embed = Embed(title=f":truck: Flipping the market for {item_name}",
                                  color=WHITE,
-                                 description=f"The expected profit of transporting {item_name} of **{view.quality}"
-                                 f" quality** from **{view.cities[0].title()}** to the Black market is:\n"
+                                 description=f"The expected profit of transporting {item_name} of **{view.quality.lower()}"
+                                 f" quality** from **{view.cities[0].title()}** to the black market is:\n"
                                  f"* **{(data[0]["sell_price_min"] - data[1]["sell_price_min"]):,} silver**\n"
                                  f"* **{round((data[0]["sell_price_min"] / data[1]["sell_price_min"] * 100) - 100, 2):,}%**")
             embed.add_field(name="Start city", value=f"**{view.cities[0].title()}**")

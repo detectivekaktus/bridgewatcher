@@ -67,16 +67,14 @@ class InfoCog(Cog):
             return
 
         view = PriceView(timeout=60)
-        await interaction.response.send_message(embed=Embed(title="Price fetcher",
+        await interaction.response.send_message(embed=Embed(title=":dollar: Price fetcher",
                                                             color=PRICE_COLOR,
-                                                            description="Welcome to an updated version of the price"
-                                                            " fetcher component of Bridgewatcher! Here you can modify"
-                                                            " the data you want to fetch.\n\n"
-                                                            "Use `quality` button to select the quality of the item."
-                                                            " The default value if not specified is 1.\n\n"
-                                                            "Use `cities` button to select the cities from which you"
-                                                            " want to know the price. If not specified, gives informa"
-                                                            "tion from all the in-game cities."),
+                                                            description="Let's search for a price together!"
+                                                            " Use the navigation buttons on the bottom of t"
+                                                            "his message to customize your experience. If y"
+                                                            "ou are new to this bot, follow [this link](htt"
+                                                            "ps://github.com/detectivekaktus/bridgewatcher?"
+                                                            "tab=readme-ov-file#how-do-i-use-this)"),
                                                 view=view,
                                                 ephemeral=True)
         if not await view.wait():
@@ -96,11 +94,10 @@ class InfoCog(Cog):
 
                 return
 
-            embed: Embed = Embed(title=f"{data[0]["item_id"]} price",
+            embed: Embed = Embed(title=f":dollar: {data[0]["item_id"]} price",
                                  color=PRICE_COLOR,
-                                 description=f"Here are the prices of {data[0]["item_id"]} in different "
-                                 "cities. You can find the full list of item [here](https://github.com/"
-                                 "ao-data/ao-bin-dumps/blob/master/formatted/items.txt).")
+                                 description=f"Here are the prices of {data[0]["item_id"]}"
+                                 " in different cities.")
             embed.set_thumbnail(url=SBIRenderFetcher.fetch_item(item_name, quality))
             embed.set_footer(text="The data is provided by the Albion Online Data Project.")
 

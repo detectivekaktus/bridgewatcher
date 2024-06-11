@@ -76,10 +76,12 @@ class SettingsCog(Cog):
         embed = Embed(title=":wave: Hello!",
                       color=SUCCESS_COLOR,
                       description="I'm Bridgewatcher, a Discord bot created by <@692305905123065918>.\n"
-                      "I can help you with crafting, refining, trading, and transporting goods all"
-                      " arround Albion on all the servers.\n\n"
+                      "I can help you with :hammer_pick: crafting, :bricks: refining, :handshake: tradi"
+                      "ng, and :truck: transporting goods all around Albion on all the servers.\n\n"
     
-                      "You can find the full list of command following [this link](https://github.com/d"
-                      "etectivekaktus/bridgewatcher?tab=readme-ov-file#how-do-i-use-this).")
+                      "You can find the full list of command by following [this link](https://github.com/d"
+                      "etectivekaktus/bridgewatcher?tab=readme-ov-file#how-do-i-use-this).\n\n"
+
+                      "If the bot is behaving in unexpected way :lady_beetle:, please report it to the developer.")
         embed.set_author(name="Made by DetectiveKaktus", url="https://github.com/detectivekaktus")
         await context.send(embed=embed)
