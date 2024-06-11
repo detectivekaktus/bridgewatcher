@@ -29,7 +29,7 @@ Use the **quality** menu to select the item's quality among normal, good, outsta
 Use the **cities** menu to select the cities where you want to know the price. This include the black market.
 
 ### Craft items and refine materials
-Use `/craft` to specify an item you want to create for the world of Albion Online.
+Use `/craft` and specify an item you want to create for the world of Albion Online.
 
 After calling this command, you'll get a similar menu to the `/price` command where you can choose the city where you are crafting the item and the city where you sell it. Initially, the ctafting city is set to the city with a crafting bonus, and the sell city is set to the city with the highest price for the item.
 
@@ -37,6 +37,12 @@ Use the **resources** button to specify the amount of resources you have for cre
 
 Use the **return rate** button to specify the return percentage. The percent symbol is not needed.
 
+### Transport items to the black market
+Use `/flip` to get a transportation profit of one item from a city you choose to the black market. This command excepts you to enter an item name that you can find following the link you saw before.
+
+You'll get a simple menu in which you need to select the quality and the start city from where you're transporting your goods.
+
+Once you select everything you need, press Submit and see your results.
 
 ## How do I get this to work?
 If you have chosen the path of self-hosting the bot, follow the instructions in this section. Keep in mind that the project is developed for UNIX-like operating systems, and attempts to make the project work on Microsoft Windows operating systems may not be successful (also, the commands are different).
