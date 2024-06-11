@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 from typing import Any, List, Optional, cast
-from discord import Embed, Guild, Interaction
+from discord import Color, Embed, Guild, Interaction
 from discord.app_commands import command, describe, guild_only
 from discord.ext.commands import Bot, Cog
-from src import CITIES, CRAFTING_COLOR, DEFAULT_RATE, ERROR_COLOR, BONUS_RATE, WHITE
+from src import CITIES, DEFAULT_RATE, BONUS_RATE
 from src.api import AODFetcher, ItemManager, SBIRenderFetcher, strquality_toint
 from src.components.ui import CraftingView, FlipView
 from src.config.config import get_server_config
@@ -24,20 +24,20 @@ class CalcsCog(Cog):
 
         if not ItemManager.exists(item_name):
             await interaction.response.send_message(embed=Embed(title=f":red_circle: {item_name} doesn't exist!",
-                                                                color=ERROR_COLOR,
+                                                                color=Color.red(),
                                                                 description=f"{item_name} is not an existing item!"))
             return
 
         if not ItemManager.is_craftable(item_name):
             await interaction.response.send_message(embed=Embed(title=f":red_circle: {item_name} is not craftable!",
-                                                                color=ERROR_COLOR,
+                                                                color=Color.red(),
                                                                 description="You can't craft uncraftable item!"))
             return
 
         view: CraftingView = CraftingView(item_name, timeout=120)
         view.is_enchanted = ItemManager.is_enchanted(item_name)
         await interaction.response.send_message(embed=Embed(title=":hammer_pick: Crafting calculator",
-                                                            color=CRAFTING_COLOR,
+                                                            color=Color.magenta(),
                                                             description="Let's craft something! Use the buttons below"
                                                             " to access the full power of the crafting calculator! If"
                                                             " you are completely new to this bot, follow [this link]("
@@ -51,7 +51,7 @@ class CalcsCog(Cog):
 
             if len(view.resources) == 0:
                 await interaction.followup.send(embed=Embed(title=":red_circle: No resources specified!",
-                                                            color=ERROR_COLOR,
+                                                            color=Color.red(),
                                                             description="You need to specify the resources you have"
                                                             " to craft the item. Start a new conversation with the "
                                                             "bot to craft something."),
@@ -62,7 +62,7 @@ class CalcsCog(Cog):
             data: Optional[List[dict[str, Any]]] = fetcher.fetch_price(item_name, qualities=1)
             if not data:
                 await interaction.followup.send(embed=Embed(title=":red_circle: Error!",
-                                                            color=ERROR_COLOR,
+                                                            color=Color.red(),
                                                             description="I couldn't handle your request due to "
                                                             "a server problem. Try again later."),
                                                 ephemeral=True)
@@ -85,7 +85,7 @@ class CalcsCog(Cog):
                 resource_data = fetcher.fetch_price(resource, qualities=1, cities=[craft_city.lower()])
                 if not resource_data:
                     await interaction.followup.send(embed=Embed(title=":red_circle: Error!",
-                                                                color=ERROR_COLOR,
+                                                                color=Color.red(),
                                                                 description="I couldn't handle your request due to "
                                                                 "a server problem. Try again later."),
                                                     ephemeral=True)
@@ -95,7 +95,7 @@ class CalcsCog(Cog):
             crafter: Crafter = Crafter(resource_prices, view.resources, view.crafting_requirements, view.return_rate)
             result: dict[str, Any] = crafter.printable(data[CITIES.index(sell_city.lower())])
             embed: Embed = Embed(title=f":hammer_pick: Crafting {item_name}",
-                                 color=CRAFTING_COLOR,
+                                 color=Color.magenta(),
                                  description=f"This is a brief summary of crafting {item_name}"
                                  f" in **{craft_city.title()}** with the sell destination"
                                  f" in **{sell_city.title()}**.\n\n"
@@ -106,6 +106,7 @@ class CalcsCog(Cog):
                                  f"+{result["unused_resources_price"]:,} unused resources")
             embed.add_field(name="Craft city", value=f"**{craft_city.title()}**")
             embed.add_field(name="Sell city", value=f"**{sell_city.title()}**")
+            embed.set_author(name=f"Requested by {interaction.user.name}", icon_url=interaction.user.avatar)
             embed.set_thumbnail(url=SBIRenderFetcher.fetch_item(item_name, quality=1))
             embed.set_footer(text="The data is provided by the Albion Online Data Project.")
             for field in result["fields"]:
@@ -115,7 +116,7 @@ class CalcsCog(Cog):
             message = await interaction.original_response()
             await message.delete()
             await interaction.followup.send(embed=Embed(title=":red_circle: Timed out!",
-                                                        color=ERROR_COLOR,
+                                                        color=Color.red(),
                                                         description="Your time has run out. Start a new "
                                                         "conversation with the bot to craft something."),
                                             ephemeral=True)
@@ -129,19 +130,19 @@ class CalcsCog(Cog):
 
         if (ItemManager.is_enchanted(item_name) and int(item_name[1]) < 4) or (not ItemManager.exists(item_name)):
             await interaction.response.send_message(embed=Embed(title=f":red_circle: {item_name} doesn't exist!",
-                                                                color=ERROR_COLOR,
+                                                                color=Color.red(),
                                                                 description=f"{item_name} is not an existing item!"))
             return
 
         if not ItemManager.is_sellable_on_black_market(item_name):
             await interaction.response.send_message(embed=Embed(title=f":red_circle: {item_name} is not sellable on the black market!",
-                                                                color=ERROR_COLOR,
+                                                                color=Color.red(),
                                                                 description="You can't sell what is unsellable on the black market."))
             return
 
         view: FlipView = FlipView(timeout=30)
         await interaction.response.send_message(embed=Embed(title=f":truck: Market flipper",
-                                                            color=WHITE,
+                                                            color=Color.random(),
                                                             description="Let's flip the market up! Customize the item"
                                                             " you want to flip with the interaction buttons below. If"
                                                             " you are completely new to this bot, follow the rules in"
@@ -165,29 +166,38 @@ class CalcsCog(Cog):
             data: Optional[List[dict[str, Any]]] = fetcher.fetch_price(item_name, quality, cities)
             if not data:
                 await interaction.followup.send(embed=Embed(title=":red_circle: Error!",
-                                                            color=ERROR_COLOR,
+                                                            color=Color.red(),
                                                             description="I couldn't handle your request due to "
                                                             "a server problem. Try again later."),
                                                 ephemeral=True)
                 return
             
-            embed: Embed = Embed(title=f":truck: Flipping the market for {item_name}",
-                                 color=WHITE,
-                                 description=f"The expected profit of transporting {item_name} of **{view.quality.lower()}"
-                                 f" quality** from **{view.cities[0].title()}** to the black market is:\n"
-                                 f"* **{(data[0]["sell_price_min"] - data[1]["sell_price_min"]):,} silver**\n"
-                                 f"* **{round((data[0]["sell_price_min"] / data[1]["sell_price_min"] * 100) - 100, 2):,}%**")
-            embed.add_field(name="Start city", value=f"**{view.cities[0].title()}**")
-            embed.add_field(name="Buy price", value=f"**{data[1]["sell_price_min"]:,}**")
-            embed.add_field(name="Sell price", value=f"**{data[0]["sell_price_min"]:,}**")
-            embed.set_thumbnail(url=SBIRenderFetcher.fetch_item(item_name, quality=quality))
-            embed.set_footer(text="The data is provided by the Albion Online Data Project.")
-            await interaction.followup.send(embed=embed)
+            try:
+                embed: Embed = Embed(title=f":truck: Flipping the market for {item_name}",
+                                     color=Color.random(),
+                                     description=f"The expected profit of transporting {item_name} of **{view.quality.lower()}"
+                                     f" quality** from **{view.cities[0].title()}** to the black market is:\n"
+                                     f"* **{(data[0]["sell_price_min"] - data[1]["sell_price_min"]):,} silver**\n"
+                                     f"* **{round((data[0]["sell_price_min"] / data[1]["sell_price_min"] * 100) - 100, 2):,}%**")
+                embed.add_field(name="Start city", value=f"**{view.cities[0].title()}**")
+                embed.add_field(name="Buy price", value=f"**{data[1]["sell_price_min"]:,}**")
+                embed.add_field(name="Sell price", value=f"**{data[0]["sell_price_min"]:,}**")
+                embed.set_author(name=f"Requested by {interaction.user.name}", icon_url=interaction.user.avatar)
+                embed.set_thumbnail(url=SBIRenderFetcher.fetch_item(item_name, quality=quality))
+                embed.set_footer(text="The data is provided by the Albion Online Data Project.")
+                await interaction.followup.send(embed=embed)
+            except ZeroDivisionError:
+                await interaction.followup.send(embed=Embed(title=":red_circle: Error!",
+                                                            color=Color.red(),
+                                                            description="I couldn't handle your request due to "
+                                                            "a server problem. Try again later."),
+                                                ephemeral=True)
+                return
         else:
             message = await interaction.original_response()
             await message.delete()
             await interaction.followup.send(embed=Embed(title=":red_circle: Timed out!",
-                                                        color=ERROR_COLOR,
+                                                        color=Color.red(),
                                                         description="Your time has run out. Start a new "
                                                         "conversation with the bot to craft something."),
                                             ephemeral=True)

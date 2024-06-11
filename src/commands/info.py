@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 from typing import Any, List, Optional, cast
-from discord import Embed, Guild, Interaction
+from discord import Color, Embed, Guild, Interaction
 from discord.app_commands import command, describe
 from discord.ext.commands import Bot, Cog, guild_only
 from src.api import AODFetcher, ItemManager, SBIRenderFetcher, convert_api_timestamp, get_percent_variation, strquality_toint
 from src.components.ui import PriceView
 from src.config.config import get_server_config
-from src import ERROR_COLOR, GOLD_COLOR, PRICE_COLOR
 
 
 class InfoCog(Cog):
@@ -21,7 +20,7 @@ class InfoCog(Cog):
     async def gold(self, interaction: Interaction, count: int = 3) -> None:
         if count not in range(1, 25):
             await interaction.response.send_message(embed=Embed(title=":red_circle: Invalid argument!",
-                                                                color=ERROR_COLOR,
+                                                                color=Color.red(),
                                                                 description="Please, specify a valid integer value in "
                                                                 "range between 1 and 24."))
             return
@@ -31,18 +30,19 @@ class InfoCog(Cog):
         data: Optional[List[dict[str, Any]]] = fetcher.fetch_gold(count + 1)
         if not data:
             await interaction.response.send_message(embed=Embed(title=":red_circle: There was an error",
-                                                                color=ERROR_COLOR,
+                                                                color=Color.red(),
                                                                 description="I've encountered an error trying to get item "
                                                                 "prices from the API. Please, try again later."))
             return
 
         embed: Embed = Embed(title=":coin: Gold prices",
-                             color=GOLD_COLOR,
+                             color=Color.gold(),
                              description=f"Here are the past {count} gold prices.\n"
                              "Total percent variation in the specified period: "
                              f"**{round((data[0]["price"] / data[-1]["price"] - 1) * 100, 2):,}%**\n"
                              "Total numeric variation in the specified period: "
                              f"**{(data[0]["price"] - data[-1]["price"]):,}**")
+        embed.set_author(name=f"Requested by {interaction.user.name}", icon_url=interaction.user.avatar)
         embed.set_footer(text="The data is provided by the Albion Online Data Project\n")
 
         for i in range(len(data) - 1):
@@ -62,13 +62,13 @@ class InfoCog(Cog):
 
         if not ItemManager.exists(item_name):
             await interaction.response.send_message(embed=Embed(title=f":red_circle: {item_name} doesn't exist!",
-                                                          color=ERROR_COLOR,
+                                                          color=Color.red(),
                                                           description=f"{item_name} is not an existing item!"))
             return
 
         view = PriceView(timeout=60)
         await interaction.response.send_message(embed=Embed(title=":dollar: Price fetcher",
-                                                            color=PRICE_COLOR,
+                                                            color=Color.blurple(),
                                                             description="Let's search for a price together!"
                                                             " Use the navigation buttons on the bottom of t"
                                                             "his message to customize your experience. If y"
@@ -87,7 +87,7 @@ class InfoCog(Cog):
             data: Optional[List[dict[str, Any]]] = fetcher.fetch_price(item_name, quality, cast(List[str], view.cities))
             if not data:
                 await interaction.followup.send(embed=Embed(title=":red_circle: Error!",
-                                                            color=ERROR_COLOR,
+                                                            color=Color.red(),
                                                             description="I couldn't handle you request due to "
                                                             "a server problem. Try again later."),
                                                 ephemeral=True)
@@ -95,24 +95,26 @@ class InfoCog(Cog):
                 return
 
             embed: Embed = Embed(title=f":dollar: {data[0]["item_id"]} price",
-                                 color=PRICE_COLOR,
-                                 description=f"Here are the prices of {data[0]["item_id"]}"
-                                 " in different cities.")
+                                 color=Color.blurple())
             embed.set_thumbnail(url=SBIRenderFetcher.fetch_item(item_name, quality))
+            embed.set_author(name=f"Requested by {interaction.user.name}", icon_url=interaction.user.avatar)
             embed.set_footer(text="The data is provided by the Albion Online Data Project.")
 
+            description: str = "***Sell orders:***\n"
             for entry in data:
-                embed.add_field(name=f"{entry["city"]}",
-                                value=f"Updated at: **{convert_api_timestamp(entry["sell_price_min_date"])}** "
-                                f"and **{convert_api_timestamp(entry["buy_price_max_date"])}**\n"
-                                f"Sold at: **{entry["sell_price_min"]:,}**\n"
-                                f"Bought at: **{entry["buy_price_max"]:,}**")
+                description += f"**{entry["city"]}** (updated at {convert_api_timestamp(entry["sell_price_min_date"])}): **{entry["sell_price_min"]:,}**\n"
+
+            description += "\n***Buy orders:***\n"
+            for entry in data:
+                description += f"**{entry["city"]}** (updated at {convert_api_timestamp(entry["sell_price_min_date"])} ago): **{entry["buy_price_max"]:,}**\n"
+            
+            embed.description = description
             await interaction.followup.send(embed=embed)
         else:
             message = await interaction.original_response()
             await message.delete()
             await interaction.followup.send(embed=Embed(title=":red_circle: Timed out!",
-                                                        color=ERROR_COLOR,
+                                                        color=Color.red(),
                                                         description="Your time has run out. Start a new "
                                                         "conversation with the bot to get the price."),
                                             ephemeral=True)

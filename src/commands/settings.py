@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 from typing import Any, cast
-from discord import Embed, Guild
+from discord import Color, Embed, Guild
 from discord.ext.commands import Bot, Cog, Context, command, guild_only
-from src import SUCCESS_COLOR, WHITE
 from src.config.config import create_server_config, get_server_config, has_config, update_server_config
 
 
@@ -63,7 +62,7 @@ class SettingsCog(Cog):
         guild: Guild = cast(Guild, context.guild)
         cfg: dict[str, Any] = get_server_config(guild)
         embed: Embed = Embed(title=f":book: Information about {guild.name}",
-                             color=WHITE,
+                             color=Color.orange(),
                              description=f"There you have a configuration info about the {guild.name}.")
         embed.add_field(name="Albion Online server", value=inttostr_server(cfg["fetch_server"]).capitalize())
         embed.add_field(name="Members of the server", value=guild.member_count)
@@ -74,14 +73,23 @@ class SettingsCog(Cog):
     @command(name="help", description="Provides basic information over the bot.")
     async def help(self, context: Context) -> None:
         embed = Embed(title=":wave: Hello!",
-                      color=SUCCESS_COLOR,
+                      color=Color.teal(),
                       description="I'm Bridgewatcher, a Discord bot created by <@692305905123065918>.\n"
                       "I can help you with :hammer_pick: crafting, :bricks: refining, :handshake: tradi"
                       "ng, and :truck: transporting goods all around Albion on all the servers.\n\n"
+
+                      "**My commands**\n"
+                      "`/price`: search for any item price\n"
+                      "`/gold`: get price of gold\n"
+                      "`/premium`: get price of all types of premium status\n"
+                      "`/craft:` craft an item and get respective profit\n"
+                      "`/flip`: get profit of transporting an item from city to black market\n\n"
     
+                      "**Don't know how to use commands?**\n"
                       "You can find the full list of command by following [this link](https://github.com/d"
                       "etectivekaktus/bridgewatcher?tab=readme-ov-file#how-do-i-use-this).\n\n"
 
+                      "**Found a bug?**\n"
                       "If the bot is behaving in unexpected way :lady_beetle:, please report it to the developer.")
         embed.set_author(name="Made by DetectiveKaktus", url="https://github.com/detectivekaktus")
         await context.send(embed=embed)
