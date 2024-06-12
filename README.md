@@ -57,7 +57,7 @@ To invite the bot to a server, go to the "0auth2" section and select "bot" from 
 ### Launch the application
 On the Discord Developers page within your application, go to the "Bot" tab and click on "Reset token". A new authorization token will appear for a short period of time, which you need to copy. We will use this to establish a connection with Discord using the `Discord py` library.
 
-After cloning the repository, create a `.env` file in the root directory and inside the file, paste: `DISCORD_TOKEN="your token"`. Your token is the token you copied from the Discord Developers. The quotes are obbligatory.
+After cloning the repository, create a `.env` file in the root directory and inside the file, paste: `DISCORD_TOKEN="your token"`. Your token is the token you copied from the Discord Developers. The quotes are obbligatory. If you also want to add a separate application as a debug version of the current application, specify `DEBUG_TOKEN="token"` following the steps you've done before.
 
 Create a new Python environment using `python3 -m venv venv`, activate it with `source venv/bin/activate` and synchronize the dependencies using `pip3 install -r requirements.txt`.
 

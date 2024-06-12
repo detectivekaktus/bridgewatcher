@@ -23,10 +23,6 @@ def verify_configuration() -> None:
         print("ERROR: Your configuration is missing DISCORD_TOKEN environment variable.")
         exit(1)
 
-    if not DEBUG_TOKEN:
-        print("ERROR: Your configuration is missing DEBUG_TOKEN environment variable.")
-        exit(1)
-
     if not path.exists("res/items.db"):
         print("ERROR: Your configuration is missing items database.")
         print("Execute ./bot.py database --populate to create one.")
@@ -56,6 +52,10 @@ def main() -> None:
                     i += 1
                     if len(cliargs) - 1 != i:
                         crash("ERROR: Got too many arguments for the run subcommand.")
+                        exit(1)
+
+                    if not DEBUG_TOKEN:
+                        print("ERROR: Your configuration is missing DEBUG_TOKEN environment variable.")
                         exit(1)
 
                     bot.run(cast(str, DEBUG_TOKEN))
