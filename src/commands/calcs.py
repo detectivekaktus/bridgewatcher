@@ -5,8 +5,8 @@ from discord.app_commands import command, describe, guild_only
 from discord.ext.commands import Bot, Cog
 from src import CITIES, DEFAULT_RATE, BONUS_RATE
 from src.api import AODFetcher, ItemManager, SBIRenderFetcher, strquality_toint
+from src.client import servers
 from src.components.ui import CraftingView, FlipView
-from src.config.config import get_server_config
 from src.market import Crafter, find_crafting_bonus_city, find_least_expensive_city, find_most_expensive_city
 
 
@@ -58,7 +58,7 @@ class CalcsCog(Cog):
                                                 ephemeral=True)
                 return
 
-            fetcher: AODFetcher = AODFetcher(get_server_config(cast(Guild, interaction.guild))["fetch_server"])
+            fetcher: AODFetcher = AODFetcher(servers.get_config(cast(Guild, interaction.guild))["fetch_server"])
             data: Optional[List[dict[str, Any]]] = fetcher.fetch_price(item_name, qualities=1)
             if not data:
                 await interaction.followup.send(embed=Embed(title=":red_circle: Error!",
@@ -162,7 +162,7 @@ class CalcsCog(Cog):
                 view.cities.extend([cast(str, find_crafting_bonus_city(item_name)), "black market"])
             cities: List[str] = view.cities
 
-            fetcher: AODFetcher = AODFetcher(get_server_config(cast(Guild, interaction.guild))["fetch_server"])
+            fetcher: AODFetcher = AODFetcher(servers.get_config(cast(Guild, interaction.guild))["fetch_server"])
             data: Optional[List[dict[str, Any]]] = fetcher.fetch_price(item_name, quality, cities)
             if not data:
                 await interaction.followup.send(embed=Embed(title=":red_circle: Error!",

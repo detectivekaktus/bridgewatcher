@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 from json import loads
 from random import choice
-from sqlite3 import Connection, Cursor, connect
 from typing import Any, List, Optional
 from discord import Interaction
 from discord.ui import Modal, TextInput
 from src.api import ItemManager
+from src.client import database
 
 
 class ResourcesModal(Modal):
@@ -13,17 +13,14 @@ class ResourcesModal(Modal):
         super().__init__(title=title, timeout=timeout, custom_id=custom_id)
         self.view = view
 
-        conn: Connection = connect("res/items.db")
-        curs: Cursor = conn.cursor()
-        if self.view.is_enchanted and ItemManager.is_resource(self.view.item_name):
-            curs.execute("SELECT * FROM items WHERE name = ?", (self.view.item_name[:-9], ))
-        elif self.view.is_enchanted:
-            curs.execute("SELECT * FROM items WHERE name = ?", (self.view.item_name[:-2], ))
-        else:
-            curs.execute("SELECT * FROM items WHERE name = ?", (self.view.item_name, ))
-        item: List[dict[str, Any]] | dict[str, Any] = loads(curs.fetchone()[4])
-        conn.commit()
-        conn.close()
+        with database as db:
+            if self.view.is_enchanted and ItemManager.is_resource(self.view.item_name):
+                db.execute("SELECT * FROM items WHERE name = ?", (self.view.item_name[:-9], ))
+            elif self.view.is_enchanted:
+                db.execute("SELECT * FROM items WHERE name = ?", (self.view.item_name[:-2], ))
+            else:
+                db.execute("SELECT * FROM items WHERE name = ?", (self.view.item_name, ))
+            item: List[dict[str, Any]] | dict[str, Any] = loads(db.fetchone()[4])
 
         if isinstance(item, list):
             item = item[0]

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-from typing import Any, cast
+from typing import cast
 from discord import Color, Embed, Guild
 from discord.ext.commands import Bot, Cog, Context, command, guild_only
-from src.config.config import create_server_config, get_server_config, has_config, update_server_config
+from src.client import servers
 
 
 def strtoint_server(server: str) -> int:
@@ -43,10 +43,8 @@ class SettingsCog(Cog):
             return
 
         fetch_server: int = strtoint_server(server.lower())
-        if not has_config(cast(Guild, context.guild)):
-            create_server_config(cast(Guild, context.guild))
     
-        update_server_config(cast(Guild, context.guild), fetch_server)
+        servers.update_config(cast(Guild, context.guild), fetch_server)
         match fetch_server:
             case 1:
                 await context.send("Server successfully changed to :flag_us: America.")
@@ -60,11 +58,10 @@ class SettingsCog(Cog):
     @guild_only()
     async def info(self, context: Context) -> None:
         guild: Guild = cast(Guild, context.guild)
-        cfg: dict[str, Any] = get_server_config(guild)
         embed: Embed = Embed(title=f":book: Information about {guild.name}",
                              color=Color.orange(),
                              description=f"There you have a configuration info about the {guild.name}.")
-        embed.add_field(name="Albion Online server", value=inttostr_server(cfg["fetch_server"]).capitalize())
+        embed.add_field(name="Albion Online server", value=inttostr_server(servers.get_config(cast(Guild, context.guild))["fetch_server"]).capitalize())
         embed.add_field(name="Members of the server", value=guild.member_count)
         embed.add_field(name="Server owner", value=f"<@{guild.owner_id}>")
         await context.send(embed=embed)

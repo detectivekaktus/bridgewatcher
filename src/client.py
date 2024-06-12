@@ -6,7 +6,8 @@ from src.commands.calcs import CalcsCog
 from src.commands.error_handler import CommandErrorHandler
 from src.commands.info import InfoCog
 from src.commands.settings import SettingsCog
-from src.config.config import create_server_config
+from src.config.config import Servers
+from src.db.database import Database
 
 
 INTENTS: Intents = Intents.default()
@@ -17,6 +18,9 @@ bot: Bot = Bot(command_prefix=";",
                activity=Activity(type=ActivityType.listening, name=";help"),
                status=Status.do_not_disturb)
 bot.remove_command("help")
+
+database: Database = Database("res/items.db")
+servers: Servers = Servers("servers/servers.db")
 
 
 async def setup_bot(bot: Bot) -> None:
@@ -37,4 +41,4 @@ async def on_ready() -> None:
 
 @bot.event
 async def on_guild_join(guild: Guild) -> None:
-    create_server_config(guild)
+    servers.create_config(guild)

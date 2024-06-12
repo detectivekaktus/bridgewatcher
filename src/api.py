@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Any, Final, List, Optional, Tuple
 from requests import ReadTimeout, Response, get
 from src import CITIES, ENCHANTMENTS, NON_CRAFTABLE, NON_SELLABLE_ON_BLACK_MARKET
-from src.db.manager import DatabaseManager
+from src.client import database
 
 
 SERVER_URLS: Final = {
@@ -54,15 +54,21 @@ class ItemManager:
         if ItemManager.is_enchanted(item_name) and ItemManager.is_artefact(item_name):
             return False
 
-        res: Optional[Tuple] = DatabaseManager.get_item(item_name)
+        with database as db:
+            db.execute("SELECT * FROM items WHERE name = ?", (item_name, ))
+            item: Optional[Tuple] = db.fetchone()
 
-        return True if res != None else False
+        return True if item != None else False
 
     @staticmethod
     def is_craftable(item_name: str) -> bool:
         if ItemManager.is_enchanted(item_name):
             item_name = item_name[:-2]
-        item: Optional[Tuple] = DatabaseManager.get_item(item_name) 
+
+        with database as db:
+            db.execute("SELECT * FROM items WHERE name = ?", (item_name, ))
+            item: Optional[Tuple] = db.fetchone()
+
         if not item:
             return False
 
@@ -83,7 +89,11 @@ class ItemManager:
     def is_resource(item_name: str) -> bool:
         if ItemManager.is_enchanted(item_name):
             item_name = item_name[:-2]
-        item: Optional[Tuple] = DatabaseManager.get_item(item_name)
+
+        with database as db:
+            db.execute("SELECT * FROM items WHERE name = ?", (item_name, ))
+            item: Optional[Tuple] = db.fetchone()
+
         if not item:
             return False
 
@@ -94,7 +104,10 @@ class ItemManager:
         if ItemManager.is_enchanted(item_name):
             return False
 
-        item: Optional[Tuple] = DatabaseManager.get_item(item_name)
+        with database as db:
+            db.execute("SELECT * FROM items WHERE name = ?", (item_name, ))
+            item: Optional[Tuple] = db.fetchone()
+
         if not item:
             return False
 
@@ -105,7 +118,10 @@ class ItemManager:
         if ItemManager.is_enchanted(item_name):
             return False
 
-        item: Optional[Tuple] = DatabaseManager.get_item(item_name)
+        with database as db:
+            db.execute("SELECT * FROM items WHERE name = ?", (item_name, ))
+            item: Optional[Tuple] = db.fetchone()
+
         if not item:
             return False
 
@@ -113,7 +129,10 @@ class ItemManager:
 
     @staticmethod
     def is_consumable(item_name: str) -> bool:
-        item: Optional[Tuple] = DatabaseManager.get_item(item_name)
+        with database as db:
+            db.execute("SELECT * FROM items WHERE name = ?", (item_name, ))
+            item: Optional[Tuple] = db.fetchone()
+
         if not item:
             return False
 
@@ -125,7 +144,10 @@ class ItemManager:
 
     @staticmethod
     def is_sellable_on_black_market(item_name: str) -> bool:
-        item: Optional[Tuple] = DatabaseManager.get_item(item_name)
+        with database as db:
+            db.execute("SELECT * FROM items WHERE name = ?", (item_name, ))
+            item: Optional[Tuple] = db.fetchone()
+
         if not item:
             return False
 

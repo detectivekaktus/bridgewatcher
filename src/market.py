@@ -3,7 +3,7 @@ from math import floor
 from typing import Any, List, Optional, Tuple, cast
 from src import CRAFTING_BONUSES
 from src.api import ItemManager
-from src.db.manager import DatabaseManager
+from src.client import database
 
 
 class Crafter:
@@ -98,7 +98,7 @@ class Crafter:
 
 
 def find_crafting_bonus_city(item_name: str) -> Optional[str]:
-    item: Optional[Tuple] = DatabaseManager.get_item(item_name)
+    item: Optional[Tuple] = database.queryone("SELECT * FROM items WHERE name = ?", (item_name, ))
     if not item:
         return None
 

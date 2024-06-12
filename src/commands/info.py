@@ -4,8 +4,8 @@ from discord import Color, Embed, Guild, Interaction
 from discord.app_commands import command, describe
 from discord.ext.commands import Bot, Cog, guild_only
 from src.api import AODFetcher, ItemManager, SBIRenderFetcher, convert_api_timestamp, get_percent_variation, strquality_toint
+from src.client import servers
 from src.components.ui import PriceView
-from src.config.config import get_server_config
 
 
 class InfoCog(Cog):
@@ -25,7 +25,7 @@ class InfoCog(Cog):
                                                                 "range between 1 and 24."))
             return
 
-        fetcher: AODFetcher = AODFetcher(get_server_config(cast(Guild, interaction.guild))["fetch_server"])
+        fetcher: AODFetcher = AODFetcher(servers.get_config(cast(Guild, interaction.guild))["fetch_server"])
         data: Optional[List[dict[str, Any]]] = fetcher.fetch_gold(count + 1)
         if not data:
             await interaction.response.send_message(embed=Embed(title=":red_circle: There was an error",
@@ -56,7 +56,7 @@ class InfoCog(Cog):
     @command(name="premium", description="Retrieves price of premium status in the game.")
     @guild_only()
     async def premium(self, interaction: Interaction) -> None:
-        fetcher: AODFetcher = AODFetcher(get_server_config(cast(Guild, interaction.guild))["fetch_server"])
+        fetcher: AODFetcher = AODFetcher(servers.get_config(cast(Guild, interaction.guild))["fetch_server"])
         data: Optional[List[dict[str, Any]]] = fetcher.fetch_gold(1)
         
         if not data:
@@ -106,7 +106,7 @@ class InfoCog(Cog):
 
             quality: int = strquality_toint(view.quality)
 
-            fetcher: AODFetcher = AODFetcher(get_server_config(cast(Guild, interaction.guild))["fetch_server"])
+            fetcher: AODFetcher = AODFetcher(servers.get_config(cast(Guild, interaction.guild))["fetch_server"])
             data: Optional[List[dict[str, Any]]] = fetcher.fetch_price(item_name, quality, cast(List[str], view.cities))
             if not data:
                 await interaction.followup.send(embed=Embed(title=":red_circle: Error!",

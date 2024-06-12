@@ -4,8 +4,7 @@ from sys import argv
 from os import path
 from typing import List, cast
 from src import DISCORD_TOKEN
-from src.client import bot, setup_bot
-from src.db.manager import DatabaseManager
+from src.client import bot, database, setup_bot
 
 
 def usage() -> None:
@@ -57,21 +56,16 @@ def main() -> None:
                 crash("ERROR: no flag specified for the database subcommand.")
 
             if cliargs[i] == "--populate":
-                manager: DatabaseManager = DatabaseManager("res/items.db")
-                manager.create_items_table()
-                manager.populate_table()
+                database.populate_table()
                 exit(0)
             elif cliargs[i] == "--upgrade":
-                manager: DatabaseManager = DatabaseManager("res/items.db")
-                manager.upgrade_database()
+                database.upgrade_database()
                 exit(0)
             elif cliargs[i] == "--destroy":
-                manager: DatabaseManager = DatabaseManager("res/items.db")
-                i += 1
-                if len(cliargs) == i:
-                    manager.destroy(True)
+                if len(cliargs) == i + 1:
+                    database.destroy(True)
                 elif cliargs[i] == "--entire":
-                    manager.destroy()
+                    database.destroy()
                 else:
                     crash(f"ERROR: Unexpected flag {cliargs[i]} in sequence of `database` and `destroy` commands.")
                 exit(0)
