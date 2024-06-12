@@ -201,3 +201,7 @@ class CalcsCog(Cog):
                                                         description="Your time has run out. Start a new "
                                                         "conversation with the bot to craft something."),
                                             ephemeral=True)
+
+
+async def setup(bot: Bot) -> None:
+    await bot.add_cog(CalcsCog(bot))

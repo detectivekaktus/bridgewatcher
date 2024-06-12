@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-from asyncio import run
 from sys import argv
 from os import path
 from typing import List, cast
 from src import DISCORD_TOKEN
-from src.client import bot, database, setup_bot
+from src.client import bot, database
 
 
 def usage() -> None:
@@ -45,7 +44,6 @@ def main() -> None:
             verify_configuration()
 
             if len(cliargs) - 1 == i:
-                run(setup_bot(bot))
                 bot.run(cast(str, DISCORD_TOKEN))
                 exit(0)
             else:
@@ -56,6 +54,7 @@ def main() -> None:
                 crash("ERROR: no flag specified for the database subcommand.")
 
             if cliargs[i] == "--populate":
+                database.create_items_table()
                 database.populate_table()
                 exit(0)
             elif cliargs[i] == "--upgrade":

@@ -29,3 +29,7 @@ class CommandErrorHandler(Cog):
             await context.send(f"You've entered a wrong argument to the {context.command} command.")
         else:
             print(f"Encountered unexpected exception: {error} in command {context.command}.", file=stderr)
+
+
+async def setup(bot: Bot) -> None:
+    await bot.add_cog(CommandErrorHandler(bot))

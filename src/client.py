@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
 from datetime import datetime
+from os import listdir
 from discord import Activity, ActivityType, Guild, Intents, Status
 from discord.ext.commands import Bot
-from src.commands.calcs import CalcsCog
-from src.commands.error_handler import CommandErrorHandler
-from src.commands.info import InfoCog
-from src.commands.settings import SettingsCog
 from src.config.config import Servers
 from src.db.database import Database
 
@@ -23,17 +20,15 @@ database: Database = Database("res/items.db")
 servers: Servers = Servers("servers/servers.db")
 
 
-async def setup_bot(bot: Bot) -> None:
-    await bot.add_cog(CommandErrorHandler(bot))
-    await bot.add_cog(InfoCog(bot))
-    await bot.add_cog(SettingsCog(bot))
-    await bot.add_cog(CalcsCog(bot))
-
+async def load_cogs():
+    for filename in listdir("src/commands"):
+        if filename.endswith(".py"):
+            await bot.load_extension(f"src.commands.{filename[:-3]}")
 
 @bot.event
 async def on_ready() -> None:
     print(f"Successfully logged as {bot.user} on {datetime.now().strftime("%d.%m.%Y %I:%M:%S %p")}.")
-
+    await load_cogs()
     synched = await bot.tree.sync()
     print(f"Successfully synched {len(synched)} commands globally.")
 

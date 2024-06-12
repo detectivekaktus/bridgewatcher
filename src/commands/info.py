@@ -141,3 +141,7 @@ class InfoCog(Cog):
                                                         description="Your time has run out. Start a new "
                                                         "conversation with the bot to get the price."),
                                             ephemeral=True)
+
+
+async def setup(bot: Bot) -> None:
+    await bot.add_cog(InfoCog(bot))

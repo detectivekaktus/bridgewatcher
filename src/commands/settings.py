@@ -90,3 +90,7 @@ class SettingsCog(Cog):
                       "If the bot is behaving in unexpected way :lady_beetle:, please report it to the developer.")
         embed.set_author(name="Made by DetectiveKaktus", url="https://github.com/detectivekaktus")
         await context.send(embed=embed)
+
+
+async def setup(bot: Bot) -> None:
+    await bot.add_cog(SettingsCog(bot))
