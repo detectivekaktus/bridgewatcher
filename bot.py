@@ -2,23 +2,29 @@
 from sys import argv
 from os import path
 from typing import List, cast
-from src import DISCORD_TOKEN
+from src import DEBUG_TOKEN, DISCORD_TOKEN
 from src.client import bot, database
 
 
 def usage() -> None:
-    print("Usage: ./bot.py [run | database] [--populate | --upgrade]  ")
-    print("  run:      run the bot                                    ")
-    print("  database: access the bot's items database                ")
-    print("    --populate: insert data into database if doesn't exist ")
-    print("    --upgrade:  update the data in the database            ")
-    print("    --destroy:  delete the entire bot's database           ")
-    print("    Use --entire to delete the database file from the disk.")
+    print("Usage: ./bot.py [run | database] [--populate | --upgrade]   ")
+    print("  run:      run the bot                                     ")
+    print("    Use --debug to run the debug version of the bot, instead")
+    print("    of running the main application.                        ")
+    print("  database: access the bot's items database                 ")
+    print("    --populate: insert data into database if doesn't exist  ")
+    print("    --upgrade:  update the data in the database             ")
+    print("    --destroy:  delete the entire bot's database            ")
+    print("    Use --entire to delete the database file from the disk. ")
 
 
 def verify_configuration() -> None:
     if not DISCORD_TOKEN:
         print("ERROR: Your configuration is missing DISCORD_TOKEN environment variable.")
+        exit(1)
+
+    if not DEBUG_TOKEN:
+        print("ERROR: Your configuration is missing DEBUG_TOKEN environment variable.")
         exit(1)
 
     if not path.exists("res/items.db"):
@@ -45,9 +51,17 @@ def main() -> None:
 
             if len(cliargs) - 1 == i:
                 bot.run(cast(str, DISCORD_TOKEN))
-                exit(0)
             else:
-                crash(f"ERROR: unknown flag {cliargs[i + 1]} specified for the run subcommand.")
+                if cliargs[i + 1] == "--debug":
+                    i += 1
+                    if len(cliargs) - 1 != i:
+                        crash("ERROR: Got too many arguments for the run subcommand.")
+                        exit(1)
+
+                    bot.run(cast(str, DEBUG_TOKEN))
+                else:
+                    crash(f"ERROR: unexpected flag {cliargs[i + 1]} specified for the run subcommand.")
+                    exit(1)
         case "database":
             i += 1
             if i == len(cliargs):

@@ -25,3 +25,4 @@ CRAFTING_BONUSES: Final[dict[str, Tuple]] = {
 
 load_dotenv()
 DISCORD_TOKEN: str | None = getenv("DISCORD_TOKEN")
+DEBUG_TOKEN: str | None = getenv("DEBUG_TOKEN")
