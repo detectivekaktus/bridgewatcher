@@ -129,7 +129,7 @@ class InfoCog(Cog):
 
             description += "\n***Buy orders:***\n"
             for entry in data:
-                description += f"**{entry["city"]}** (updated at {convert_api_timestamp(entry["sell_price_min_date"])} ago): **{entry["buy_price_max"]:,}**\n"
+                description += f"**{entry["city"]}** (updated at {convert_api_timestamp(entry["sell_price_min_date"])}): **{entry["buy_price_max"]:,}**\n"
             
             embed.description = description
             await interaction.followup.send(embed=embed)
