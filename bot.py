@@ -75,7 +75,8 @@ def main() -> None:
                 database.upgrade_database()
                 exit(0)
             elif cliargs[i] == "--destroy":
-                if len(cliargs) == i + 1:
+                i += 1
+                if len(cliargs) == i:
                     database.destroy(True)
                 elif cliargs[i] == "--entire":
                     database.destroy()
