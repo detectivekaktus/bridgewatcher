@@ -45,13 +45,15 @@ class AODFetcher:
 class ItemManager:
     @staticmethod
     def exists(item_name: str) -> bool:
-        if int(item_name[1]) < 4 and ItemManager.is_enchanted(item_name):
-            return False
-
-        if ItemManager.is_enchanted(item_name):
+        is_enchanted: bool = ItemManager.is_enchanted(item_name)
+        
+        if is_enchanted:
             item_name = item_name[:-2]
 
-        if ItemManager.is_enchanted(item_name) and ItemManager.is_artefact(item_name):
+        if int(item_name[1]) < 4 and is_enchanted and not ItemManager.is_consumable(item_name):
+            return False
+        
+        if is_enchanted and ItemManager.is_artefact(item_name):
             return False
 
         with database as db:
