@@ -98,7 +98,10 @@ class Crafter:
 
 
 def find_crafting_bonus_city(item_name: str) -> Optional[str]:
-    item: Optional[Tuple] = database.queryone("SELECT * FROM items WHERE name = ?", (item_name, ))
+    with database as db:
+        db.execute("SELECT * FROM items WHERE name = ?", (item_name, ))
+        item: Optional[Tuple] = db.fetchone()
+
     if not item:
         return None
 

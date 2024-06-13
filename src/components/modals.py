@@ -4,7 +4,7 @@ from random import choice
 from typing import Any, List, Optional
 from discord import Interaction
 from discord.ui import Modal, TextInput
-from src.api import ItemManager
+from src.api import ItemManager, remove_suffix
 from src.client import database
 
 
@@ -13,13 +13,9 @@ class ResourcesModal(Modal):
         super().__init__(title=title, timeout=timeout, custom_id=custom_id)
         self.view = view
 
+        item_name: str = remove_suffix(self.view.item_name, self.view.is_enchanted)
         with database as db:
-            if self.view.is_enchanted and ItemManager.is_resource(self.view.item_name):
-                db.execute("SELECT * FROM items WHERE name = ?", (self.view.item_name[:-9], ))
-            elif self.view.is_enchanted:
-                db.execute("SELECT * FROM items WHERE name = ?", (self.view.item_name[:-2], ))
-            else:
-                db.execute("SELECT * FROM items WHERE name = ?", (self.view.item_name, ))
+            db.execute("SELECT * FROM items WHERE name = ?", (item_name, ))
             item: List[dict[str, Any]] | dict[str, Any] = loads(db.fetchone()[4])
 
         if isinstance(item, list):
@@ -77,4 +73,3 @@ class ReturnModal(Modal):
         except ValueError:
             await interaction.response.send_message(f"{self.return_rate.value} is not a valid return rate.")
             return
-

@@ -198,3 +198,9 @@ def strquality_toint(quality: str) -> int:
 
 def is_valid_city(city: str) -> bool:
     return city.lower() in CITIES
+
+
+def remove_suffix(item_name: str, is_enchanted: bool) -> str:
+    if is_enchanted:
+        return item_name[:-9] if ItemManager.is_resource(item_name) else item_name[:-2]
+    return item_name
