@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from abc import ABC
 from datetime import datetime
 from typing import Any, Final, List, Optional, Tuple
 from requests import ReadTimeout, Response, get
@@ -6,40 +7,113 @@ from src import CITIES, ENCHANTMENTS, NON_CRAFTABLE, NON_SELLABLE_ON_BLACK_MARKE
 from src.client import database
 
 
-SERVER_URLS: Final = {
+AOD_SERVER_URLS: Final = {
     1: "west",
     2: "europe",
     3: "east"
 }
 
 
-class AODFetcher:
+SBI_SERVER_URLS: Final = {
+    1: "gameinfo",
+    2: "gameinfo-ams",
+    3: "gameinfo-sgp"
+}
+
+
+class Fetcher(ABC):
     def __init__(self, server: int, timeout: int = 5) -> None:
-        self.__server_prefix: str | None = SERVER_URLS.get(server)
-        self.__timeout: int = timeout
+        self._server = server
+        self._timeout = timeout
+
+
+class AlbionOnlineData(Fetcher):
+    def __init__(self, server: int, timeout: int = 5) -> None:
+        super().__init__(server=server, timeout=timeout)
+        self._server_prefix = AOD_SERVER_URLS[server]
 
 
     def fetch_gold(self, count: int = 3) -> Optional[List[dict[str, Any]]]:
         try:
-            response: Response = get(f"https://{self.__server_prefix}.albion-online-data.com/api/v2/stats/gold?count={count}",
-                                     timeout=self.__timeout)
-            if not response.ok: return None
+            response: Response = get(f"https://{self._server_prefix}.albion-online-data.com/api/v2/stats/gold?count={count}",
+                                     timeout=self._timeout)
+            if not response.ok:
+                return None
+
             return response.json()
         except ReadTimeout:
             return None
 
     def fetch_price(self, item_name: str, qualities: int = 1, cities: List[str] = []) -> Optional[List[dict[str, Any]]]:
         try:
-            if cities:
-                response: Response = get(f"https://{self.__server_prefix}.albion-online-data.com/api/v2/stats/prices/{item_name}.json?qualities={qualities}&locations={",".join(cities)}",
-                                         timeout=self.__timeout)
-            else:
-                response: Response = get(f"https://{self.__server_prefix}.albion-online-data.com/api/v2/stats/prices/{item_name}.json?qualities={qualities}",
-                                         timeout=self.__timeout)
-            if not response.ok: return None
+            response: Response = get(f"https://{self._server_prefix}.albion-online-data.com/api/v2/stats/prices/{item_name}.json?qualities={qualities}&locations={",".join(cities)}" if cities else f"https://{self._server_prefix}.albion-online-data.com/api/v2/stats/prices/{item_name}.json?qualities={qualities}",
+                                         timeout=self._timeout)
+            if not response.ok:
+                return None
+
             return response.json()
         except ReadTimeout:
             return None
+
+
+class SandboxInteractiveInfo(Fetcher):
+    def __init__(self, server: int, timeout: int = 5) -> None:
+        super().__init__(server=server, timeout=timeout)
+        self._server_prefix = SBI_SERVER_URLS[server]
+
+
+    def find_player(self, name: str) -> Optional[dict[str, Any]]:
+        try:
+            response: Response = get(f"https://{self._server_prefix}.albiononline.com/api/gameinfo/search?q={name}")
+            if not response.ok:
+                return None
+
+            json: dict[str, Any] = response.json()
+            if len(json["players"]) == 0:
+                return None
+
+            return json["players"][0]
+        except ReadTimeout:
+            return None
+
+
+    def find_guild(self, name: str) -> Optional[dict[str, Any]]:
+        try:
+            response: Response = get(f"https://{self._server_prefix}.albiononline.com/api/gameinfo/search?q={name}")
+            if not response.ok:
+                return None
+
+            json: dict[str, Any] = response.json()
+            if len(json["guilds"]) == 0:
+                return None
+
+            return json["guilds"][0]
+        except ReadTimeout:
+            return None
+
+
+    def get_player(self, name: str) -> Optional[dict[str, Any]]:
+        player: Optional[dict[str, Any]] = self.find_player(name)
+        if not player:
+            return None
+
+        response: Response = get(f"https://{self._server_prefix}.albiononline.com/api/gameinfo/players/{player["Id"]}")
+        if not response.ok:
+            return None
+
+        return response.json()
+
+
+    def get_guild(self, name: str) -> Optional[dict[str, Any]]:
+        guild: Optional[dict[str, Any]] = self.find_guild(name)
+        if not guild:
+            return None
+
+        response: Response = get(f"https://{self._server_prefix}.albiononline.com/api/gameinfo/guilds/{guild["Id"]}/data")
+        if not response.ok:
+            return None
+
+        return response.json()
 
 
 class ItemManager:
@@ -160,7 +234,7 @@ class ItemManager:
         return True
 
 
-class SBIRenderFetcher:
+class SandboxInteractiveRenderer:
     @staticmethod
     def fetch_item(identifier: str, quality: int = 1) -> str:
         return f"https://render.albiononline.com/v1/item/{identifier}.png?quality={quality}"

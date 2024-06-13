@@ -4,7 +4,7 @@ from discord import Color, Embed, Guild, Interaction
 from discord.app_commands import command, describe, guild_only
 from discord.ext.commands import Bot, Cog
 from src import CITIES, DEFAULT_RATE, BONUS_RATE
-from src.api import AODFetcher, ItemManager, SBIRenderFetcher, strquality_toint
+from src.api import AlbionOnlineData, ItemManager, SandboxInteractiveRenderer, strquality_toint
 from src.client import servers
 from src.components.ui import CraftingView, FlipView
 from src.market import Crafter, find_crafting_bonus_city, find_least_expensive_city, find_most_expensive_city
@@ -58,7 +58,7 @@ class CalcsCog(Cog):
                                                 ephemeral=True)
                 return
 
-            fetcher: AODFetcher = AODFetcher(servers.get_config(cast(Guild, interaction.guild))["fetch_server"])
+            fetcher: AlbionOnlineData = AlbionOnlineData(servers.get_config(cast(Guild, interaction.guild))["fetch_server"])
             data: Optional[List[dict[str, Any]]] = fetcher.fetch_price(item_name, qualities=1)
             if not data:
                 await interaction.followup.send(embed=Embed(title=":red_circle: Error!",
@@ -107,7 +107,7 @@ class CalcsCog(Cog):
             embed.add_field(name="Craft city", value=f"**{craft_city.title()}**")
             embed.add_field(name="Sell city", value=f"**{sell_city.title()}**")
             embed.set_author(name=f"Requested by {interaction.user.name}", icon_url=interaction.user.avatar)
-            embed.set_thumbnail(url=SBIRenderFetcher.fetch_item(item_name, quality=1))
+            embed.set_thumbnail(url=SandboxInteractiveRenderer.fetch_item(item_name, quality=1))
             embed.set_footer(text="The data is provided by the Albion Online Data Project.")
             for field in result["fields"]:
                 embed.add_field(name=field["title"], value=f"**{field["value"]}**")
@@ -162,7 +162,7 @@ class CalcsCog(Cog):
                 view.cities.extend([cast(str, find_crafting_bonus_city(item_name)), "black market"])
             cities: List[str] = view.cities
 
-            fetcher: AODFetcher = AODFetcher(servers.get_config(cast(Guild, interaction.guild))["fetch_server"])
+            fetcher: AlbionOnlineData = AlbionOnlineData(servers.get_config(cast(Guild, interaction.guild))["fetch_server"])
             data: Optional[List[dict[str, Any]]] = fetcher.fetch_price(item_name, quality, cities)
             if not data:
                 await interaction.followup.send(embed=Embed(title=":red_circle: Error!",
@@ -183,7 +183,7 @@ class CalcsCog(Cog):
                 embed.add_field(name="Buy price", value=f"**{data[1]["sell_price_min"]:,}**")
                 embed.add_field(name="Sell price", value=f"**{data[0]["sell_price_min"]:,}**")
                 embed.set_author(name=f"Requested by {interaction.user.name}", icon_url=interaction.user.avatar)
-                embed.set_thumbnail(url=SBIRenderFetcher.fetch_item(item_name, quality=quality))
+                embed.set_thumbnail(url=SandboxInteractiveRenderer.fetch_item(item_name, quality=quality))
                 embed.set_footer(text="The data is provided by the Albion Online Data Project.")
                 await interaction.followup.send(embed=embed)
             except ZeroDivisionError:
