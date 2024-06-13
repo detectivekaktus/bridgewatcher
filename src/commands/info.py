@@ -8,7 +8,7 @@ from src.client import servers
 from src.components.ui import PriceView
 
 
-class InfoCog(Cog):
+class Info(Cog):
     def __init__(self, bot: Bot) -> None:
         super().__init__()
         self.bot = bot
@@ -144,4 +144,4 @@ class InfoCog(Cog):
 
 
 async def setup(bot: Bot) -> None:
-    await bot.add_cog(InfoCog(bot))
+    await bot.add_cog(Info(bot))

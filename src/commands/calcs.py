@@ -10,7 +10,7 @@ from src.components.ui import CraftingView, FlipView
 from src.market import Crafter, find_crafting_bonus_city, find_least_expensive_city, find_most_expensive_city
 
 
-class CalcsCog(Cog):
+class Calcs(Cog):
     def __init__(self, bot: Bot) -> None:
         super().__init__()
         self.bot: Bot = bot
@@ -204,4 +204,4 @@ class CalcsCog(Cog):
 
 
 async def setup(bot: Bot) -> None:
-    await bot.add_cog(CalcsCog(bot))
+    await bot.add_cog(Calcs(bot))

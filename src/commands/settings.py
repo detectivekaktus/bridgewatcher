@@ -29,7 +29,7 @@ def inttostr_server(server: int) -> str:
             return "america"
 
 
-class SettingsCog(Cog):
+class Settings(Cog):
     def __init__(self, bot: Bot) -> None:
         super().__init__()
         self.bot = bot
@@ -60,7 +60,7 @@ class SettingsCog(Cog):
         guild: Guild = cast(Guild, context.guild)
         embed: Embed = Embed(title=f":book: Information about {guild.name}",
                              color=Color.orange(),
-                             description=f"There you have a configuration info about the {guild.name}.")
+                             description=f"There you have a configuration info about {guild.name}.")
         embed.add_field(name="Albion Online server", value=inttostr_server(servers.get_config(cast(Guild, context.guild))["fetch_server"]).capitalize())
         embed.add_field(name="Members of the server", value=guild.member_count)
         embed.add_field(name="Server owner", value=f"<@{guild.owner_id}>")
@@ -93,4 +93,4 @@ class SettingsCog(Cog):
 
 
 async def setup(bot: Bot) -> None:
-    await bot.add_cog(SettingsCog(bot))
+    await bot.add_cog(Settings(bot))
