@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from datetime import datetime, timezone
 from typing import Any, List, Optional, cast
 from discord import Color, Embed, Guild, Interaction
 from discord.app_commands import command, describe
@@ -141,6 +142,11 @@ class Info(Cog):
                                                         description="Your time has run out. Start a new "
                                                         "conversation with the bot to get the price."),
                                             ephemeral=True)
+
+
+    @command(name="utc", description="Displays current UTC time.")
+    async def utc(self, interaction: Interaction) -> None:
+        await interaction.response.send_message(f"Current UTC time: {datetime.now(timezone.utc).strftime("%b %d, %Y. %H:%M:%S")}")
 
 
 async def setup(bot: Bot) -> None:
