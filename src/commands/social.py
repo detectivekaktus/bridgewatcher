@@ -5,6 +5,7 @@ from discord.app_commands import command, describe, guild_only
 from discord.ext.commands import Bot, Cog
 from src.api import SandboxInteractiveInfo
 from src.client import servers
+from src.components.cards import PlayerDeathCard
 
 
 class Social(Cog):
@@ -43,12 +44,37 @@ class Social(Cog):
         embed.add_field(name="Death fame", value=f"**{player["DeathFame"]:,}**")
 
         for type in ("Fiber", "Hide", "Ore", "Rock", "Wood"):
-            embed.add_field(name=f"{type}", value=f"**{player["LifetimeStatistics"]["Gathering"][type]["Total"]:,}**")
+            embed.add_field(name=f"{type} fame", value=f"**{player["LifetimeStatistics"]["Gathering"][type]["Total"]:,}**")
         embed.add_field(name="Fishing", value=f"**{player["LifetimeStatistics"]["FishingFame"]:,}**")
 
         embed.set_author(name=f"Requested by {interaction.user.name}", icon_url=interaction.user.avatar)
         embed.set_footer(text="The data is provided by Sandbox Interactive GmbH.")
         await interaction.response.send_message(embed=embed)
+
+
+    @command(name="deaths", description="Displays recent deaths of a player.")
+    @describe(name="The name of the player you are looking for.")
+    @guild_only()
+    async def deaths(self, interaction: Interaction, name: str) -> None:
+        fetcher: SandboxInteractiveInfo = SandboxInteractiveInfo(servers.get_config(cast(Guild, interaction.guild))["fetch_server"])
+        deaths: Optional[list[dict[str, Any]]] = fetcher.get_deaths(name)
+        if deaths == None:
+            await interaction.response.send_message(embed=Embed(title=f"{name} doesn't exist",
+                                                                color=Color.red(),
+                                                                description=f"No player with name {name} has been "
+                                                                "found. Check if you changed the Albion Online  "
+                                                                "server or try again later."))
+            return
+        elif len(deaths) == 0:
+            await interaction.response.send_message(embed=Embed(title="No data",
+                                                                color=Color.red(),
+                                                                description="Either this player hasn't died yet or"
+                                                                " there is no their death data."))
+            return
+
+        card: PlayerDeathCard = PlayerDeathCard(interaction, deaths)
+        await card.handle_message()
+        card.message = await interaction.original_response()
 
 
     @command(name="guild", description="Displays detailed information about a guild.")
