@@ -4,11 +4,12 @@ from discord import ButtonStyle, Color, Embed, Interaction, Message
 from discord.ui import Button, View, button
 
 
-class PlayerDeathCard(View):
-    def __init__(self, interaction: Interaction, data: list[dict[str, Any]], *, timeout: Optional[float] = 180) -> None:
+class PlayerCard(View):
+    def __init__(self, interaction: Interaction, data: list[dict[str, Any]], *, is_kill: bool = False, timeout: Optional[float] = 180) -> None:
         super().__init__(timeout=timeout)
         self._interaction: Interaction = interaction
         self._data: list[dict[str, Any]] = data
+        self._is_kill = is_kill
         self._current: int = 0
         self.message: Message | None = None
 
@@ -17,7 +18,7 @@ class PlayerDeathCard(View):
         if not self.message and edit:
             return
 
-        embed: Embed = Embed(title=f"{self._data[self._current]["Victim"]["Name"]}'s death against {self._data[self._current]["Killer"]["Name"]}",
+        embed: Embed = Embed(title=f"{self._data[self._current]["Killer"]["Name"]} killed {self._data[self._current]["Victim"]["Name"]}" if self._is_kill else f"{self._data[self._current]["Victim"]["Name"]}'s death against {self._data[self._current]["Killer"]["Name"]}",
                              color=Color.yellow())
         try:
             embed.add_field(name="Killer's weapon", value=f"**{self._data[self._current]["Killer"]["Equipment"]["MainHand"]["Type"]}**")
@@ -25,6 +26,8 @@ class PlayerDeathCard(View):
             embed.add_field(name="Fame gained", value=f"**{self._data[self._current]["TotalVictimKillFame"]:,}**")
             embed.add_field(name="Victim's weapon", value=f"**{self._data[self._current]["Victim"]["Equipment"]["MainHand"]["Type"]}**")
             embed.add_field(name="Victim's average IP", value=f"**{int(self._data[self._current]["Victim"]["AverageItemPower"]):,}**")
+            embed.set_author(name=f"Requested by {self._interaction.user.name}", icon_url=self._interaction.user.avatar)
+            embed.set_footer(text="The data is provided by Sandbox Interactive GmbH.")
             if (partecipants := len(self._data[self._current]["Participants"])) != 1:
                 embed.add_field(name="Killed in a group of", value=f"**{partecipants}**")
         except Exception:

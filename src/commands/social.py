@@ -5,7 +5,7 @@ from discord.app_commands import command, describe, guild_only
 from discord.ext.commands import Bot, Cog
 from src.api import SandboxInteractiveInfo
 from src.client import servers
-from src.components.cards import PlayerDeathCard
+from src.components.cards import PlayerCard
 
 
 class Social(Cog):
@@ -72,7 +72,32 @@ class Social(Cog):
                                                                 " there is no their death data."))
             return
 
-        card: PlayerDeathCard = PlayerDeathCard(interaction, deaths)
+        card: PlayerCard = PlayerCard(interaction, deaths)
+        await card.handle_message()
+        card.message = await interaction.original_response()
+
+
+    @command(name="kills", description="Displays recent kills of a player")
+    @describe(name="The name of the player you are looking for.")
+    @guild_only()
+    async def kills(self, interaction: Interaction, name: str) -> None:
+        fetcher: SandboxInteractiveInfo = SandboxInteractiveInfo(servers.get_config(cast(Guild, interaction.guild))["fetch_server"])
+        kills: Optional[list[dict[str, Any]]] = fetcher.get_kills(name)
+        if kills == None:
+            await interaction.response.send_message(embed=Embed(title=f"{name} doesn't exist",
+                                                                color=Color.red(),
+                                                                description=f"No player with name {name} has been "
+                                                                "found. Check if you changed the Albion Online  "
+                                                                "server or try again later."))
+            return
+        elif len(kills) == 0:
+            await interaction.response.send_message(embed=Embed(title="No data",
+                                                                color=Color.red(),
+                                                                description="Either this player hasn't killed anyone yet"
+                                                                " or there is no their kill data."))
+            return
+
+        card: PlayerCard = PlayerCard(interaction, kills, is_kill=True)
         await card.handle_message()
         card.message = await interaction.original_response()
 

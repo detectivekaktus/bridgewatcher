@@ -115,6 +115,18 @@ class SandboxInteractiveInfo(Fetcher):
 
         return response.json()
 
+    
+    def get_kills(self, name: str) -> Optional[list[dict[str, Any]]]:
+        player: Optional[dict[str, Any]] = self.find_player(name)
+        if not player:
+            return None
+
+        response: Response = get(f"https://{self._server_prefix}.albiononline.com/api/gameinfo/players/{player["Id"]}/kills")
+        if not response.ok:
+            return None
+
+        return response.json()
+
 
     def get_guild(self, name: str) -> Optional[dict[str, Any]]:
         guild: Optional[dict[str, Any]] = self.find_guild(name)
