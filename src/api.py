@@ -157,8 +157,11 @@ class ItemManager:
     def exists(item_name: str) -> bool:
         is_enchanted: bool = ItemManager.is_enchanted(item_name)
         
-        if is_enchanted:
-            item_name = item_name[:-2]
+        try:
+            if ItemManager.is_resource(item_name) and ItemManager.is_resource(remove_suffix(item_name, is_enchanted)):
+                return False
+        except IndexError:
+            return False
 
         if int(item_name[1]) < 4 and is_enchanted and not ItemManager.is_consumable(item_name):
             return False
