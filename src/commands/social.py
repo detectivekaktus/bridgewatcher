@@ -120,7 +120,7 @@ class Social(Cog):
                              color=Color.brand_green(),
                              description="Use `/members` to get the list of guild members.")
         embed.add_field(name=":man: Founder", value=f"**{guild["guild"]["FounderName"]}**")
-        if len(guild["guild"]["alliancetag"]) != 0:
+        if len(guild["guild"]["AllianceTag"]) != 0:
             embed.add_field(name=":handshake: Alliance", value=f"**{guild["guild"]["AllianceTag"]}**")
         embed.add_field(name="Members", value=f"**{guild["basic"]["memberCount"]}**")
         embed.add_field(name="Fame", value=f"**{guild["overall"]["fame"]:,}**")
