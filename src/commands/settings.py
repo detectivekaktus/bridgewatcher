@@ -76,18 +76,27 @@ class Settings(Cog):
                       "ng, and :truck: transporting goods all around Albion on all the servers.\n\n"
 
                       "**My commands**\n"
-                      "`/price`: search for any item price\n"
+                      "`/info`: get the configuration information\n"
+                      "`;set_server`: set the Albion Online server\n"
                       "`/gold`: get price of gold\n"
                       "`/premium`: get price of all types of premium status\n"
+                      "`/price`: search for any item price\n"
                       "`/craft:` craft an item and get respective profit\n"
-                      "`/flip`: get profit of transporting an item from city to black market\n\n"
+                      "`/flip`: get profit of transporting an item from city to black market\n"
+                      "`/utc`: get UTC time.\n"
+                      "`/player`: get general information about a player\n"
+                      "`/deaths`: get general information about the player's deaths\n"
+                      "`/kills`: get general information about the player's kills\n"
+                      "`/guild`: get general information about a guild\n"
+                      "`/members`: get members of the guild\n\n"
     
                       "**Don't know how to use commands?**\n"
                       "You can find the full list of command by following [this link](https://github.com/d"
-                      "etectivekaktus/bridgewatcher?tab=readme-ov-file#how-do-i-use-this).\n\n"
+                      "etectivekaktus/bridgewatcher).\n\n"
 
                       "**Found a bug?**\n"
-                      "If the bot is behaving in unexpected way :lady_beetle:, please report it to the developer.")
+                      "If the bot is behaving in unexpected way :lady_beetle:, please [report it to the developer]"
+                      "(https://github.com/detectivekaktus/bridgewatcher/issues/new).")
         embed.set_author(name="Made by DetectiveKaktus", url="https://github.com/detectivekaktus")
         await context.send(embed=embed)
 

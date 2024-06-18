@@ -41,8 +41,8 @@ class Calcs(Cog):
                                                             description="Let's craft something! Use the buttons below"
                                                             " to access the full power of the crafting calculator! If"
                                                             " you are completely new to this bot, follow [this link]("
-                                                            "https://github.com/detectivekaktus/bridgewatcher?tab=rea"
-                                                            "dme-ov-file#how-do-i-use-this) to explore more."),
+                                                            "https://github.com/detectivekaktus/bridgewatcher) to "
+                                                            "explore more."),
                                                 view=view,
                                                 ephemeral=True)
         if not await view.wait():
@@ -147,7 +147,7 @@ class Calcs(Cog):
                                                             " you want to flip with the interaction buttons below. If"
                                                             " you are completely new to this bot, follow the rules in"
                                                             "dicated [right here](https://github.com/detectivekaktus/"
-                                                            "bridgewatcher?tab=readme-ov-file#how-do-i-use-this)."),
+                                                            "bridgewatcher)."),
                                                 view=view,
                                                 ephemeral=True)
 
