@@ -124,15 +124,15 @@ class Info(Cog):
             embed.set_author(name=f"Requested by {interaction.user.name}", icon_url=interaction.user.avatar)
             embed.set_footer(text="The data is provided by the Albion Online Data Project.")
 
-            description: str = "***Sell orders:***\n"
+            description: list[str] = ["***Sell orders:***\n"]
             for entry in data:
-                description += f"**{entry["city"]}** (updated at {convert_api_timestamp(entry["sell_price_min_date"])}): **{entry["sell_price_min"]:,}**\n"
+                description.append(f"**{entry["city"]}** (updated at {convert_api_timestamp(entry["sell_price_min_date"])}): **{entry["sell_price_min"]:,}**\n")
 
-            description += "\n***Buy orders:***\n"
+            description.append("\n***Buy orders:***\n")
             for entry in data:
-                description += f"**{entry["city"]}** (updated at {convert_api_timestamp(entry["sell_price_min_date"])}): **{entry["buy_price_max"]:,}**\n"
+                description.append(f"**{entry["city"]}** (updated at {convert_api_timestamp(entry["sell_price_min_date"])}): **{entry["buy_price_max"]:,}**\n")
             
-            embed.description = description
+            embed.description = "".join(description)
             await interaction.followup.send(embed=embed)
         else:
             message = await interaction.original_response()

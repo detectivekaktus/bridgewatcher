@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from os import getenv
-from typing import Final, Tuple
+from typing import Callable, Final, Tuple, Type
 from dotenv import load_dotenv
 
 
@@ -21,6 +21,13 @@ CRAFTING_BONUSES: Final[dict[str, Tuple]] = {
     "martlock":      ("leather", "axe", "quarterstaff", "froststaff", "plate_shoes", "offhand"),
     "thetford":      ("metalbar", "mace", "naturestaff", "firestaff", "leather_armor", "cloth_helmet")
 }
+
+
+def overrides(interface_class: Type) -> Callable:
+    def overrider(method: Callable) -> Callable:
+        assert method.__name__ in dir(interface_class), f"{method.__name__} does not override any method in {interface_class.__name__}"
+        return method
+    return overrider
 
 
 load_dotenv()

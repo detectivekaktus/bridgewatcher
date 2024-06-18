@@ -139,6 +139,18 @@ class SandboxInteractiveInfo(Fetcher):
 
         return response.json()
 
+    
+    def get_members(self, name: str) -> Optional[list[dict[str, Any]]]:
+        guild: Optional[dict[str, Any]] = self.find_guild(name)
+        if not guild:
+            return None
+
+        response: Response = get(f"https://{self._server_prefix}.albiononline.com/api/gameinfo/guilds/{guild["Id"]}/members")
+        if not response.ok:
+            return None
+
+        return response.json()
+
 
 class ItemManager:
     @staticmethod

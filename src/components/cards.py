@@ -1,19 +1,49 @@
 #!/usr/bin/env python3
+from abc import ABC, abstractmethod
 from typing import Any, Optional, cast
 from discord import ButtonStyle, Color, Embed, Interaction, Message
 from discord.ui import Button, View, button
+from src import overrides
 
 
-class PlayerCard(View):
-    def __init__(self, interaction: Interaction, data: list[dict[str, Any]], *, is_kill: bool = False, timeout: Optional[float] = 180) -> None:
-        super().__init__(timeout=timeout)
-        self._interaction: Interaction = interaction
-        self._data: list[dict[str, Any]] = data
-        self._is_kill = is_kill
+class Card(ABC):
+    def __init__(self, interaction: Interaction, data: list) -> None:
+        super().__init__()
+        self._interaction = interaction
+        self._data = data
         self._current: int = 0
         self.message: Message | None = None
 
+    @abstractmethod
+    async def handle_message(self, edit: bool = False) -> None:
+        pass
 
+
+    @abstractmethod
+    def update_buttons(self) -> None:
+        pass
+
+
+    @button(label="<", style=ButtonStyle.blurple)
+    @abstractmethod
+    async def prev_button(self, interaction: Interaction, button: Button) -> None:
+        pass
+
+    @button(label=">", style=ButtonStyle.blurple)
+    @abstractmethod
+    async def next_button(self, interaction: Interaction, button: Button) -> None:
+        pass
+
+
+
+class PlayerCard(View, Card):
+    def __init__(self, interaction: Interaction, data: list[dict[str, Any]], *, is_kill: bool = False, timeout: Optional[float] = 180) -> None:
+        View.__init__(self, timeout=timeout)
+        Card.__init__(self, interaction, data)
+        self._is_kill = is_kill
+
+
+    @overrides(Card)
     async def handle_message(self, edit: bool = False) -> None:
         if not self.message and edit:
             return
@@ -41,18 +71,82 @@ class PlayerCard(View):
             await self._interaction.response.send_message(view=self, embed=embed)
 
 
+    @overrides(Card)
+    def update_buttons(self) -> None:
+        self.prev_button.disabled = True if self._current == 0 else False
+        self.next_button.disabled = True if self._current == len(self._data) - 1 else False
+
+
+    @overrides(Card)
     @button(label="<", style=ButtonStyle.blurple, disabled=True)
     async def prev_button(self, interaction: Interaction, button: Button) -> None:
         await interaction.response.defer()
         self._current -= 1
-        button.disabled = True if self._current == 0 else False
-        self.next_button.disabled = True if self._current == len(self._data) - 1 else False
+        self.update_buttons()
         await self.handle_message(edit=True)
 
+    @overrides(Card)
     @button(label=">", style=ButtonStyle.blurple)
     async def next_button(self, interaction: Interaction, button: Button) -> None:
         await interaction.response.defer()
         self._current += 1
-        button.disabled = True if self._current == len(self._data) - 1 else False
-        self.prev_button.disabled = True if self._current == 0 else False
+        self.update_buttons()
+        await self.handle_message(edit=True)
+
+
+class MembersCard(View, Card):
+    def __init__(self, interaction: Interaction, data: list[dict[str, Any]], *, delimiter: int = 10, max: Optional[int] = None, timeout: Optional[float] = 180):
+        View.__init__(self, timeout=timeout)
+        data = data[:max] if max else data
+        Card.__init__(self, interaction, data)
+        self._page: int = 1
+        self._delimiter = delimiter
+        self._compute_curr_prev()
+
+    def _compute_curr_prev(self) -> None:
+        self._current = self._delimiter * self._page if self._delimiter < len(self._data) else len(self._data)
+        self._previous: int = self._current - self._delimiter
+
+
+    @overrides(Card)
+    async def handle_message(self, edit: bool = False) -> None:
+        if (not self.message) and edit:
+            return
+
+        description: list[str] = ["**Members**:"]
+        description.extend([f"`{member["Name"]}`" for member in self._data[self._previous:self._current]])
+        embed: Embed = Embed(title=f"Members of :shield: {self._data[0]["GuildName"]}",
+                             description="\n".join(description))
+        embed.set_author(name=f"Requested by {self._interaction.user.name} | Page {self._page}", icon_url=self._interaction.user.avatar)
+        embed.set_footer(text=f"The data is provided by Sandbox Interactive GmbH.")
+
+        if edit:
+            message: Message = cast(Message, self.message)
+            await message.edit(view=self, embed=embed)
+        else:
+            await self._interaction.response.send_message(view=self, embed=embed)
+
+
+    @overrides(Card)
+    def update_buttons(self) -> None:
+        self.prev_button.disabled = True if self._page == 1 else False
+        self.next_button.disabled = True if self._current >= len(self._data) else False
+
+
+    @overrides(Card)
+    @button(label="<", style=ButtonStyle.blurple, disabled=True)
+    async def prev_button(self, interaction: Interaction, button: Button) -> None:
+        await interaction.response.defer()
+        self._page -= 1
+        self._compute_curr_prev()
+        self.update_buttons()
+        await self.handle_message(edit=True)
+
+    @overrides(Card)
+    @button(label=">", style=ButtonStyle.blurple)
+    async def next_button(self, interaction: Interaction, button: Button) -> None:
+        await interaction.response.defer()
+        self._page += 1
+        self._compute_curr_prev()
+        self.update_buttons()
         await self.handle_message(edit=True)
