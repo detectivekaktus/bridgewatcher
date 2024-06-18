@@ -4,6 +4,7 @@ from random import choice
 from typing import Any, List, Optional
 from discord import Interaction
 from discord.ui import Modal, TextInput
+from src import overrides
 from src.api import ItemManager, remove_suffix
 from src.client import database
 
@@ -41,6 +42,8 @@ class ResourcesModal(Modal):
             self.txt_inputs.append(txt_input)
             self.add_item(txt_input)
 
+
+    @overrides(Modal)
     async def on_submit(self, interaction: Interaction) -> None:
         for txt_input in self.txt_inputs:
             try:
@@ -63,6 +66,7 @@ class ReturnModal(Modal):
         self.add_item(self.return_rate)
 
 
+    @overrides(Modal)
     async def on_submit(self, interaction: Interaction) -> None:
         try:
             return_rate: float = float(self.return_rate.value)

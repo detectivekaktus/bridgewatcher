@@ -2,7 +2,7 @@
 from typing import Any, List, Optional
 from discord import ButtonStyle, Interaction, SelectOption
 from discord.ui import Button, Select, View, button
-from src import CITIES, DEFAULT_RATE, QUALITIES
+from src import CITIES, DEFAULT_RATE, QUALITIES, overrides
 from src.components.modals import ReturnModal, ResourcesModal
 
 
@@ -25,6 +25,8 @@ class QualitySelect(Select):
                          row=row)
         self.parent_view: Any = parent_view
 
+
+    @overrides(Select)
     async def callback(self, interaction: Interaction) -> Any:
         self.parent_view.quality = self.values[0]
         await interaction.response.defer()
@@ -50,6 +52,7 @@ class CitiesSelect(Select):
         self.cities_holder = cities_holder
 
 
+    @overrides(Select)
     async def callback(self, interaction: Interaction) -> Any:
         self.cities_holder.extend(self.values)
         await interaction.response.defer()
