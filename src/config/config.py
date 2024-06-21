@@ -1,4 +1,4 @@
-#!/usr/bin/env pytnon3
+#!/usr/bin/env python3
 from os import makedirs, path
 from sqlite3 import Cursor, connect
 from typing import Any, Optional, Tuple
