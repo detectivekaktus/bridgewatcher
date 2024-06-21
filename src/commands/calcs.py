@@ -13,7 +13,7 @@ from src.market import Crafter, find_crafting_bonus_city, find_least_expensive_c
 class Calcs(Cog):
     def __init__(self, bot: Bot) -> None:
         super().__init__()
-        self.bot: Bot = bot
+        self.bot = bot
 
 
     @command(name="craft", description="Calculates crafting profit from crafting an item")

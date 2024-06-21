@@ -22,13 +22,9 @@ class ResourcesModal(Modal):
         if isinstance(item, list):
             item = item[0]
 
-        if isinstance(item["craftresource"], dict):
-            requirements: List[dict[str, Any]] = [item["craftresource"]]
-        else:
-            requirements: List[dict[str, Any]] = item["craftresource"]
-        
+        requirements: List[dict[str, Any]] = [item["craftresource"]] if isinstance(item["craftresource"], dict) else item["craftresource"]
         self.txt_inputs: List[TextInput] = []
-        placeholders = ("Eg. 100", "Eg. 3350", "Eg. 305", "Eg. 777")
+        placeholders = ("Eg. 100", "Eg. 3350", "Eg. 305", "Eg. 5000")
         
         for requirement in requirements:
             if self.view.is_enchanted and int(requirement["@uniquename"][1]) > 3:
