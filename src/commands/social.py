@@ -4,7 +4,7 @@ from discord import Color, Embed, Guild, Interaction
 from discord.app_commands import command, describe, guild_only
 from discord.ext.commands import Bot, Cog
 from src.api import SandboxInteractiveInfo
-from src.client import servers
+from src.client import SERVERS
 from src.components.cards import MembersCard, PlayerCard
 
 
@@ -18,7 +18,7 @@ class Social(Cog):
     @describe(name="The name of the player you are looking for.")
     @guild_only()
     async def player(self, interaction: Interaction, name: str) -> None:
-        fetcher: SandboxInteractiveInfo = SandboxInteractiveInfo(servers.get_config(cast(Guild, interaction.guild))["fetch_server"])
+        fetcher: SandboxInteractiveInfo = SandboxInteractiveInfo(SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"])
         player: Optional[dict[str, Any]] = fetcher.get_player(name)
         if not player:
             await interaction.response.send_message(embed=Embed(title=f"{name} doesn't exist",
@@ -56,7 +56,7 @@ class Social(Cog):
     @describe(name="The name of the player you are looking for.")
     @guild_only()
     async def deaths(self, interaction: Interaction, name: str) -> None:
-        fetcher: SandboxInteractiveInfo = SandboxInteractiveInfo(servers.get_config(cast(Guild, interaction.guild))["fetch_server"])
+        fetcher: SandboxInteractiveInfo = SandboxInteractiveInfo(SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"])
         deaths: Optional[list[dict[str, Any]]] = fetcher.get_deaths(name)
         if deaths == None:
             await interaction.response.send_message(embed=Embed(title=f"{name} doesn't exist",
@@ -81,7 +81,7 @@ class Social(Cog):
     @describe(name="The name of the player you are looking for.")
     @guild_only()
     async def kills(self, interaction: Interaction, name: str) -> None:
-        fetcher: SandboxInteractiveInfo = SandboxInteractiveInfo(servers.get_config(cast(Guild, interaction.guild))["fetch_server"])
+        fetcher: SandboxInteractiveInfo = SandboxInteractiveInfo(SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"])
         kills: Optional[list[dict[str, Any]]] = fetcher.get_kills(name)
         if kills == None:
             await interaction.response.send_message(embed=Embed(title=f"{name} doesn't exist",
@@ -106,7 +106,7 @@ class Social(Cog):
     @describe(name="The name of the guild you are looking for.")
     @guild_only()
     async def guild(self, interaction: Interaction, name: str) -> None:
-        fetcher: SandboxInteractiveInfo = SandboxInteractiveInfo(servers.get_config(cast(Guild, interaction.guild))["fetch_server"])
+        fetcher: SandboxInteractiveInfo = SandboxInteractiveInfo(SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"])
         guild: Optional[dict[str, Any]] = fetcher.get_guild(name)
         if not guild:
             await interaction.response.send_message(embed=Embed(title=f"{name} doesn't exist",
@@ -137,7 +137,7 @@ class Social(Cog):
     @describe(name="The name of the guild you are looking for", limit="The maximum number of players you want to get.")
     @guild_only()
     async def members(self, interaction: Interaction, name: str, limit: Optional[int] = None) -> None:
-        fetcher: SandboxInteractiveInfo = SandboxInteractiveInfo(servers.get_config(cast(Guild, interaction.guild))["fetch_server"])
+        fetcher: SandboxInteractiveInfo = SandboxInteractiveInfo(SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"])
         members: Optional[list[dict[str, Any]]] = fetcher.get_members(name)
         if members == None:
             await interaction.response.send_message(embed=Embed(title=f"{name} doesn't exist",

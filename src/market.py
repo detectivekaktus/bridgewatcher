@@ -2,8 +2,8 @@
 from math import floor
 from typing import Any, List, Optional, Tuple, cast
 from src import CRAFTING_BONUSES
-from src.api import ItemManager
-from src.client import database
+from src.api import ItemManager, remove_suffix
+from src.client import DATABASE
 
 
 class Crafter:
@@ -98,7 +98,9 @@ class Crafter:
 
 
 def find_crafting_bonus_city(item_name: str) -> Optional[str]:
-    with database as db:
+    item_name = remove_suffix(item_name, ItemManager.is_enchanted(item_name))
+
+    with DATABASE as db:
         db.execute("SELECT * FROM items WHERE name = ?", (item_name, ))
         item: Optional[Tuple] = db.fetchone()
 

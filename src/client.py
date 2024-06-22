@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 from datetime import datetime
 from os import listdir
+from typing import Final
 from discord import Activity, ActivityType, Guild, Intents, Status
 from discord.ext.commands import Bot
-from src.config.config import Servers
+from src.config.config import Servers, map_readable_item_names
 from src.db.database import Database
 
 
-INTENTS: Intents = Intents.default()
+INTENTS: Final[Intents] = Intents.default()
 INTENTS.message_content = True
 bot: Bot = Bot(command_prefix=";",
                intents=INTENTS,
@@ -16,8 +17,9 @@ bot: Bot = Bot(command_prefix=";",
                status=Status.do_not_disturb)
 bot.remove_command("help")
 
-database: Database = Database("res/items.db")
-servers: Servers = Servers("servers/servers.db")
+DATABASE: Final[Database] = Database("res/items.db")
+SERVERS: Final[Servers] = Servers("servers/servers.db")
+ITEM_NAMES: Final[dict[str, str]] = map_readable_item_names()
 
 
 async def load_cogs():
@@ -31,9 +33,9 @@ async def on_ready() -> None:
     await load_cogs()
     synched = await bot.tree.sync()
     print(f"Successfully synched {len(synched)} commands globally.")
-
+    print(f"Running on {len(bot.guilds)} servers.")
 
 
 @bot.event
 async def on_guild_join(guild: Guild) -> None:
-    servers.create_config(guild)
+    SERVERS.create_config(guild)

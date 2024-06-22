@@ -8,7 +8,7 @@ CITIES: Final[Tuple[str, ...]]                       = ("black market", "brecili
 QUALITIES:     Final[Tuple[str, ...]]                = ("Normal", "Good", "Outstanding", "Excellent", "Masterpiece")
 ENCHANTMENTS: Final[Tuple[str, ...]]                 = ("@1", "@2", "@3", "@4")
 NON_CRAFTABLE: Final[Tuple[str, ...]]                = ("artefacts", "mounts", "labourers")
-NON_SELLABLE_ON_BLACK_MARKET: Final[Tuple[str, ...]] = ("artefacts", "mounts", "consumables", "food", "labourers")
+NON_SELLABLE_ON_BLACK_MARKET: Final[Tuple[str, ...]] = ("artefacts", "mounts", "consumables", "food", "labourers", "resources")
 
 DEFAULT_RATE: Final[int] = 15
 BONUS_RATE: Final[int]   = 28

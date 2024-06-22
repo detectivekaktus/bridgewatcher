@@ -6,7 +6,7 @@ from discord import Interaction
 from discord.ui import Modal, TextInput
 from src import overrides
 from src.api import ItemManager, remove_suffix
-from src.client import database
+from src.client import DATABASE, ITEM_NAMES
 
 
 class ResourcesModal(Modal):
@@ -15,7 +15,7 @@ class ResourcesModal(Modal):
         self.view = view
 
         item_name: str = remove_suffix(self.view.item_name, self.view.is_enchanted)
-        with database as db:
+        with DATABASE as db:
             db.execute("SELECT * FROM items WHERE name = ?", (item_name, ))
             item: List[dict[str, Any]] | dict[str, Any] = loads(db.fetchone()[4])
 
@@ -34,7 +34,7 @@ class ResourcesModal(Modal):
                     requirement["@uniquename"] = f"{requirement["@uniquename"]}_LEVEL{view.item_name[-1]}@{view.item_name[-1]}"
 
             self.view.crafting_requirements[requirement["@uniquename"]] = int(requirement["@count"])
-            txt_input = TextInput(label=requirement["@uniquename"], placeholder=choice(placeholders))
+            txt_input = TextInput(label=list(ITEM_NAMES.keys())[list(ITEM_NAMES.values()).index(requirement["@uniquename"])], placeholder=choice(placeholders))
             self.txt_inputs.append(txt_input)
             self.add_item(txt_input)
 
@@ -44,7 +44,7 @@ class ResourcesModal(Modal):
         for txt_input in self.txt_inputs:
             try:
                 value = int(txt_input.value)
-                self.view.resources[txt_input.label] = value
+                self.view.resources[ITEM_NAMES[txt_input.label]] = value
             except ValueError:
                 await interaction.response.send_message("Some of your resource values are not valid.",
                                                         ephemeral=True,

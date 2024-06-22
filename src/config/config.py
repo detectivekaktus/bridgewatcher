@@ -75,3 +75,18 @@ class Servers:
             return False
 
         return True
+
+
+def map_readable_item_names() -> dict[str, str]:
+    with open("res/items.txt", "r") as items:
+        lines = items.readlines()
+
+    map: dict[str, str] = {}
+    for line in lines:
+        item = line.split()
+        if " ".join(item[3:]).lower() in map.keys():
+            map[f"{" ".join(item[3:]).lower()} {item[1][-1]}"] = item[1]
+        else:
+            map[" ".join(item[3:]).lower()] = item[1]
+
+    return map

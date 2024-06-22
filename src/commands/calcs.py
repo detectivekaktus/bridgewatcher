@@ -5,7 +5,7 @@ from discord.app_commands import command, describe, guild_only
 from discord.ext.commands import Bot, Cog
 from src import CITIES, DEFAULT_RATE, BONUS_RATE
 from src.api import AlbionOnlineData, ItemManager, SandboxInteractiveRenderer, strquality_toint
-from src.client import servers
+from src.client import ITEM_NAMES, SERVERS
 from src.components.ui import CraftingView, FlipView
 from src.market import Crafter, find_crafting_bonus_city, find_least_expensive_city, find_most_expensive_city
 
@@ -20,22 +20,22 @@ class Calcs(Cog):
     @describe(item_name="The Albion Online Data Project API item name.")
     @guild_only()
     async def craft(self, interaction: Interaction, item_name: str) -> None:
-        item_name = item_name.upper()
+        item_name = item_name.lower()
 
-        if not ItemManager.exists(item_name):
-            await interaction.response.send_message(embed=Embed(title=f":red_circle: {item_name} doesn't exist!",
+        if item_name not in ITEM_NAMES.keys():
+            await interaction.response.send_message(embed=Embed(title=f":red_circle: {item_name.title()} doesn't exist!",
                                                                 color=Color.red(),
-                                                                description=f"{item_name} is not an existing item!"))
+                                                                description=f"{item_name.title()} is not an existing item!"))
             return
 
-        if not ItemManager.is_craftable(item_name):
-            await interaction.response.send_message(embed=Embed(title=f":red_circle: {item_name} is not craftable!",
+        if not ItemManager.is_craftable(ITEM_NAMES[item_name]):
+            await interaction.response.send_message(embed=Embed(title=f":red_circle: {item_name.title()} is not craftable!",
                                                                 color=Color.red(),
                                                                 description="You can't craft uncraftable item!"))
             return
 
-        view: CraftingView = CraftingView(item_name, timeout=120)
-        view.is_enchanted = ItemManager.is_enchanted(item_name)
+        view: CraftingView = CraftingView(ITEM_NAMES[item_name], timeout=120)
+        view.is_enchanted = ItemManager.is_enchanted(ITEM_NAMES[item_name])
         await interaction.response.send_message(embed=Embed(title=":hammer_pick: Crafting calculator",
                                                             color=Color.magenta(),
                                                             description="Let's craft something! Use the buttons below"
@@ -58,8 +58,8 @@ class Calcs(Cog):
                                                 ephemeral=True)
                 return
 
-            fetcher: AlbionOnlineData = AlbionOnlineData(servers.get_config(cast(Guild, interaction.guild))["fetch_server"])
-            data: Optional[List[dict[str, Any]]] = fetcher.fetch_price(item_name, qualities=1)
+            fetcher: AlbionOnlineData = AlbionOnlineData(SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"])
+            data: Optional[List[dict[str, Any]]] = fetcher.fetch_price(ITEM_NAMES[item_name], qualities=1)
             if not data:
                 await interaction.followup.send(embed=Embed(title=":red_circle: Error!",
                                                             color=Color.red(),
@@ -71,14 +71,14 @@ class Calcs(Cog):
             craft_city: str = view.craft_city[0] if view.craft_city else ""
             sell_city: str = view.sell_city[0] if view.sell_city else ""
             if not craft_city:
-                if (city := find_crafting_bonus_city(item_name[:-2] if view.is_enchanted else item_name)) != None:
+                if (city := find_crafting_bonus_city(ITEM_NAMES[item_name])) != None:
                     craft_city = city
                     if view.return_rate == DEFAULT_RATE:
                         view.return_rate = BONUS_RATE
                 else:
                     craft_city = find_least_expensive_city(data)
             if not sell_city:
-                sell_city = find_most_expensive_city(data, include_black_market=True if not ItemManager.is_resource(item_name) else False)
+                sell_city = find_most_expensive_city(data, include_black_market=True if not ItemManager.is_resource(ITEM_NAMES[item_name]) else False)
 
             resource_prices: dict[str, int] = {}
             for resource in view.crafting_requirements.keys():
@@ -94,9 +94,9 @@ class Calcs(Cog):
 
             crafter: Crafter = Crafter(resource_prices, view.resources, view.crafting_requirements, view.return_rate)
             result: dict[str, Any] = crafter.printable(data[CITIES.index(sell_city.lower())])
-            embed: Embed = Embed(title=f":hammer_pick: Crafting {item_name}",
+            embed: Embed = Embed(title=f":hammer_pick: Crafting {item_name.title()}",
                                  color=Color.magenta(),
-                                 description=f"This is a brief summary of crafting {item_name}"
+                                 description=f"This is a brief summary of crafting {item_name.title()}"
                                  f" in **{craft_city.title()}** with the sell destination"
                                  f" in **{sell_city.title()}**.\n\n"
 
@@ -107,7 +107,7 @@ class Calcs(Cog):
             embed.add_field(name="Craft city", value=f"**{craft_city.title()}**")
             embed.add_field(name="Sell city", value=f"**{sell_city.title()}**")
             embed.set_author(name=f"Requested by {interaction.user.name}", icon_url=interaction.user.avatar)
-            embed.set_thumbnail(url=SandboxInteractiveRenderer.fetch_item(item_name, quality=1))
+            embed.set_thumbnail(url=SandboxInteractiveRenderer.fetch_item(ITEM_NAMES[item_name], quality=1))
             embed.set_footer(text="The data is provided by the Albion Online Data Project.")
             for field in result["fields"]:
                 embed.add_field(name=field["title"], value=f"**{field["value"]}**")
@@ -126,16 +126,16 @@ class Calcs(Cog):
     @describe(item_name="The Albion Online Data Project API item name.")
     @guild_only()
     async def flip(self, interaction: Interaction, item_name: str) -> None:
-        item_name = item_name.upper()
+        item_name = item_name.lower()
 
-        if (ItemManager.is_enchanted(item_name) and int(item_name[1]) < 4) or (not ItemManager.exists(item_name)):
-            await interaction.response.send_message(embed=Embed(title=f":red_circle: {item_name} doesn't exist!",
+        if item_name not in ITEM_NAMES.keys():
+            await interaction.response.send_message(embed=Embed(title=f":red_circle: {item_name.title()} doesn't exist!",
                                                                 color=Color.red(),
-                                                                description=f"{item_name} is not an existing item!"))
+                                                                description=f"{item_name.title()} is not an existing item!"))
             return
 
-        if not ItemManager.is_sellable_on_black_market(item_name):
-            await interaction.response.send_message(embed=Embed(title=f":red_circle: {item_name} is not sellable on the black market!",
+        if not ItemManager.is_sellable_on_black_market(ITEM_NAMES[item_name]):
+            await interaction.response.send_message(embed=Embed(title=f":red_circle: {item_name.title()} is not sellable on the black market!",
                                                                 color=Color.red(),
                                                                 description="You can't sell what is unsellable on the black market."))
             return
@@ -156,14 +156,11 @@ class Calcs(Cog):
             await message.delete()
 
             quality: int = strquality_toint(view.quality)
-            if view.cities:
-                view.cities.extend(["black market"])
-            else:
-                view.cities.extend([cast(str, find_crafting_bonus_city(item_name)), "black market"])
+            view.cities.extend(["black market"] if view.cities else [cast(str, find_crafting_bonus_city(ITEM_NAMES[item_name])), "black market"])
             cities: List[str] = view.cities
 
-            fetcher: AlbionOnlineData = AlbionOnlineData(servers.get_config(cast(Guild, interaction.guild))["fetch_server"])
-            data: Optional[List[dict[str, Any]]] = fetcher.fetch_price(item_name, quality, cities)
+            fetcher: AlbionOnlineData = AlbionOnlineData(SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"])
+            data: Optional[List[dict[str, Any]]] = fetcher.fetch_price(ITEM_NAMES[item_name], quality, cities)
             if not data:
                 await interaction.followup.send(embed=Embed(title=":red_circle: Error!",
                                                             color=Color.red(),
@@ -173,9 +170,9 @@ class Calcs(Cog):
                 return
             
             try:
-                embed: Embed = Embed(title=f":truck: Flipping the market for {item_name}",
+                embed: Embed = Embed(title=f":truck: Flipping the market for {item_name.title()}",
                                      color=Color.random(),
-                                     description=f"The expected profit of transporting {item_name} of **{view.quality.lower()}"
+                                     description=f"The expected profit of transporting {item_name.title()} of **{view.quality.lower()}"
                                      f" quality** from **{view.cities[0].title()}** to the black market is:\n"
                                      f"* **{(data[0]["sell_price_min"] - data[1]["sell_price_min"]):,} silver**\n"
                                      f"* **{round((data[0]["sell_price_min"] / data[1]["sell_price_min"] * 100) - 100, 2):,}%**")
@@ -183,7 +180,7 @@ class Calcs(Cog):
                 embed.add_field(name="Buy price", value=f"**{data[1]["sell_price_min"]:,}**")
                 embed.add_field(name="Sell price", value=f"**{data[0]["sell_price_min"]:,}**")
                 embed.set_author(name=f"Requested by {interaction.user.name}", icon_url=interaction.user.avatar)
-                embed.set_thumbnail(url=SandboxInteractiveRenderer.fetch_item(item_name, quality=quality))
+                embed.set_thumbnail(url=SandboxInteractiveRenderer.fetch_item(ITEM_NAMES[item_name], quality=quality))
                 embed.set_footer(text="The data is provided by the Albion Online Data Project.")
                 await interaction.followup.send(embed=embed)
             except ZeroDivisionError:

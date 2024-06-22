@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Any, Final, List, Optional, Tuple
 from requests import ReadTimeout, Response, get
 from src import CITIES, ENCHANTMENTS, NON_CRAFTABLE, NON_SELLABLE_ON_BLACK_MARKET
-from src.client import database
+from src.client import DATABASE
 
 
 AOD_SERVER_URLS: Final = {
@@ -155,7 +155,7 @@ class SandboxInteractiveInfo(Fetcher):
 class ItemManager:
     @staticmethod
     def get_item(item_name: str) -> Optional[Tuple]:
-        with database as db:
+        with DATABASE as db:
             db.execute("SELECT * FROM items WHERE name = ?", (item_name, ))
             item: Optional[Tuple] = db.fetchone()
         return item

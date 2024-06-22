@@ -2,7 +2,7 @@
 from typing import cast
 from discord import Color, Embed, Guild
 from discord.ext.commands import Bot, Cog, Context, command, guild_only
-from src.client import servers
+from src.client import SERVERS
 
 
 def strtoint_server(server: str) -> int:
@@ -44,7 +44,7 @@ class Settings(Cog):
 
         fetch_server: int = strtoint_server(server.lower())
     
-        servers.update_config(cast(Guild, context.guild), fetch_server)
+        SERVERS.update_config(cast(Guild, context.guild), fetch_server)
         match fetch_server:
             case 1:
                 await context.send("Server successfully changed to :flag_us: America.")
@@ -61,7 +61,7 @@ class Settings(Cog):
         embed: Embed = Embed(title=f":book: Information about {guild.name}",
                              color=Color.orange(),
                              description=f"There you have a configuration info about {guild.name}.")
-        embed.add_field(name="Albion Online server", value=inttostr_server(servers.get_config(cast(Guild, context.guild))["fetch_server"]).capitalize())
+        embed.add_field(name="Albion Online server", value=inttostr_server(SERVERS.get_config(cast(Guild, context.guild))["fetch_server"]).capitalize())
         embed.add_field(name="Members of the server", value=guild.member_count)
         embed.add_field(name="Server owner", value=f"<@{guild.owner_id}>")
         await context.send(embed=embed)
@@ -81,7 +81,7 @@ class Settings(Cog):
                       "`/gold`: get price of gold\n"
                       "`/premium`: get price of all types of premium status\n"
                       "`/price`: search for any item price\n"
-                      "`/craft:` craft an item and get respective profit\n"
+                      "`/craft`: craft an item and get respective profit\n"
                       "`/flip`: get profit of transporting an item from city to black market\n"
                       "`/utc`: get UTC time.\n"
                       "`/player`: get general information about a player\n"
