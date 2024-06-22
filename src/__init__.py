@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from os import getenv
-from typing import Callable, Final, Tuple, Type
+from typing import Final, Tuple
 from dotenv import load_dotenv
 
 
@@ -23,13 +23,22 @@ CRAFTING_BONUSES: Final[dict[str, Tuple]] = {
 }
 
 
-def overrides(interface_class: Type) -> Callable:
-    def overrider(method: Callable) -> Callable:
-        assert method.__name__ in dir(interface_class), f"{method.__name__} does not override any method in {interface_class.__name__}"
-        return method
-    return overrider
+def map_readable_item_names() -> dict[str, str]:
+    with open("res/items.txt", "r") as items:
+        lines = items.readlines()
+
+    map: dict[str, str] = {}
+    for line in lines:
+        item = line.split()
+        if (name := " ".join(item[3:]).lower()) in map.keys():
+            map[f"{name} {item[1][-1]}"] = item[1]
+        else:
+            map[" ".join(item[3:]).lower()] = item[1]
+
+    return map
 
 
 load_dotenv()
 DISCORD_TOKEN: str | None = getenv("DISCORD_TOKEN")
 DEBUG_TOKEN: str | None = getenv("DEBUG_TOKEN")
+ITEM_NAMES: Final[dict[str, str]] = map_readable_item_names()

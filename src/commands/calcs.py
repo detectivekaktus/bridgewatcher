@@ -3,11 +3,12 @@ from typing import Any, List, Optional, cast
 from discord import Color, Embed, Guild, Interaction
 from discord.app_commands import command, describe, guild_only
 from discord.ext.commands import Bot, Cog
-from src import CITIES, DEFAULT_RATE, BONUS_RATE
-from src.api import AlbionOnlineData, ItemManager, SandboxInteractiveRenderer, strquality_toint
-from src.client import ITEM_NAMES, SERVERS
+from src import CITIES, DEFAULT_RATE, BONUS_RATE, ITEM_NAMES
+from src.api import AlbionOnlineData, ItemManager, SandboxInteractiveRenderer
+from src.client import SERVERS
 from src.components.ui import CraftingView, FlipView
 from src.market import Crafter, find_crafting_bonus_city, find_least_expensive_city, find_most_expensive_city
+from src.utils import strtoquality_int, inttoemoji_server
 
 
 class Calcs(Cog):
@@ -58,7 +59,8 @@ class Calcs(Cog):
                                                 ephemeral=True)
                 return
 
-            fetcher: AlbionOnlineData = AlbionOnlineData(SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"])
+            server: int = SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"]
+            fetcher: AlbionOnlineData = AlbionOnlineData(server)
             data: Optional[List[dict[str, Any]]] = fetcher.fetch_price(ITEM_NAMES[item_name], qualities=1)
             if not data:
                 await interaction.followup.send(embed=Embed(title=":red_circle: Error!",
@@ -108,7 +110,7 @@ class Calcs(Cog):
             embed.add_field(name="Sell city", value=f"**{sell_city.title()}**")
             embed.set_author(name=f"Requested by {interaction.user.name}", icon_url=interaction.user.avatar)
             embed.set_thumbnail(url=SandboxInteractiveRenderer.fetch_item(ITEM_NAMES[item_name], quality=1))
-            embed.set_footer(text="The data is provided by the Albion Online Data Project.")
+            embed.set_footer(text=f"The data is provided by the Albion Online Data Project | {inttoemoji_server(server)} server.")
             for field in result["fields"]:
                 embed.add_field(name=field["title"], value=f"**{field["value"]}**")
             await interaction.followup.send(embed=embed)
@@ -155,11 +157,12 @@ class Calcs(Cog):
             message = await interaction.original_response()
             await message.delete()
 
-            quality: int = strquality_toint(view.quality)
+            quality: int = strtoquality_int(view.quality)
             view.cities.extend(["black market"] if view.cities else [cast(str, find_crafting_bonus_city(ITEM_NAMES[item_name])), "black market"])
             cities: List[str] = view.cities
 
-            fetcher: AlbionOnlineData = AlbionOnlineData(SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"])
+            server: int = SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"]
+            fetcher: AlbionOnlineData = AlbionOnlineData(server)
             data: Optional[List[dict[str, Any]]] = fetcher.fetch_price(ITEM_NAMES[item_name], quality, cities)
             if not data:
                 await interaction.followup.send(embed=Embed(title=":red_circle: Error!",
@@ -181,7 +184,7 @@ class Calcs(Cog):
                 embed.add_field(name="Sell price", value=f"**{data[0]["sell_price_min"]:,}**")
                 embed.set_author(name=f"Requested by {interaction.user.name}", icon_url=interaction.user.avatar)
                 embed.set_thumbnail(url=SandboxInteractiveRenderer.fetch_item(ITEM_NAMES[item_name], quality=quality))
-                embed.set_footer(text="The data is provided by the Albion Online Data Project.")
+                embed.set_footer(text=f"The data is provided by the Albion Online Data Project | {inttoemoji_server(server)} server.")
                 await interaction.followup.send(embed=embed)
             except ZeroDivisionError:
                 await interaction.followup.send(embed=Embed(title=":red_circle: Error!",

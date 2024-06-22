@@ -6,6 +6,7 @@ from discord.ext.commands import Bot, Cog
 from src.api import SandboxInteractiveInfo
 from src.client import SERVERS
 from src.components.cards import MembersCard, PlayerCard
+from src.utils import inttoemoji_server
 
 
 class Social(Cog):
@@ -48,7 +49,7 @@ class Social(Cog):
         embed.add_field(name="Fishing", value=f"**{player["LifetimeStatistics"]["FishingFame"]:,}**")
 
         embed.set_author(name=f"Requested by {interaction.user.name}", icon_url=interaction.user.avatar)
-        embed.set_footer(text="The data is provided by Sandbox Interactive GmbH.")
+        embed.set_footer(text=f"The data is provided by Sandbox Interactive GmbH. | {inttoemoji_server(SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"])} server")
         await interaction.response.send_message(embed=embed)
 
 
@@ -129,7 +130,7 @@ class Social(Cog):
         embed.add_field(name="Deaths", value=f"**{guild["overall"]["deaths"]:,}**")
         embed.add_field(name="Death fame", value=f"**{guild["guild"]["DeathFame"]:,}**")
         embed.set_author(name=f"Requested by {interaction.user.name}", icon_url=interaction.user.avatar)
-        embed.set_footer(text="The data is provided by Sandbox Interactive GmbH.")
+        embed.set_footer(text=f"The data is provided by Sandbox Interactive GmbH. | {inttoemoji_server(SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"])} server")
         await interaction.response.send_message(embed=embed)
 
 

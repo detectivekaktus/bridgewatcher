@@ -4,9 +4,11 @@ from typing import Any, List, Optional, cast
 from discord import Color, Embed, Guild, Interaction
 from discord.app_commands import command, describe
 from discord.ext.commands import Bot, Cog, guild_only
-from src.api import AlbionOnlineData, SandboxInteractiveRenderer, convert_api_timestamp, get_percent_variation, strquality_toint
-from src.client import SERVERS, ITEM_NAMES
+from src import ITEM_NAMES
+from src.api import AlbionOnlineData, SandboxInteractiveRenderer, convert_api_timestamp, get_percent_variation
+from src.client import SERVERS
 from src.components.ui import PriceView
+from src.utils import strtoquality_int, inttoemoji_server
 
 
 class Info(Cog):
@@ -26,7 +28,8 @@ class Info(Cog):
                                                                 "range between 1 and 24."))
             return
 
-        fetcher: AlbionOnlineData = AlbionOnlineData(SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"])
+        server: int = SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"]
+        fetcher: AlbionOnlineData = AlbionOnlineData(server)
         data: Optional[List[dict[str, Any]]] = fetcher.fetch_gold(count + 1)
         if not data:
             await interaction.response.send_message(embed=Embed(title=":red_circle: There was an error",
@@ -43,7 +46,7 @@ class Info(Cog):
                              "Total numeric variation in the specified period: "
                              f"**{(data[0]["price"] - data[-1]["price"]):,}**")
         embed.set_author(name=f"Requested by {interaction.user.name}", icon_url=interaction.user.avatar)
-        embed.set_footer(text="The data is provided by the Albion Online Data Project\n")
+        embed.set_footer(text=f"The data is provided by the Albion Online Data Project | {inttoemoji_server(server)} server")
 
         for i in range(len(data) - 1):
             embed.add_field(name=f"Data from {convert_api_timestamp(data[i]["timestamp"])}.",
@@ -57,7 +60,8 @@ class Info(Cog):
     @command(name="premium", description="Retrieves price of premium status in the game.")
     @guild_only()
     async def premium(self, interaction: Interaction) -> None:
-        fetcher: AlbionOnlineData = AlbionOnlineData(SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"])
+        server: int = SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"]
+        fetcher: AlbionOnlineData = AlbionOnlineData(server)
         data: Optional[List[dict[str, Any]]] = fetcher.fetch_gold(1)
         
         if not data:
@@ -74,7 +78,7 @@ class Info(Cog):
         embed.add_field(name="180 days", value=f"**{(data[0]["price"] * 19500):,}**")
         embed.add_field(name="360 days", value=f"**{(data[0]["price"] * 36000):,}**")
         embed.set_author(name=f"Requested by {interaction.user.name}", icon_url=interaction.user.avatar)
-        embed.set_footer(text="The data is provided by the Albion Online Data Project\n")
+        embed.set_footer(text=f"The data is provided by the Albion Online Data Project | {inttoemoji_server(server)} server")
         await interaction.response.send_message(embed=embed)
 
 
@@ -105,8 +109,9 @@ class Info(Cog):
             message = await interaction.original_response()
             await message.delete()
 
-            quality: int = strquality_toint(view.quality)
-            fetcher: AlbionOnlineData = AlbionOnlineData(SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"])
+            quality: int = strtoquality_int(view.quality)
+            server: int = SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"]
+            fetcher: AlbionOnlineData = AlbionOnlineData(server)
             data: Optional[List[dict[str, Any]]] = fetcher.fetch_price(ITEM_NAMES[item_name], quality, cast(List[str], view.cities))
             if not data:
                 await interaction.followup.send(embed=Embed(title=":red_circle: Error!",
@@ -121,7 +126,7 @@ class Info(Cog):
                                  color=Color.blurple())
             embed.set_thumbnail(url=SandboxInteractiveRenderer.fetch_item(ITEM_NAMES[item_name], quality))
             embed.set_author(name=f"Requested by {interaction.user.name}", icon_url=interaction.user.avatar)
-            embed.set_footer(text="The data is provided by the Albion Online Data Project.")
+            embed.set_footer(text=f"The data is provided by the Albion Online Data Project. | {inttoemoji_server(server)} server")
 
             description: list[str] = ["***Sell orders:***\n"]
             for entry in data:

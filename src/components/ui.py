@@ -2,8 +2,9 @@
 from typing import Any, List, Optional
 from discord import ButtonStyle, Interaction, SelectOption
 from discord.ui import Button, Select, View, button
-from src import CITIES, DEFAULT_RATE, QUALITIES, overrides
+from src import CITIES, DEFAULT_RATE, QUALITIES
 from src.components.modals import ReturnModal, ResourcesModal
+from src.utils import overrides
 
 
 class QualitySelect(Select):

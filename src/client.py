@@ -4,8 +4,8 @@ from os import listdir
 from typing import Final
 from discord import Activity, ActivityType, Guild, Intents, Status
 from discord.ext.commands import Bot
-from src.config.config import Servers, map_readable_item_names
-from src.db.database import Database
+from src.config import Servers
+from src.db import Database
 
 
 INTENTS: Final[Intents] = Intents.default()
@@ -13,13 +13,12 @@ INTENTS.message_content = True
 bot: Bot = Bot(command_prefix=";",
                intents=INTENTS,
                owner_id=692305905123065918,
-               activity=Activity(type=ActivityType.listening, name=";help"),
+               activity=Activity(type=ActivityType.listening, name="/help"),
                status=Status.do_not_disturb)
 bot.remove_command("help")
 
 DATABASE: Final[Database] = Database("res/items.db")
 SERVERS: Final[Servers] = Servers("servers/servers.db")
-ITEM_NAMES: Final[dict[str, str]] = map_readable_item_names()
 
 
 async def load_cogs():

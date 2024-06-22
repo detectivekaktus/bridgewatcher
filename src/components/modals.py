@@ -4,9 +4,10 @@ from random import choice
 from typing import Any, List, Optional
 from discord import Interaction
 from discord.ui import Modal, TextInput
-from src import overrides
+from src import ITEM_NAMES
 from src.api import ItemManager, remove_suffix
-from src.client import DATABASE, ITEM_NAMES
+from src.client import DATABASE
+from src.utils import overrides
 
 
 class ResourcesModal(Modal):

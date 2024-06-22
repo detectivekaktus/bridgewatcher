@@ -1,32 +1,10 @@
 #!/usr/bin/env python3
 from typing import cast
-from discord import Color, Embed, Guild
-from discord.ext.commands import Bot, Cog, Context, command, guild_only
+from discord import Color, Embed, Guild, Interaction
+from discord.app_commands import Choice, choices, describe, command
+from discord.ext.commands import Bot, Cog, guild_only
 from src.client import SERVERS
-
-
-def strtoint_server(server: str) -> int:
-    match server.lower():
-        case "america":
-            return 1
-        case "europe":
-            return 2
-        case "asia":
-            return 3
-        case _:
-            return 1
-
-
-def inttostr_server(server: int) -> str:
-    match server:
-        case 1:
-            return "america"
-        case 2:
-            return "europe"
-        case 3:
-            return "asia"
-        case _:
-            return "america"
+from src.utils import inttostr_server, strtoint_server, inttoemoji_server
 
 
 class Settings(Cog):
@@ -35,40 +13,38 @@ class Settings(Cog):
         self.bot = bot
 
 
-    @command()
+    @command(name="server", description="Sets server to be operated by the bot.")
+    @describe(server="Albion Online server to be used by the bot.")
+    @choices(server=[Choice(name=name.capitalize(), value=name) for name in ("america", "europe", "asia")])
     @guild_only()
-    async def set_server(self, context: Context, server: str) -> None:
-        if server.lower() not in ("america", "europe", "asia"):
-            await context.send(f"Unknown server {server}. Please, select a valid server.")
-            return
-
-        fetch_server: int = strtoint_server(server.lower())
-    
-        SERVERS.update_config(cast(Guild, context.guild), fetch_server)
+    async def server(self, interaction: Interaction, server: Choice[str]) -> None:
+        fetch_server: int = strtoint_server(server.value)
+        SERVERS.update_config(cast(Guild, interaction.guild), fetch_server)
         match fetch_server:
             case 1:
-                await context.send("Server successfully changed to :flag_us: America.")
+                await interaction.response.send_message("Server successfully changed to :flag_us: America.")
             case 2:
-                await context.send("Server successfully changed to :flag_eu: Europe.")
+                await interaction.response.send_message("Server successfully changed to :flag_eu: Europe.")
             case 3:
-                await context.send("Server successfully changed to :flag_cn: Asia.")
+                await interaction.response.send_message("Server successfully changed to :flag_cn: Asia.")
     
 
-    @command()
+    @command(name="info", description="Provides basic information about the server.")
     @guild_only()
-    async def info(self, context: Context) -> None:
-        guild: Guild = cast(Guild, context.guild)
+    async def info(self, interaction: Interaction) -> None:
+        guild: Guild = cast(Guild, interaction.guild)
         embed: Embed = Embed(title=f":book: Information about {guild.name}",
                              color=Color.orange(),
                              description=f"There you have a configuration info about {guild.name}.")
-        embed.add_field(name="Albion Online server", value=inttostr_server(SERVERS.get_config(cast(Guild, context.guild))["fetch_server"]).capitalize())
+        server = SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"]
+        embed.add_field(name="Albion Online server", value=f"{inttoemoji_server(server)} {inttostr_server(server).capitalize()}")
         embed.add_field(name="Members of the server", value=guild.member_count)
         embed.add_field(name="Server owner", value=f"<@{guild.owner_id}>")
-        await context.send(embed=embed)
+        await interaction.response.send_message(embed=embed)
 
 
     @command(name="help", description="Provides basic information over the bot.")
-    async def help(self, context: Context) -> None:
+    async def help(self, interaction: Interaction) -> None:
         embed = Embed(title=":wave: Hello!",
                       color=Color.teal(),
                       description="I'm Bridgewatcher, a Discord bot created by <@692305905123065918>.\n"
@@ -77,7 +53,7 @@ class Settings(Cog):
 
                       "**My commands**\n"
                       "`/info`: get the configuration information\n"
-                      "`;set_server`: set the Albion Online server\n"
+                      "`/server`: set the Albion Online server\n"
                       "`/gold`: get price of gold\n"
                       "`/premium`: get price of all types of premium status\n"
                       "`/price`: search for any item price\n"
@@ -98,7 +74,7 @@ class Settings(Cog):
                       "If the bot is behaving in unexpected way :lady_beetle:, please [report it to the developer]"
                       "(https://github.com/detectivekaktus/bridgewatcher/issues/new).")
         embed.set_author(name="Made by DetectiveKaktus", url="https://github.com/detectivekaktus")
-        await context.send(embed=embed)
+        await interaction.response.send_message(embed=embed)
 
 
 async def setup(bot: Bot) -> None:

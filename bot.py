@@ -64,7 +64,7 @@ def main() -> None:
                     exit(1)
         case "database":
             i += 1
-            if i == len(cliargs):
+            if len(cliargs) == i:
                 crash("ERROR: no flag specified for the database subcommand.")
 
             if cliargs[i] == "--populate":

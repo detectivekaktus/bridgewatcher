@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 from abc import ABC, abstractmethod
 from typing import Any, Optional, cast
-from discord import ButtonStyle, Color, Embed, Interaction, Message
+from discord import ButtonStyle, Color, Embed, Guild, Interaction, Message
 from discord.ui import Button, View, button
-from src import overrides
+from src import ITEM_NAMES
+from src.client import SERVERS
+from src.utils import api_name_to_reable_name, inttoemoji_server, overrides
 
 
 class Card(ABC):
@@ -51,15 +53,15 @@ class PlayerCard(View, Card):
         embed: Embed = Embed(title=f"{self._data[self._current]["Killer"]["Name"]} killed {self._data[self._current]["Victim"]["Name"]}" if self._is_kill else f"{self._data[self._current]["Victim"]["Name"]}'s death against {self._data[self._current]["Killer"]["Name"]}",
                              color=Color.yellow())
         try:
-            embed.add_field(name="Killer's weapon", value=f"**{self._data[self._current]["Killer"]["Equipment"]["MainHand"]["Type"]}**")
-            embed.add_field(name="Killer's average IP", value=f"**{int(self._data[self._current]["Killer"]["AverageItemPower"]):,}**")
-            embed.add_field(name="Fame gained", value=f"**{self._data[self._current]["TotalVictimKillFame"]:,}**")
-            embed.add_field(name="Victim's weapon", value=f"**{self._data[self._current]["Victim"]["Equipment"]["MainHand"]["Type"]}**")
-            embed.add_field(name="Victim's average IP", value=f"**{int(self._data[self._current]["Victim"]["AverageItemPower"]):,}**")
+            embed.add_field(name=":knife: Killer's weapon", value=f"**{api_name_to_reable_name(ITEM_NAMES, self._data[self._current]["Killer"]["Equipment"]["MainHand"]["Type"]).title()}**", inline=False)
+            embed.add_field(name="Killer's average IP", value=f"**{int(self._data[self._current]["Killer"]["AverageItemPower"]):,}**", inline=False)
+            embed.add_field(name="Fame gained", value=f"**{self._data[self._current]["TotalVictimKillFame"]:,}**", inline=False)
+            embed.add_field(name=":drop_of_blood: Victim's weapon", value=f"**{api_name_to_reable_name(ITEM_NAMES, self._data[self._current]["Victim"]["Equipment"]["MainHand"]["Type"]).title()}**", inline=False)
+            embed.add_field(name="Victim's average IP", value=f"**{int(self._data[self._current]["Victim"]["AverageItemPower"]):,}**", inline=False)
             embed.set_author(name=f"Requested by {self._interaction.user.name}", icon_url=self._interaction.user.avatar)
-            embed.set_footer(text="The data is provided by Sandbox Interactive GmbH.")
+            embed.set_footer(text=f"The data is provided by Sandbox Interactive GmbH. | {inttoemoji_server(SERVERS.get_config(cast(Guild, self._interaction.guild))["fetch_server"])} server")
             if (partecipants := len(self._data[self._current]["Participants"])) != 1:
-                embed.add_field(name="Killed in a group of", value=f"**{partecipants}**")
+                embed.add_field(name="Killed in group of", value=f"**{partecipants} players**")
         except Exception:
             await self._interaction.followup.send("Failed to load the log. You won't see the data related to it, but you can continue exploring other results.", ephemeral=True)
             return
@@ -118,7 +120,7 @@ class MembersCard(View, Card):
         embed: Embed = Embed(title=f"Members of :shield: {self._data[0]["GuildName"]}",
                              description="\n".join(description))
         embed.set_author(name=f"Requested by {self._interaction.user.name} | Page {self._page}", icon_url=self._interaction.user.avatar)
-        embed.set_footer(text=f"The data is provided by Sandbox Interactive GmbH.")
+        embed.set_footer(text=f"The data is provided by Sandbox Interactive GmbH. | {inttoemoji_server(SERVERS.get_config(cast(Guild, self._interaction.guild))["fetch_server"])} server")
 
         if edit:
             message: Message = cast(Message, self.message)

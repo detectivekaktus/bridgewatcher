@@ -3,7 +3,7 @@ from abc import ABC
 from datetime import datetime
 from typing import Any, Final, List, Optional, Tuple
 from requests import ReadTimeout, Response, get
-from src import CITIES, ENCHANTMENTS, NON_CRAFTABLE, NON_SELLABLE_ON_BLACK_MARKET
+from src import ENCHANTMENTS, NON_CRAFTABLE, NON_SELLABLE_ON_BLACK_MARKET
 from src.client import DATABASE
 
 
@@ -161,25 +161,6 @@ class ItemManager:
         return item
 
     @staticmethod
-    def exists(item_name: str) -> bool:
-        is_enchanted: bool = ItemManager.is_enchanted(item_name)
-
-        try:
-            item_name = remove_suffix(item_name, is_enchanted)
-        except IndexError:
-            return False
-        
-        if int(item_name[1]) < 4 and is_enchanted and not ItemManager.is_consumable(item_name):
-            return False
-        
-        if is_enchanted and ItemManager.is_artefact(item_name):
-            return False
-
-        item: Optional[Tuple] = ItemManager.get_item(item_name)
-
-        return True if item != None else False
-
-    @staticmethod
     def is_craftable(item_name: str) -> bool:
         if ItemManager.is_enchanted(item_name):
             item_name = item_name[:-2]
@@ -287,27 +268,8 @@ def convert_api_timestamp(date: str) -> str:
     return datetime.strptime(date, "%Y-%m-%dT%H:%M:%S").strftime("%d %B %Y, %H:%M:%S UTC")
 
 
-def strquality_toint(quality: str) -> int:
-    match quality.lower():
-        case "normal":
-            return 1
-        case "good":
-            return 2
-        case "outstanding":
-            return 3
-        case "excellent":
-            return 4
-        case "masterpiece":
-            return 5
-        case _:
-            return 1
-
-
-def is_valid_city(city: str) -> bool:
-    return city.lower() in CITIES
-
-
 def remove_suffix(item_name: str, is_enchanted: bool) -> str:
     if is_enchanted:
         return item_name[:-9] if ItemManager.is_resource(item_name) else item_name[:-2]
     return item_name
+
