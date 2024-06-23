@@ -7,6 +7,7 @@ from src.api import SandboxInteractiveInfo
 from src.client import SERVERS
 from src.components.cards import MembersCard, PlayerCard
 from src.utils import inttoemoji_server
+from src.utils.embeds import NameErrorEmbed, OutdatedDataErrorEmbed
 
 
 class Social(Cog):
@@ -22,11 +23,7 @@ class Social(Cog):
         fetcher: SandboxInteractiveInfo = SandboxInteractiveInfo(SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"])
         player: Optional[dict[str, Any]] = fetcher.get_player(name)
         if not player:
-            await interaction.response.send_message(embed=Embed(title=f"{name} doesn't exist",
-                                                                color=Color.red(),
-                                                                description=f"No player with name {name} has been "
-                                                                "found. Check if you changed the Albion Online  "
-                                                                "server or try again later."))
+            await interaction.response.send_message(embed=NameErrorEmbed(name), ephemeral=True)
             return
 
         embed: Embed = Embed(title=f":man: {player["Name"]}",
@@ -60,17 +57,10 @@ class Social(Cog):
         fetcher: SandboxInteractiveInfo = SandboxInteractiveInfo(SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"])
         deaths: Optional[list[dict[str, Any]]] = fetcher.get_deaths(name)
         if deaths == None:
-            await interaction.response.send_message(embed=Embed(title=f"{name} doesn't exist",
-                                                                color=Color.red(),
-                                                                description=f"No player with name {name} has been "
-                                                                "found. Check if you changed the Albion Online  "
-                                                                "server or try again later."))
+            await interaction.response.send_message(embed=NameErrorEmbed(name), ephemeral=True)
             return
         elif len(deaths) == 0:
-            await interaction.response.send_message(embed=Embed(title="No data",
-                                                                color=Color.red(),
-                                                                description="Either this player hasn't died yet or"
-                                                                " there is no their death data."))
+            await interaction.response.send_message(embed=OutdatedDataErrorEmbed(), ephemeral=True)
             return
 
         card: PlayerCard = PlayerCard(interaction, deaths)
@@ -85,17 +75,10 @@ class Social(Cog):
         fetcher: SandboxInteractiveInfo = SandboxInteractiveInfo(SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"])
         kills: Optional[list[dict[str, Any]]] = fetcher.get_kills(name)
         if kills == None:
-            await interaction.response.send_message(embed=Embed(title=f"{name} doesn't exist",
-                                                                color=Color.red(),
-                                                                description=f"No player with name {name} has been "
-                                                                "found. Check if you changed the Albion Online  "
-                                                                "server or try again later."))
+            await interaction.response.send_message(embed=NameErrorEmbed(name), ephemeral=True)
             return
         elif len(kills) == 0:
-            await interaction.response.send_message(embed=Embed(title="No data",
-                                                                color=Color.red(),
-                                                                description="Either this player hasn't killed anyone yet"
-                                                                " or there is no their kill data."))
+            await interaction.response.send_message(embed=OutdatedDataErrorEmbed(), ephemeral=True)
             return
 
         card: PlayerCard = PlayerCard(interaction, kills, is_kill=True)
@@ -110,11 +93,7 @@ class Social(Cog):
         fetcher: SandboxInteractiveInfo = SandboxInteractiveInfo(SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"])
         guild: Optional[dict[str, Any]] = fetcher.get_guild(name)
         if not guild:
-            await interaction.response.send_message(embed=Embed(title=f"{name} doesn't exist",
-                                                                color=Color.red(),
-                                                                description=f"No guild with name {name} has been "
-                                                                "found. Check if you changed the Albion Online  "
-                                                                "server or try again later."))
+            await interaction.response.send_message(embed=NameErrorEmbed(name), ephemeral=True)
             return
 
         embed: Embed = Embed(title=f":shield: {guild["guild"]["Name"]}",
@@ -141,17 +120,10 @@ class Social(Cog):
         fetcher: SandboxInteractiveInfo = SandboxInteractiveInfo(SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"])
         members: Optional[list[dict[str, Any]]] = fetcher.get_members(name)
         if members == None:
-            await interaction.response.send_message(embed=Embed(title=f"{name} doesn't exist",
-                                                                color=Color.red(),
-                                                                description=f"No guild with name {name} has been "
-                                                                "found. Check if you changed the Albion Online  "
-                                                                "server or try again later."))
+            await interaction.response.send_message(embed=NameErrorEmbed(name), ephemeral=True)
             return
         elif len(members) == 0:
-            await interaction.response.send_message(embed=Embed(title=f"No members",
-                                                                color=Color.red(),
-                                                                description="The guild you specified doesn't have "
-                                                                "any member."))
+            await interaction.response.send_message(embed=OutdatedDataErrorEmbed(),ephemeral=True)
             return
 
         card: MembersCard = MembersCard(interaction, members, max=limit if limit else None)

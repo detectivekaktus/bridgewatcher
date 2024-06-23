@@ -9,6 +9,7 @@ from src.api import AlbionOnlineData, SandboxInteractiveRenderer, convert_api_ti
 from src.client import SERVERS
 from src.components.ui import PriceView
 from src.utils import format_name, strtoquality_int, inttoemoji_server
+from src.utils.embeds import NameErrorEmbed, ServerErrorEmbed, TimedOutErrorEmbed
 
 
 class Info(Cog):
@@ -32,10 +33,7 @@ class Info(Cog):
         fetcher: AlbionOnlineData = AlbionOnlineData(server)
         data: Optional[List[dict[str, Any]]] = fetcher.fetch_gold(count + 1)
         if not data:
-            await interaction.response.send_message(embed=Embed(title=":red_circle: There was an error",
-                                                                color=Color.red(),
-                                                                description="I've encountered an error trying to get item "
-                                                                "prices from the API. Please, try again later."))
+            await interaction.response.send_message(embed=ServerErrorEmbed(), ephemeral=True)
             return
 
         embed: Embed = Embed(title=":coin: Gold prices",
@@ -65,10 +63,7 @@ class Info(Cog):
         data: Optional[List[dict[str, Any]]] = fetcher.fetch_gold(1)
         
         if not data:
-            await interaction.response.send_message(embed=Embed(title=":red_circle: There was an error",
-                                                                color=Color.red(),
-                                                                description="I've encountered an error trying to get item "
-                                                                "prices from the API. Please, try again later."))
+            await interaction.response.send_message(embed=ServerErrorEmbed(), ephemeral=True)
             return
 
         embed: Embed = Embed(title=":crown: Premium status price",
@@ -89,9 +84,7 @@ class Info(Cog):
         item_name = item_name.lower()
 
         if item_name not in ITEM_NAMES.keys():
-            await interaction.response.send_message(embed=Embed(title=f":red_circle: {format_name(item_name)} doesn't exist!",
-                                                          color=Color.red(),
-                                                          description=f"{format_name(item_name)} is not an existing item!"))
+            await interaction.response.send_message(embed=NameErrorEmbed(item_name), ephemeral=True)
             return
 
         view = PriceView(timeout=60)
@@ -114,16 +107,10 @@ class Info(Cog):
             fetcher: AlbionOnlineData = AlbionOnlineData(server)
             data: Optional[List[dict[str, Any]]] = fetcher.fetch_price(ITEM_NAMES[item_name], quality, cast(List[str], view.cities))
             if not data:
-                await interaction.followup.send(embed=Embed(title=":red_circle: Error!",
-                                                            color=Color.red(),
-                                                            description="I couldn't handle you request due to "
-                                                            "a server problem. Try again later."),
-                                                ephemeral=True)
-
+                await interaction.followup.send(embed=ServerErrorEmbed(), ephemeral=True)
                 return
 
-            embed: Embed = Embed(title=f":dollar: {format_name(item_name)} price",
-                                 color=Color.blurple())
+            embed: Embed = Embed(title=f":dollar: {format_name(item_name)} price", color=Color.blurple())
             embed.set_thumbnail(url=SandboxInteractiveRenderer.fetch_item(ITEM_NAMES[item_name], quality))
             embed.set_author(name=f"Requested by {interaction.user.name}", icon_url=interaction.user.avatar)
             embed.set_footer(text=f"The data is provided by the Albion Online Data Project. | {inttoemoji_server(server)} server")
@@ -141,11 +128,7 @@ class Info(Cog):
         else:
             message = await interaction.original_response()
             await message.delete()
-            await interaction.followup.send(embed=Embed(title=":red_circle: Timed out!",
-                                                        color=Color.red(),
-                                                        description="Your time has run out. Start a new "
-                                                        "conversation with the bot to get the price."),
-                                            ephemeral=True)
+            await interaction.followup.send(embed=TimedOutErrorEmbed(), ephemeral=True)
 
 
     @command(name="utc", description="Displays current UTC time.")

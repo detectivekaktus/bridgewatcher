@@ -9,6 +9,7 @@ from src.client import SERVERS
 from src.components.ui import CraftingView, FlipView
 from src.market import Crafter, find_crafting_bonus_city, find_least_expensive_city, find_most_expensive_city
 from src.utils import format_name, strtoquality_int, inttoemoji_server
+from src.utils.embeds import NameErrorEmbed, OutdatedDataErrorEmbed, ServerErrorEmbed, TimedOutErrorEmbed
 
 
 class Calcs(Cog):
@@ -24,15 +25,14 @@ class Calcs(Cog):
         item_name = item_name.lower()
 
         if item_name not in ITEM_NAMES.keys():
-            await interaction.response.send_message(embed=Embed(title=f":red_circle: {format_name(item_name)} doesn't exist!",
-                                                                color=Color.red(),
-                                                                description=f"{format_name(item_name)} is not an existing item!"))
+            await interaction.response.send_message(embed=NameErrorEmbed(item_name), ephemeral=True)
             return
 
         if not ItemManager.is_craftable(ITEM_NAMES[item_name]):
             await interaction.response.send_message(embed=Embed(title=f":red_circle: {format_name(item_name)} is not craftable!",
                                                                 color=Color.red(),
-                                                                description="You can't craft uncraftable item!"))
+                                                                description="You can't craft uncraftable item!"),
+                                                    ephemeral=True)
             return
 
         view: CraftingView = CraftingView(ITEM_NAMES[item_name], timeout=120)
@@ -63,11 +63,7 @@ class Calcs(Cog):
             fetcher: AlbionOnlineData = AlbionOnlineData(server)
             data: Optional[List[dict[str, Any]]] = fetcher.fetch_price(ITEM_NAMES[item_name], qualities=1)
             if not data:
-                await interaction.followup.send(embed=Embed(title=":red_circle: Error!",
-                                                            color=Color.red(),
-                                                            description="I couldn't handle your request due to "
-                                                            "a server problem. Try again later."),
-                                                ephemeral=True)
+                await interaction.followup.send(embed=ServerErrorEmbed(), ephemeral=True)
                 return
 
             craft_city: str = view.craft_city[0] if view.craft_city else ""
@@ -86,11 +82,7 @@ class Calcs(Cog):
             for resource in view.crafting_requirements.keys():
                 resource_data = fetcher.fetch_price(resource, qualities=1, cities=[craft_city.lower()])
                 if not resource_data:
-                    await interaction.followup.send(embed=Embed(title=":red_circle: Error!",
-                                                                color=Color.red(),
-                                                                description="I couldn't handle your request due to "
-                                                                "a server problem. Try again later."),
-                                                    ephemeral=True)
+                    await interaction.followup.send(embed=ServerErrorEmbed(), ephemeral=True)
                     return
                 resource_prices[resource] = resource_data[0]["sell_price_min"]
 
@@ -117,11 +109,7 @@ class Calcs(Cog):
         else:
             message = await interaction.original_response()
             await message.delete()
-            await interaction.followup.send(embed=Embed(title=":red_circle: Timed out!",
-                                                        color=Color.red(),
-                                                        description="Your time has run out. Start a new "
-                                                        "conversation with the bot to craft something."),
-                                            ephemeral=True)
+            await interaction.followup.send(embed=TimedOutErrorEmbed(), ephemeral=True)
 
 
     @command(name="flip", description="Calculates profit of transportation of one item from city you select to the black market.")
@@ -131,15 +119,14 @@ class Calcs(Cog):
         item_name = item_name.lower()
 
         if item_name not in ITEM_NAMES.keys():
-            await interaction.response.send_message(embed=Embed(title=f":red_circle: {format_name(item_name)} doesn't exist!",
-                                                                color=Color.red(),
-                                                                description=f"{format_name(item_name)} is not an existing item!"))
+            await interaction.response.send_message(embed=NameErrorEmbed(item_name), ephemeral=True)
             return
 
         if not ItemManager.is_sellable_on_black_market(ITEM_NAMES[item_name]):
             await interaction.response.send_message(embed=Embed(title=f":red_circle: {format_name(item_name)} is not sellable on the black market!",
                                                                 color=Color.red(),
-                                                                description="You can't sell what is unsellable on the black market."))
+                                                                description="You can't sell what is unsellable on the black market."),
+                                                    ephemeral=True)
             return
 
         view: FlipView = FlipView(timeout=30)
@@ -165,42 +152,30 @@ class Calcs(Cog):
             fetcher: AlbionOnlineData = AlbionOnlineData(server)
             data: Optional[List[dict[str, Any]]] = fetcher.fetch_price(ITEM_NAMES[item_name], quality, cities)
             if not data:
-                await interaction.followup.send(embed=Embed(title=":red_circle: Error!",
-                                                            color=Color.red(),
-                                                            description="I couldn't handle your request due to "
-                                                            "a server problem. Try again later."),
-                                                ephemeral=True)
+                await interaction.followup.send(embed=ServerErrorEmbed(), ephemeral=True)
                 return
             
-            try:
-                embed: Embed = Embed(title=f":truck: Flipping the market for {format_name(item_name)}",
-                                     color=Color.orange(),
-                                     description=f"The expected profit of transporting {format_name(item_name)} of **{view.quality.lower()}"
-                                     f" quality** from **{view.cities[0].title()}** to the black market is:\n"
-                                     f"* **{(data[0]["sell_price_min"] - data[1]["sell_price_min"]):,} silver**\n"
-                                     f"* **{round((data[0]["sell_price_min"] / data[1]["sell_price_min"] * 100) - 100, 2):,}%**")
-                embed.add_field(name="Start city", value=f"**{view.cities[0].title()}**")
-                embed.add_field(name="Buy price", value=f"**{data[1]["sell_price_min"]:,}**")
-                embed.add_field(name="Sell price", value=f"**{data[0]["sell_price_min"]:,}**")
-                embed.set_author(name=f"Requested by {interaction.user.name}", icon_url=interaction.user.avatar)
-                embed.set_thumbnail(url=SandboxInteractiveRenderer.fetch_item(ITEM_NAMES[item_name], quality=quality))
-                embed.set_footer(text=f"The data is provided by the Albion Online Data Project | {inttoemoji_server(server)} server.")
-                await interaction.followup.send(embed=embed)
-            except ZeroDivisionError:
-                await interaction.followup.send(embed=Embed(title=":red_circle: Error!",
-                                                            color=Color.red(),
-                                                            description="I couldn't handle your request due to "
-                                                            "a server problem. Try again later."),
-                                                ephemeral=True)
+            if not data[0]["sell_price_min"] or not data[1]["sell_price_min"]:
+                await interaction.followup.send(embed=OutdatedDataErrorEmbed(), ephemeral=True)
                 return
+                
+            embed: Embed = Embed(title=f":truck: Flipping the market for {format_name(item_name)}",
+                                 color=Color.orange(),
+                                 description=f"The expected profit of transporting {format_name(item_name)} of **{view.quality.lower()}"
+                                 f" quality** from **{view.cities[0].title()}** to the black market is:\n"
+                                 f"* **{(data[0]["sell_price_min"] - data[1]["sell_price_min"]):,} silver**\n"
+                                 f"* **{round((data[0]["sell_price_min"] / data[1]["sell_price_min"] * 100) - 100, 2):,}%**")
+            embed.add_field(name="Start city", value=f"**{view.cities[0].title()}**")
+            embed.add_field(name="Buy price", value=f"**{data[1]["sell_price_min"]:,}**")
+            embed.add_field(name="Sell price", value=f"**{data[0]["sell_price_min"]:,}**")
+            embed.set_author(name=f"Requested by {interaction.user.name}", icon_url=interaction.user.avatar)
+            embed.set_thumbnail(url=SandboxInteractiveRenderer.fetch_item(ITEM_NAMES[item_name], quality=quality))
+            embed.set_footer(text=f"The data is provided by the Albion Online Data Project | {inttoemoji_server(server)} server.")
+            await interaction.followup.send(embed=embed)
         else:
             message = await interaction.original_response()
             await message.delete()
-            await interaction.followup.send(embed=Embed(title=":red_circle: Timed out!",
-                                                        color=Color.red(),
-                                                        description="Your time has run out. Start a new "
-                                                        "conversation with the bot to craft something."),
-                                            ephemeral=True)
+            await interaction.followup.send(embed=TimedOutErrorEmbed(), ephemeral=True)
 
 
 async def setup(bot: Bot) -> None:
