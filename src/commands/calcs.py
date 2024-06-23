@@ -8,7 +8,7 @@ from src.api import AlbionOnlineData, ItemManager, SandboxInteractiveRenderer
 from src.client import SERVERS
 from src.components.ui import CraftingView, FlipView
 from src.market import Crafter, find_crafting_bonus_city, find_least_expensive_city, find_most_expensive_city
-from src.utils import strtoquality_int, inttoemoji_server
+from src.utils import format_name, strtoquality_int, inttoemoji_server
 
 
 class Calcs(Cog):
@@ -24,13 +24,13 @@ class Calcs(Cog):
         item_name = item_name.lower()
 
         if item_name not in ITEM_NAMES.keys():
-            await interaction.response.send_message(embed=Embed(title=f":red_circle: {item_name.title()} doesn't exist!",
+            await interaction.response.send_message(embed=Embed(title=f":red_circle: {format_name(item_name)} doesn't exist!",
                                                                 color=Color.red(),
-                                                                description=f"{item_name.title()} is not an existing item!"))
+                                                                description=f"{format_name(item_name)} is not an existing item!"))
             return
 
         if not ItemManager.is_craftable(ITEM_NAMES[item_name]):
-            await interaction.response.send_message(embed=Embed(title=f":red_circle: {item_name.title()} is not craftable!",
+            await interaction.response.send_message(embed=Embed(title=f":red_circle: {format_name(item_name)} is not craftable!",
                                                                 color=Color.red(),
                                                                 description="You can't craft uncraftable item!"))
             return
@@ -96,9 +96,9 @@ class Calcs(Cog):
 
             crafter: Crafter = Crafter(resource_prices, view.resources, view.crafting_requirements, view.return_rate)
             result: dict[str, Any] = crafter.printable(data[CITIES.index(sell_city.lower())])
-            embed: Embed = Embed(title=f":hammer_pick: Crafting {item_name.title()}",
+            embed: Embed = Embed(title=f":hammer_pick: Crafting {format_name(item_name)}",
                                  color=Color.magenta(),
-                                 description=f"This is a brief summary of crafting {item_name.title()}"
+                                 description=f"This is a brief summary of crafting {format_name(item_name)}"
                                  f" in **{craft_city.title()}** with the sell destination"
                                  f" in **{sell_city.title()}**.\n\n"
 
@@ -131,20 +131,20 @@ class Calcs(Cog):
         item_name = item_name.lower()
 
         if item_name not in ITEM_NAMES.keys():
-            await interaction.response.send_message(embed=Embed(title=f":red_circle: {item_name.title()} doesn't exist!",
+            await interaction.response.send_message(embed=Embed(title=f":red_circle: {format_name(item_name)} doesn't exist!",
                                                                 color=Color.red(),
-                                                                description=f"{item_name.title()} is not an existing item!"))
+                                                                description=f"{format_name(item_name)} is not an existing item!"))
             return
 
         if not ItemManager.is_sellable_on_black_market(ITEM_NAMES[item_name]):
-            await interaction.response.send_message(embed=Embed(title=f":red_circle: {item_name.title()} is not sellable on the black market!",
+            await interaction.response.send_message(embed=Embed(title=f":red_circle: {format_name(item_name)} is not sellable on the black market!",
                                                                 color=Color.red(),
                                                                 description="You can't sell what is unsellable on the black market."))
             return
 
         view: FlipView = FlipView(timeout=30)
         await interaction.response.send_message(embed=Embed(title=f":truck: Market flipper",
-                                                            color=Color.random(),
+                                                            color=Color.orange(),
                                                             description="Let's flip the market up! Customize the item"
                                                             " you want to flip with the interaction buttons below. If"
                                                             " you are completely new to this bot, follow the rules in"
@@ -173,9 +173,9 @@ class Calcs(Cog):
                 return
             
             try:
-                embed: Embed = Embed(title=f":truck: Flipping the market for {item_name.title()}",
-                                     color=Color.random(),
-                                     description=f"The expected profit of transporting {item_name.title()} of **{view.quality.lower()}"
+                embed: Embed = Embed(title=f":truck: Flipping the market for {format_name(item_name)}",
+                                     color=Color.orange(),
+                                     description=f"The expected profit of transporting {format_name(item_name)} of **{view.quality.lower()}"
                                      f" quality** from **{view.cities[0].title()}** to the black market is:\n"
                                      f"* **{(data[0]["sell_price_min"] - data[1]["sell_price_min"]):,} silver**\n"
                                      f"* **{round((data[0]["sell_price_min"] / data[1]["sell_price_min"] * 100) - 100, 2):,}%**")

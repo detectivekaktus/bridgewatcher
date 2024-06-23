@@ -8,7 +8,7 @@ from src import ITEM_NAMES
 from src.api import AlbionOnlineData, SandboxInteractiveRenderer, convert_api_timestamp, get_percent_variation
 from src.client import SERVERS
 from src.components.ui import PriceView
-from src.utils import strtoquality_int, inttoemoji_server
+from src.utils import format_name, strtoquality_int, inttoemoji_server
 
 
 class Info(Cog):
@@ -89,9 +89,9 @@ class Info(Cog):
         item_name = item_name.lower()
 
         if item_name not in ITEM_NAMES.keys():
-            await interaction.response.send_message(embed=Embed(title=f":red_circle: {item_name.title()} doesn't exist!",
+            await interaction.response.send_message(embed=Embed(title=f":red_circle: {format_name(item_name)} doesn't exist!",
                                                           color=Color.red(),
-                                                          description=f"{item_name.title()} is not an existing item!"))
+                                                          description=f"{format_name(item_name)} is not an existing item!"))
             return
 
         view = PriceView(timeout=60)
@@ -122,7 +122,7 @@ class Info(Cog):
 
                 return
 
-            embed: Embed = Embed(title=f":dollar: {item_name.title()} price",
+            embed: Embed = Embed(title=f":dollar: {format_name(item_name)} price",
                                  color=Color.blurple())
             embed.set_thumbnail(url=SandboxInteractiveRenderer.fetch_item(ITEM_NAMES[item_name], quality))
             embed.set_author(name=f"Requested by {interaction.user.name}", icon_url=interaction.user.avatar)

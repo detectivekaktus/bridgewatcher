@@ -29,6 +29,10 @@ def api_name_to_reable_name(item_names: dict[str, str], name: str) -> str:
     return list(item_names.keys())[list(item_names.values()).index(name)]
 
 
+def format_name(name: str) -> str:
+    return name.title().replace("'S", "'s")
+
+
 def strtoint_server(server: str) -> int:
     match server.lower():
         case "america":
