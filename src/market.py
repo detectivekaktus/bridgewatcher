@@ -26,7 +26,7 @@ class Crafter:
         total_resources: dict[str, int] = {}
         for resource in self._resources.keys():
             total_resources[resource] = self._resources[resource] + returned_resources[resource]
-        items_crafted: int = self._get_items_crafted(total_resources)
+        items_crafted: int = self._get_items_crafted(total_resources) if self._resources != self._requirements else 1
         unused_material: dict[str, int] = self._get_unused_material(total_resources, items_crafted)
         unused_resources_price = self._get_unused_resources_price(unused_material)
         tax: int = int((item["sell_price_min"] * items_crafted) * (PREMIUM_TAX if self._has_premium else NON_PREMIUM_TAX) / 100)
