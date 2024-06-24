@@ -9,7 +9,7 @@ from src.api import AlbionOnlineData, SandboxInteractiveRenderer, convert_api_ti
 from src.client import SERVERS
 from src.components.ui import PriceView
 from src.utils import format_name, strtoquality_int, inttoemoji_server
-from src.utils.embeds import NameErrorEmbed, ServerErrorEmbed, TimedOutErrorEmbed
+from src.utils.embeds import InvalidValueErrorEmbed, NameErrorEmbed, ServerErrorEmbed, TimedOutErrorEmbed
 
 
 class Info(Cog):
@@ -23,10 +23,7 @@ class Info(Cog):
     @guild_only()
     async def gold(self, interaction: Interaction, count: int = 3) -> None:
         if count not in range(1, 25):
-            await interaction.response.send_message(embed=Embed(title=":red_circle: Invalid argument!",
-                                                                color=Color.red(),
-                                                                description="Please, specify a valid integer value in "
-                                                                "range between 1 and 24."))
+            await interaction.response.send_message(embed=InvalidValueErrorEmbed(count))
             return
 
         server: int = SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"]
@@ -36,7 +33,7 @@ class Info(Cog):
             await interaction.response.send_message(embed=ServerErrorEmbed(), ephemeral=True)
             return
 
-        embed: Embed = Embed(title=":coin: Gold prices",
+        embed: Embed = Embed(title="🪙 Gold prices",
                              color=Color.gold(),
                              description=f"Here are the past {count} gold prices.\n"
                              "Total percent variation in the specified period: "
@@ -47,7 +44,7 @@ class Info(Cog):
         embed.set_footer(text=f"The data is provided by the Albion Online Data Project | {inttoemoji_server(server)} server")
 
         for i in range(len(data) - 1):
-            embed.add_field(name=f"Data from {convert_api_timestamp(data[i]["timestamp"])}.",
+            embed.add_field(name=f"⌛ Data from {convert_api_timestamp(data[i]["timestamp"])}.",
                             value=f"Gold price: **{data[i]["price"]}**\n"
                             f"Percent variation from the last value: **{get_percent_variation(data, i)}%**\n"
                             f"Numeric variation from the last value: **{data[i]["price"] - data[i + 1]["price"]}**")
@@ -66,7 +63,7 @@ class Info(Cog):
             await interaction.response.send_message(embed=ServerErrorEmbed(), ephemeral=True)
             return
 
-        embed: Embed = Embed(title=":crown: Premium status price",
+        embed: Embed = Embed(title="👑 Premium status price",
                              color=Color.gold())
         embed.add_field(name="30 days", value=f"**{(data[0]["price"] * 3750):,}**")
         embed.add_field(name="90 days", value=f"**{(data[0]["price"] * 10500):,}**")
@@ -78,7 +75,7 @@ class Info(Cog):
 
 
     @command(name="price", description="Retrieves price of an item.")
-    @describe(item_name="The Albion Online Data Project API item name.")
+    @describe(item_name="The Albion Online item name.")
     @guild_only()
     async def price(self, interaction: Interaction, item_name: str) -> None:
         item_name = item_name.lower()
@@ -88,10 +85,10 @@ class Info(Cog):
             return
 
         view = PriceView(timeout=60)
-        await interaction.response.send_message(embed=Embed(title=":dollar: Price fetcher",
+        await interaction.response.send_message(embed=Embed(title="💲 Price fetcher",
                                                             color=Color.blurple(),
                                                             description="Let's search for a price together!"
-                                                            " Use the navigation buttons on the bottom of t"
+                                                            " Use 🔘 the navigation buttons on the bottom of t"
                                                             "his message to customize your experience. If y"
                                                             "ou are new to this bot, follow [this link](htt"
                                                             "ps://github.com/detectivekaktus/bridgewatcher?"
@@ -110,18 +107,18 @@ class Info(Cog):
                 await interaction.followup.send(embed=ServerErrorEmbed(), ephemeral=True)
                 return
 
-            embed: Embed = Embed(title=f":dollar: {format_name(item_name)} price", color=Color.blurple())
+            embed: Embed = Embed(title=f"🔘 {format_name(item_name)} price", color=Color.blurple())
             embed.set_thumbnail(url=SandboxInteractiveRenderer.fetch_item(ITEM_NAMES[item_name], quality))
             embed.set_author(name=f"Requested by {interaction.user.name}", icon_url=interaction.user.avatar)
             embed.set_footer(text=f"The data is provided by the Albion Online Data Project. | {inttoemoji_server(server)} server")
 
             description: list[str] = ["***Sell orders:***\n"]
             for entry in data:
-                description.append(f"**{entry["city"]}** (updated at {convert_api_timestamp(entry["sell_price_min_date"])}): **{entry["sell_price_min"]:,}**\n")
+                description.append(f"**{entry["city"]}** (updated {convert_api_timestamp(entry["sell_price_min_date"])}): **{entry["sell_price_min"]:,}**\n")
 
             description.append("\n***Buy orders:***\n")
             for entry in data:
-                description.append(f"**{entry["city"]}** (updated at {convert_api_timestamp(entry["sell_price_min_date"])}): **{entry["buy_price_max"]:,}**\n")
+                description.append(f"**{entry["city"]}** (updated {convert_api_timestamp(entry["sell_price_min_date"])}): **{entry["buy_price_max"]:,}**\n")
             
             embed.description = "".join(description)
             await interaction.followup.send(embed=embed)

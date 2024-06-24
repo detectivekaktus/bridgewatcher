@@ -19,7 +19,7 @@ class Calcs(Cog):
 
 
     @command(name="craft", description="Calculates crafting profit from crafting an item")
-    @describe(item_name="The Albion Online Data Project API item name.")
+    @describe(item_name="The Albion Online item name.")
     @guild_only()
     async def craft(self, interaction: Interaction, item_name: str) -> None:
         item_name = item_name.lower()
@@ -29,7 +29,7 @@ class Calcs(Cog):
             return
 
         if not ItemManager.is_craftable(ITEM_NAMES[item_name]):
-            await interaction.response.send_message(embed=Embed(title=f":red_circle: {format_name(item_name)} is not craftable!",
+            await interaction.response.send_message(embed=Embed(title=f"🔴 {format_name(item_name)} is not craftable!",
                                                                 color=Color.red(),
                                                                 description="You can't craft uncraftable item!"),
                                                     ephemeral=True)
@@ -37,9 +37,9 @@ class Calcs(Cog):
 
         view: CraftingView = CraftingView(ITEM_NAMES[item_name], timeout=120)
         view.is_enchanted = ItemManager.is_enchanted(ITEM_NAMES[item_name])
-        await interaction.response.send_message(embed=Embed(title=":hammer_pick: Crafting calculator",
+        await interaction.response.send_message(embed=Embed(title="🛠️ Crafting calculator",
                                                             color=Color.magenta(),
-                                                            description="Let's craft something! Use the buttons below"
+                                                            description="Let's craft something! Use the 🔘 buttons below"
                                                             " to access the full power of the crafting calculator! If"
                                                             " you are completely new to this bot, follow [this link]("
                                                             "https://github.com/detectivekaktus/bridgewatcher) to "
@@ -51,7 +51,7 @@ class Calcs(Cog):
             await message.delete()
 
             if len(view.resources) == 0:
-                await interaction.followup.send(embed=Embed(title=":red_circle: No resources specified!",
+                await interaction.followup.send(embed=Embed(title="🔴 No resources specified!",
                                                             color=Color.red(),
                                                             description="You need to specify the resources you have"
                                                             " to craft the item. Start a new conversation with the "
@@ -88,23 +88,25 @@ class Calcs(Cog):
 
             crafter: Crafter = Crafter(resource_prices, view.resources, view.crafting_requirements, view.return_rate)
             result: dict[str, Any] = crafter.printable(data[CITIES.index(sell_city.lower())])
-            embed: Embed = Embed(title=f":hammer_pick: Crafting {format_name(item_name)}",
+            embed: Embed = Embed(title=f"🛠️ Crafting {format_name(item_name)}",
                                  color=Color.magenta(),
                                  description=f"This is a brief summary of crafting {format_name(item_name)}"
                                  f" in **{craft_city.title()}** with the sell destination"
                                  f" in **{sell_city.title()}**.\n\n"
 
-                                 f"You profit is expected to be **{result["profit"]:,} silver**, given by:\n"
+                                 f"Your profit is expected to be **{result["profit"]:,} silver**, given by:\n"
                                  f"{result["sell_price"]:,} sell price\n"
                                  f"-{result["raw_cost"]:,} resource cost\n"
                                  f"+{result["unused_resources_price"]:,} unused resources")
-            embed.add_field(name="Craft city", value=f"**{craft_city.title()}**")
-            embed.add_field(name="Sell city", value=f"**{sell_city.title()}**")
+            embed.add_field(name="🏭 Craft city", value=f"**{craft_city.title()}**")
+            embed.add_field(name="🏪 Sell city", value=f"**{sell_city.title()}**")
             embed.set_author(name=f"Requested by {interaction.user.name}", icon_url=interaction.user.avatar)
             embed.set_thumbnail(url=SandboxInteractiveRenderer.fetch_item(ITEM_NAMES[item_name], quality=1))
             embed.set_footer(text=f"The data is provided by the Albion Online Data Project | {inttoemoji_server(server)} server.")
             for field in result["fields"]:
                 embed.add_field(name=field["title"], value=f"**{field["value"]}**")
+            for unused_materials in result["unused_materials"]:
+                embed.add_field(name=unused_materials["name"], value=f"**{unused_materials["value"]}**")
             await interaction.followup.send(embed=embed)
         else:
             message = await interaction.original_response()
@@ -112,8 +114,8 @@ class Calcs(Cog):
             await interaction.followup.send(embed=TimedOutErrorEmbed(), ephemeral=True)
 
 
-    @command(name="flip", description="Calculates profit of transportation of one item from city you select to the black market.")
-    @describe(item_name="The Albion Online Data Project API item name.")
+    @command(name="flip", description="Calculates the profit of transportation of one item from city you select to the black market.")
+    @describe(item_name="The Albion Online item name.")
     @guild_only()
     async def flip(self, interaction: Interaction, item_name: str) -> None:
         item_name = item_name.lower()
@@ -123,17 +125,17 @@ class Calcs(Cog):
             return
 
         if not ItemManager.is_sellable_on_black_market(ITEM_NAMES[item_name]):
-            await interaction.response.send_message(embed=Embed(title=f":red_circle: {format_name(item_name)} is not sellable on the black market!",
+            await interaction.response.send_message(embed=Embed(title=f"🔴 {format_name(item_name)} is not sellable on the black market!",
                                                                 color=Color.red(),
                                                                 description="You can't sell what is unsellable on the black market."),
                                                     ephemeral=True)
             return
 
         view: FlipView = FlipView(timeout=30)
-        await interaction.response.send_message(embed=Embed(title=f":truck: Market flipper",
+        await interaction.response.send_message(embed=Embed(title=f"📦 Market flipper",
                                                             color=Color.orange(),
                                                             description="Let's flip the market up! Customize the item"
-                                                            " you want to flip with the interaction buttons below. If"
+                                                            " you want to flip with 🔘 the interaction buttons below. If"
                                                             " you are completely new to this bot, follow the rules in"
                                                             "dicated [right here](https://github.com/detectivekaktus/"
                                                             "bridgewatcher)."),
@@ -159,15 +161,15 @@ class Calcs(Cog):
                 await interaction.followup.send(embed=OutdatedDataErrorEmbed(), ephemeral=True)
                 return
                 
-            embed: Embed = Embed(title=f":truck: Flipping the market for {format_name(item_name)}",
+            embed: Embed = Embed(title=f"📦 Flipping the market for {format_name(item_name)}",
                                  color=Color.orange(),
                                  description=f"The expected profit of transporting {format_name(item_name)} of **{view.quality.lower()}"
                                  f" quality** from **{view.cities[0].title()}** to the black market is:\n"
                                  f"* **{(data[0]["sell_price_min"] - data[1]["sell_price_min"]):,} silver**\n"
                                  f"* **{round((data[0]["sell_price_min"] / data[1]["sell_price_min"] * 100) - 100, 2):,}%**")
-            embed.add_field(name="Start city", value=f"**{view.cities[0].title()}**")
-            embed.add_field(name="Buy price", value=f"**{data[1]["sell_price_min"]:,}**")
-            embed.add_field(name="Sell price", value=f"**{data[0]["sell_price_min"]:,}**")
+            embed.add_field(name="🌆 Start city", value=f"**{view.cities[0].title()}**")
+            embed.add_field(name="💲 Buy price", value=f"**{data[1]["sell_price_min"]:,}**")
+            embed.add_field(name="💸 Sell price", value=f"**{data[0]["sell_price_min"]:,}**")
             embed.set_author(name=f"Requested by {interaction.user.name}", icon_url=interaction.user.avatar)
             embed.set_thumbnail(url=SandboxInteractiveRenderer.fetch_item(ITEM_NAMES[item_name], quality=quality))
             embed.set_footer(text=f"The data is provided by the Albion Online Data Project | {inttoemoji_server(server)} server.")

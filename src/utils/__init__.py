@@ -25,7 +25,7 @@ def strtoquality_int(quality: str) -> int:
             return 1
 
 
-def api_name_to_reable_name(item_names: dict[str, str], name: str) -> str:
+def api_name_to_readable_name(item_names: dict[str, str], name: str) -> str:
     return list(item_names.keys())[list(item_names.values()).index(name)]
 
 

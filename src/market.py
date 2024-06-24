@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 from math import floor
 from typing import Any, List, Optional, Tuple, cast
-from src import CRAFTING_BONUSES
+from src import CRAFTING_BONUSES, ITEM_NAMES
 from src.api import ItemManager, remove_suffix
 from src.client import DATABASE
+from src.utils import api_name_to_readable_name, format_name
 
 
 class Crafter:
@@ -32,14 +33,16 @@ class Crafter:
             "profit": profit,
             "fields": [
                 {
-                    "title": "Return rate",
+                    "title": "🔄 Return rate",
                     "value": f"{float(self._bonus)}%"
                 },
                 {
-                    "title": "Items crafted",
+                    "title": "📦 Items crafted",
                     "value": items_crafted
-                }
-            ]
+                },
+            ],
+            "unused_materials": [ {"name": f"Remainder of {format_name(api_name_to_readable_name(ITEM_NAMES, name))}",
+                                   "value": value} for name, value in unused_material.items() ]
         }
 
 

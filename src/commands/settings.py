@@ -22,24 +22,24 @@ class Settings(Cog):
         SERVERS.update_config(cast(Guild, interaction.guild), fetch_server)
         match fetch_server:
             case 1:
-                await interaction.response.send_message("Server successfully changed to :flag_us: America.")
+                await interaction.response.send_message("Server successfully changed to 🇺🇸 America.")
             case 2:
-                await interaction.response.send_message("Server successfully changed to :flag_eu: Europe.")
+                await interaction.response.send_message("Server successfully changed to 🇪🇺 Europe.")
             case 3:
-                await interaction.response.send_message("Server successfully changed to :flag_cn: Asia.")
+                await interaction.response.send_message("Server successfully changed to 🇨🇳 Asia.")
     
 
     @command(name="info", description="Provides basic information about the server.")
     @guild_only()
     async def info(self, interaction: Interaction) -> None:
         guild: Guild = cast(Guild, interaction.guild)
-        embed: Embed = Embed(title=f":book: Information about {guild.name}",
+        embed: Embed = Embed(title=f"📖 Information about {guild.name}",
                              color=Color.orange(),
                              description=f"There you have a configuration info about {guild.name}.")
         server = SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"]
-        embed.add_field(name="Albion Online server", value=f"{inttoemoji_server(server)} {inttostr_server(server).capitalize()}")
-        embed.add_field(name="Members of the server", value=guild.member_count)
-        embed.add_field(name="Server owner", value=f"<@{guild.owner_id}>")
+        embed.add_field(name="🌐 Albion Online server", value=f"{inttoemoji_server(server)} {inttostr_server(server).capitalize()}")
+        embed.add_field(name="👨 Members of the server", value=guild.member_count)
+        embed.add_field(name="👑 Server owner", value=f"<@{guild.owner_id}>")
         await interaction.response.send_message(embed=embed)
 
 
@@ -48,30 +48,26 @@ class Settings(Cog):
         embed = Embed(title=":wave: Hello!",
                       color=Color.teal(),
                       description="I'm Bridgewatcher, a Discord bot created by <@692305905123065918>.\n"
-                      "I can help you with :hammer_pick: crafting, :bricks: refining, :handshake: tradi"
-                      "ng, and :truck: transporting goods all around Albion on all the servers.\n\n"
+                      "I can help you with 🛠️ crafting, 🧱 refining, 🤝 trading, and"
+                      " 📦 transporting goods 🌐 all around Albion on all the servers.\n\n"
 
                       "**My commands**\n"
-                      "`/info`: get the configuration information\n"
-                      "`/server`: set the Albion Online server\n"
-                      "`/gold`: get price of gold\n"
-                      "`/premium`: get price of all types of premium status\n"
-                      "`/price`: search for any item price\n"
-                      "`/craft`: craft an item and get respective profit\n"
-                      "`/flip`: get profit of transporting an item from city to black market\n"
-                      "`/utc`: get UTC time.\n"
-                      "`/player`: get general information about a player\n"
-                      "`/deaths`: get general information about the player's deaths\n"
-                      "`/kills`: get general information about the player's kills\n"
-                      "`/guild`: get general information about a guild\n"
-                      "`/members`: get members of the guild\n\n"
+                      "🤖 `/info`: get the configuration information\n"
+                      "🌐 `/server`: set the Albion Online server\n"
+                      "🪙 `/gold`: get price of gold\n"
+                      "👑 `/premium`: get price of all types of premium status\n"
+                      "🏷️ `/price`: search for any item price\n"
+                      "🛠️ `/craft`: craft an item and get respective profit\n"
+                      "💹 `/flip`: get profit of transporting an item from city to black market\n"
+                      "⏰ `/utc`: get UTC time.\n"
+                      "👨 `/player`: get general information about a player\n"
+                      "💀 `/deaths`: get general information about the player's deaths\n"
+                      "🗡️ `/kills`: get general information about the player's kills\n"
+                      "🛡️ `/guild`: get general information about a guild\n"
+                      "👨 `/members`: get members of the guild\n\n"
     
-                      "**Don't know how to use commands?**\n"
-                      "You can find the full list of command by following [this link](https://github.com/d"
-                      "etectivekaktus/bridgewatcher).\n\n"
-
                       "**Found a bug?**\n"
-                      "If the bot is behaving in unexpected way :lady_beetle:, please [report it to the developer]"
+                      "If the bot is behaving in unexpected way 🐞, please [report it to the developer]"
                       "(https://github.com/detectivekaktus/bridgewatcher/issues/new).")
         embed.set_author(name="Made by DetectiveKaktus", url="https://github.com/detectivekaktus")
         await interaction.response.send_message(embed=embed)

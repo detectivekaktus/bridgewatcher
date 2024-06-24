@@ -7,7 +7,7 @@ from discord.ui import Modal, TextInput
 from src import ITEM_NAMES
 from src.api import ItemManager, remove_suffix
 from src.client import DATABASE
-from src.utils import overrides
+from src.utils import api_name_to_readable_name, overrides
 
 
 class ResourcesModal(Modal):
@@ -35,7 +35,7 @@ class ResourcesModal(Modal):
                     requirement["@uniquename"] = f"{requirement["@uniquename"]}_LEVEL{view.item_name[-1]}@{view.item_name[-1]}"
 
             self.view.crafting_requirements[requirement["@uniquename"]] = int(requirement["@count"])
-            txt_input = TextInput(label=list(ITEM_NAMES.keys())[list(ITEM_NAMES.values()).index(requirement["@uniquename"])], placeholder=choice(placeholders))
+            txt_input = TextInput(label=api_name_to_readable_name(ITEM_NAMES, requirement["@uniquename"]), placeholder=choice(placeholders))
             self.txt_inputs.append(txt_input)
             self.add_item(txt_input)
 

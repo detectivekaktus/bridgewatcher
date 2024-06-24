@@ -52,16 +52,13 @@ def main() -> None:
                     i += 1
                     if len(cliargs) - 1 != i:
                         crash("ERROR: Got too many arguments for the run subcommand.")
-                        exit(1)
 
                     if not DEBUG_TOKEN:
-                        print("ERROR: Your configuration is missing DEBUG_TOKEN environment variable.")
-                        exit(1)
+                        crash("ERROR: Your configuration is missing DEBUG_TOKEN environment variable.")
 
                     bot.run(cast(str, DEBUG_TOKEN))
                 else:
                     crash(f"ERROR: unexpected flag {cliargs[i + 1]} specified for the run subcommand.")
-                    exit(1)
         case "database":
             i += 1
             if len(cliargs) == i:
