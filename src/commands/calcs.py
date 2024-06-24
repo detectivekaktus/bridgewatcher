@@ -50,15 +50,6 @@ class Calcs(Cog):
             message = await interaction.original_response()
             await message.delete()
 
-            if len(view.resources) == 0:
-                await interaction.followup.send(embed=Embed(title="🔴 No resources specified!",
-                                                            color=Color.red(),
-                                                            description="You need to specify the resources you have"
-                                                            " to craft the item. Start a new conversation with the "
-                                                            "bot to craft something."),
-                                                ephemeral=True)
-                return
-
             server: int = SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"]
             fetcher: AlbionOnlineData = AlbionOnlineData(server)
             data: Optional[List[dict[str, Any]]] = fetcher.fetch_price(ITEM_NAMES[item_name], qualities=1)
@@ -86,7 +77,7 @@ class Calcs(Cog):
                     return
                 resource_prices[resource] = resource_data[0]["sell_price_min"]
 
-            crafter: Crafter = Crafter(resource_prices, view.resources, view.crafting_requirements, view.return_rate, has_premium)
+            crafter: Crafter = Crafter(resource_prices, view.resources if view.resources else view.crafting_requirements, view.crafting_requirements, view.return_rate, has_premium)
             result: dict[str, Any] = crafter.printable(data[CITIES.index(sell_city.lower())])
             embed: Embed = Embed(title=f"🛠️ Crafting {format_name(item_name)}",
                                  color=Color.magenta(),
