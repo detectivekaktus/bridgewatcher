@@ -1,18 +1,23 @@
 #!/usr/bin/env python3
 from math import floor
-from typing import Any, List, Optional, Tuple, cast
+from typing import Any, Final, List, Optional, Tuple, cast
 from src import CRAFTING_BONUSES, ITEM_NAMES
 from src.api import ItemManager, remove_suffix
 from src.client import DATABASE
 from src.utils import api_name_to_readable_name, format_name
 
 
+PREMIUM_TAX: Final[int] = 4
+NON_PREMIUM_TAX: Final[int] = 8
+
+
 class Crafter:
-    def __init__(self, resource_prices: dict[str, int], resources: dict[str, int], requirements: dict[str, int], bonus: float) -> None:
+    def __init__(self, resource_prices: dict[str, int], resources: dict[str, int], requirements: dict[str, int], bonus: float, has_premium: bool) -> None:
         self._resource_prices: dict[str, int] = resource_prices
         self._resources: dict[str, int] = resources
         self._requirements: dict[str, int] = requirements
         self._bonus = bonus
+        self._has_premium = has_premium
 
 
     def printable(self, item: dict[str, Any]) -> dict[str, Any]:
@@ -24,10 +29,12 @@ class Crafter:
         items_crafted: int = self._get_items_crafted(total_resources)
         unused_material: dict[str, int] = self._get_unused_material(total_resources, items_crafted)
         unused_resources_price = self._get_unused_resources_price(unused_material)
-        profit: int = self._get_profit(item, raw_cost, items_crafted, unused_resources_price)
+        tax: int = int((item["sell_price_min"] * items_crafted) * (PREMIUM_TAX if self._has_premium else NON_PREMIUM_TAX) / 100)
+        profit: int = self._get_profit(item, raw_cost, items_crafted, unused_resources_price, tax)
 
         return {
             "sell_price": (item["sell_price_min"] * items_crafted),
+            "tax": tax,
             "raw_cost": raw_cost,
             "unused_resources_price": unused_resources_price,
             "profit": profit,
@@ -96,8 +103,8 @@ class Crafter:
 
         return res
 
-    def _get_profit(self, item: dict[str, Any], raw_cost: int, items_crafted: int, unused_resources_price: int) -> int:
-        return (item["sell_price_min"] * items_crafted) - raw_cost + unused_resources_price
+    def _get_profit(self, item: dict[str, Any], raw_cost: int, items_crafted: int, unused_resources_price: int, tax: int) -> int:
+        return (item["sell_price_min"] * items_crafted) - tax - raw_cost + unused_resources_price
 
 
 def find_crafting_bonus_city(item_name: str) -> Optional[str]:

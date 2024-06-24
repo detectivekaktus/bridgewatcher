@@ -7,7 +7,7 @@ from src import CITIES, DEFAULT_RATE, BONUS_RATE, ITEM_NAMES
 from src.api import AlbionOnlineData, ItemManager, SandboxInteractiveRenderer
 from src.client import SERVERS
 from src.components.ui import CraftingView, FlipView
-from src.market import Crafter, find_crafting_bonus_city, find_least_expensive_city, find_most_expensive_city
+from src.market import NON_PREMIUM_TAX, PREMIUM_TAX, Crafter, find_crafting_bonus_city, find_least_expensive_city, find_most_expensive_city
 from src.utils import format_name, strtoquality_int, inttoemoji_server
 from src.utils.embeds import NameErrorEmbed, OutdatedDataErrorEmbed, ServerErrorEmbed, TimedOutErrorEmbed
 
@@ -21,7 +21,7 @@ class Calcs(Cog):
     @command(name="craft", description="Calculates crafting profit from crafting an item")
     @describe(item_name="The Albion Online item name.")
     @guild_only()
-    async def craft(self, interaction: Interaction, item_name: str) -> None:
+    async def craft(self, interaction: Interaction, item_name: str, has_premium: bool) -> None:
         item_name = item_name.lower()
 
         if item_name not in ITEM_NAMES.keys():
@@ -86,7 +86,7 @@ class Calcs(Cog):
                     return
                 resource_prices[resource] = resource_data[0]["sell_price_min"]
 
-            crafter: Crafter = Crafter(resource_prices, view.resources, view.crafting_requirements, view.return_rate)
+            crafter: Crafter = Crafter(resource_prices, view.resources, view.crafting_requirements, view.return_rate, has_premium)
             result: dict[str, Any] = crafter.printable(data[CITIES.index(sell_city.lower())])
             embed: Embed = Embed(title=f"🛠️ Crafting {format_name(item_name)}",
                                  color=Color.magenta(),
@@ -95,7 +95,8 @@ class Calcs(Cog):
                                  f" in **{sell_city.title()}**.\n\n"
 
                                  f"Your profit is expected to be **{result["profit"]:,} silver**, given by:\n"
-                                 f"{result["sell_price"]:,} sell price\n"
+                                 f"+{result["sell_price"]:,} sell price\n"
+                                 f"-{result["tax"]:,} taxes\n"
                                  f"-{result["raw_cost"]:,} resource cost\n"
                                  f"+{result["unused_resources_price"]:,} unused resources")
             embed.add_field(name="🏭 Craft city", value=f"**{craft_city.title()}**")
@@ -117,7 +118,7 @@ class Calcs(Cog):
     @command(name="flip", description="Calculates the profit of transportation of one item from city you select to the black market.")
     @describe(item_name="The Albion Online item name.")
     @guild_only()
-    async def flip(self, interaction: Interaction, item_name: str) -> None:
+    async def flip(self, interaction: Interaction, item_name: str, has_premium: bool) -> None:
         item_name = item_name.lower()
 
         if item_name not in ITEM_NAMES.keys():
@@ -160,16 +161,18 @@ class Calcs(Cog):
             if not data[0]["sell_price_min"] or not data[1]["sell_price_min"]:
                 await interaction.followup.send(embed=OutdatedDataErrorEmbed(), ephemeral=True)
                 return
+            tax: int = int(data[0]["sell_price_min"] * (PREMIUM_TAX if has_premium else NON_PREMIUM_TAX) / 100)
                 
             embed: Embed = Embed(title=f"📦 Flipping the market for {format_name(item_name)}",
                                  color=Color.orange(),
                                  description=f"The expected profit of transporting {format_name(item_name)} of **{view.quality.lower()}"
                                  f" quality** from **{view.cities[0].title()}** to the black market is:\n"
-                                 f"* **{(data[0]["sell_price_min"] - data[1]["sell_price_min"]):,} silver**\n"
-                                 f"* **{round((data[0]["sell_price_min"] / data[1]["sell_price_min"] * 100) - 100, 2):,}%**")
+                                 f"* **{(data[0]["sell_price_min"] - tax - data[1]["sell_price_min"]):,} silver**\n"
+                                 f"* **{round(((data[0]["sell_price_min"] - tax) / data[1]["sell_price_min"] * 100) - 100, 2):,}%**")
             embed.add_field(name="🌆 Start city", value=f"**{view.cities[0].title()}**")
             embed.add_field(name="💲 Buy price", value=f"**{data[1]["sell_price_min"]:,}**")
             embed.add_field(name="💸 Sell price", value=f"**{data[0]["sell_price_min"]:,}**")
+            embed.add_field(name="💲 Tax", value=f"**{tax:,}**")
             embed.set_author(name=f"Requested by {interaction.user.name}", icon_url=interaction.user.avatar)
             embed.set_thumbnail(url=SandboxInteractiveRenderer.fetch_item(ITEM_NAMES[item_name], quality=quality))
             embed.set_footer(text=f"The data is provided by the Albion Online Data Project | {inttoemoji_server(server)} server.")
