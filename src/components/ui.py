@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
+from json import loads
 from typing import Any, List, Optional
 from discord import ButtonStyle, Interaction, SelectOption
 from discord.ui import Button, Select, View, button
 from src import CITIES, DEFAULT_RATE, QUALITIES
+from src.api import ItemManager
+from src.client import DATABASE
 from src.components.modals import ReturnModal, ResourcesModal
 from src.utils import overrides
 
@@ -87,8 +90,24 @@ class CraftingView(View):
         self.craft_city: List[str] = []
         self.sell_city: List[str] = []
         self.resources: dict[str, int] = {}
-        self.crafting_requirements: dict[str, int] = {}
         self.return_rate: float = DEFAULT_RATE
+
+        with DATABASE as db:
+            db.execute("SELECT * FROM items WHERE name = ?", (item_name, ))
+            item: List[dict[str, Any]] | dict[str, Any] = loads(db.fetchone()[4])
+
+        if isinstance(item, list):
+            item = item[0]
+
+        requirements: List[dict[str, Any]] = [item["craftresource"]] if isinstance(item["craftresource"], dict) else item["craftresource"]
+        self.crafting_requirements: dict[str, Any] = {}
+        for requirement in requirements:
+            if self.is_enchanted and int(requirement["@uniquename"][1]) > 3:
+                if not ItemManager.is_resource(requirement["@uniquename"]) and not ItemManager.is_artefact(requirement["@uniquename"]):
+                    requirement["@uniquename"] = f"{requirement["@uniquename"]}{item_name[-2:]}" 
+                elif ItemManager.is_resource(requirement["@uniquename"]):
+                    requirement["@uniquename"] = f"{requirement["@uniquename"]}_LEVEL{item_name[-1]}@{item_name[-1]}"
+            self.crafting_requirements[requirement["@uniquename"]] = int(requirement["@count"])
 
         self.craft_city_select = CitiesSelect(self.craft_city,
                                               options=[SelectOption(label=label.capitalize()) for label in CITIES if label != "black market"],
