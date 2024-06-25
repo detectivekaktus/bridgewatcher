@@ -71,9 +71,12 @@ class Calcs(Cog):
 
             resource_prices: dict[str, int] = {}
             for resource in view.crafting_requirements.keys():
-                resource_data = fetcher.fetch_price(resource, qualities=1, cities=[craft_city.lower()])
+                resource_data: List[dict[str, Any]] | None = fetcher.fetch_price(resource, qualities=1, cities=[craft_city.lower()])
                 if not resource_data:
                     await interaction.followup.send(embed=ServerErrorEmbed(), ephemeral=True)
+                    return
+                elif resource_data[0]["sell_price_min"] == 0:
+                    await interaction.followup.send(embed=OutdatedDataErrorEmbed(), ephemeral=True)
                     return
                 resource_prices[resource] = resource_data[0]["sell_price_min"]
 
