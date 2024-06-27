@@ -28,7 +28,7 @@ class Info(Cog):
 
         server: int = SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"]
         fetcher: AlbionOnlineData = AlbionOnlineData(server)
-        data: Optional[List[dict[str, Any]]] = fetcher.fetch_gold(count + 1)
+        data: Optional[List[dict[str, Any]]] = await fetcher.fetch_gold(count + 1)
         if not data:
             await interaction.response.send_message(embed=ServerErrorEmbed(), ephemeral=True)
             return
@@ -57,7 +57,7 @@ class Info(Cog):
     async def premium(self, interaction: Interaction) -> None:
         server: int = SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"]
         fetcher: AlbionOnlineData = AlbionOnlineData(server)
-        data: Optional[List[dict[str, Any]]] = fetcher.fetch_gold(1)
+        data: Optional[List[dict[str, Any]]] = await fetcher.fetch_gold(1)
         
         if not data:
             await interaction.response.send_message(embed=ServerErrorEmbed(), ephemeral=True)
@@ -102,7 +102,7 @@ class Info(Cog):
             quality: int = strtoquality_int(view.quality)
             server: int = SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"]
             fetcher: AlbionOnlineData = AlbionOnlineData(server)
-            data: Optional[List[dict[str, Any]]] = fetcher.fetch_price(ITEM_NAMES[item_name], quality, cast(List[str], view.cities))
+            data: Optional[List[dict[str, Any]]] = await fetcher.fetch_price(ITEM_NAMES[item_name], quality, cast(List[str], view.cities))
             if not data:
                 await interaction.followup.send(embed=ServerErrorEmbed(), ephemeral=True)
                 return

@@ -5,7 +5,7 @@ from discord.app_commands import command, describe, guild_only
 from discord.ext.commands import Bot, Cog
 from src import CITIES, DEFAULT_RATE, BONUS_RATE, ITEM_NAMES
 from src.api import AlbionOnlineData, ItemManager, SandboxInteractiveRenderer
-from src.client import SERVERS
+from src.client import DATABASE, SERVERS
 from src.components.ui import CraftingView, FlipView
 from src.market import NON_PREMIUM_TAX, PREMIUM_TAX, Crafter, find_crafting_bonus_city, find_least_expensive_city, find_most_expensive_city
 from src.utils import format_name, strtoquality_int, inttoemoji_server
@@ -28,7 +28,7 @@ class Calcs(Cog):
             await interaction.response.send_message(embed=NameErrorEmbed(item_name), ephemeral=True)
             return
 
-        if not ItemManager.is_craftable(ITEM_NAMES[item_name]):
+        if not ItemManager.is_craftable(DATABASE, ITEM_NAMES[item_name]):
             await interaction.response.send_message(embed=Embed(title=f"🔴 {format_name(item_name)} is not craftable!",
                                                                 color=Color.red(),
                                                                 description="You can't craft uncraftable item!"),
@@ -52,7 +52,7 @@ class Calcs(Cog):
 
             server: int = SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"]
             fetcher: AlbionOnlineData = AlbionOnlineData(server)
-            data: Optional[List[dict[str, Any]]] = fetcher.fetch_price(ITEM_NAMES[item_name], qualities=1)
+            data: Optional[List[dict[str, Any]]] = await fetcher.fetch_price(ITEM_NAMES[item_name], qualities=1)
             if not data:
                 await interaction.followup.send(embed=ServerErrorEmbed(), ephemeral=True)
                 return
@@ -67,11 +67,11 @@ class Calcs(Cog):
                 else:
                     craft_city = find_least_expensive_city(data)
             if not sell_city:
-                sell_city = find_most_expensive_city(data, include_black_market=True if not ItemManager.is_resource(ITEM_NAMES[item_name]) else False)
+                sell_city = find_most_expensive_city(data, include_black_market=True if not ItemManager.is_resource(DATABASE, ITEM_NAMES[item_name]) else False)
 
             resource_prices: dict[str, int] = {}
             for resource in view.crafting_requirements.keys():
-                resource_data: List[dict[str, Any]] | None = fetcher.fetch_price(resource, qualities=1, cities=[craft_city.lower()])
+                resource_data: List[dict[str, Any]] | None = await fetcher.fetch_price(resource, qualities=1, cities=[craft_city.lower()])
                 if not resource_data:
                     await interaction.followup.send(embed=ServerErrorEmbed(), ephemeral=True)
                     return
@@ -119,7 +119,7 @@ class Calcs(Cog):
             await interaction.response.send_message(embed=NameErrorEmbed(item_name), ephemeral=True)
             return
 
-        if not ItemManager.is_sellable_on_black_market(ITEM_NAMES[item_name]):
+        if not ItemManager.is_sellable_on_black_market(DATABASE, ITEM_NAMES[item_name]):
             await interaction.response.send_message(embed=Embed(title=f"🔴 {format_name(item_name)} is not sellable on the black market!",
                                                                 color=Color.red(),
                                                                 description="You can't sell what is unsellable on the black market."),
@@ -147,7 +147,7 @@ class Calcs(Cog):
 
             server: int = SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"]
             fetcher: AlbionOnlineData = AlbionOnlineData(server)
-            data: Optional[List[dict[str, Any]]] = fetcher.fetch_price(ITEM_NAMES[item_name], quality, cities)
+            data: Optional[List[dict[str, Any]]] = await fetcher.fetch_price(ITEM_NAMES[item_name], quality, cities)
             if not data:
                 await interaction.followup.send(embed=ServerErrorEmbed(), ephemeral=True)
                 return

@@ -65,7 +65,7 @@ class Crafter:
         res: dict[str, int] = {}
 
         for key, value in self._resources.items():
-            if not ItemManager.is_returnable(key):
+            if not ItemManager.is_returnable(DATABASE, key):
                 res[key] = 0
                 continue
 
@@ -108,7 +108,7 @@ class Crafter:
 
 
 def find_crafting_bonus_city(item_name: str) -> Optional[str]:
-    item_name = remove_suffix(item_name, ItemManager.is_enchanted(item_name))
+    item_name = remove_suffix(DATABASE, item_name, ItemManager.is_enchanted(item_name))
 
     with DATABASE as db:
         db.execute("SELECT * FROM items WHERE name = ?", (item_name, ))

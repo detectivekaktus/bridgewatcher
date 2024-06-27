@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 from abc import ABC
+from asyncio import Lock, sleep
 from datetime import datetime
 from typing import Any, Final, List, Optional, Tuple
 from requests import ReadTimeout, Response, get
 from src import ENCHANTMENTS, NON_CRAFTABLE, NON_SELLABLE_ON_BLACK_MARKET
-from src.client import DATABASE
+from src.db import Database
 
 
 AOD_SERVER_URLS: Final = {
@@ -21,6 +22,48 @@ SBI_SERVER_URLS: Final = {
 }
 
 
+class AlbionOnlineDataManager:
+    def __init__(self, database: Database, update_interval_sec: int = 900) -> None:
+        self.__database = database
+        self.__update_interval_sec = update_interval_sec
+        self.__cache: list[dict[str, list[dict[str, Any]]]] = []
+        self.__cached_item_names: list[str] = self.__fill_cached_item_names()
+        self.__lock = Lock()
+
+
+    async def lifecycle(self) -> None:
+        while True:
+            await self.__update_cache()
+            print(self.__cache)
+            await sleep(self.__update_interval_sec)
+
+
+    async def __update_cache(self) -> None:
+        pass
+
+
+    async def get(self, item_name: str, server: int, quality: int = 1, cities: list[str] = []) -> Optional[list[dict[str, Any]]]:
+        async with self.__lock:
+            if not self.__is_cached(item_name) or quality != 1:
+                fetcher: AlbionOnlineData = AlbionOnlineData(server)
+                return await fetcher.fetch_price(item_name, quality, cities)
+
+            return self.__cache[server][item_name.lower()]
+
+
+    def __fill_cached_item_names(self) -> list[str]:
+        with self.__database as db:
+            db.execute("SELECT * FROM items WHERE shop_category IN (?, ?, ?, ?, ?, ?)",
+                       ("armor", "mainhand", "offhand", "mounts", "artefacts", "resources"))
+            items: list[tuple] = db.fetchall()
+
+        return [item[1].lower() for item in items]
+
+
+    def __is_cached(self, item_name: str) -> bool:
+        return item_name.lower() in self.__cached_item_names
+
+
 class Fetcher(ABC):
     def __init__(self, server: int, timeout: int = 5) -> None:
         self._server = server
@@ -33,7 +76,7 @@ class AlbionOnlineData(Fetcher):
         self._server_prefix = AOD_SERVER_URLS[server]
 
 
-    def fetch_gold(self, count: int = 3) -> Optional[List[dict[str, Any]]]:
+    async def fetch_gold(self, count: int = 3) -> Optional[List[dict[str, Any]]]:
         try:
             response: Response = get(f"https://{self._server_prefix}.albion-online-data.com/api/v2/stats/gold?count={count}",
                                      timeout=self._timeout)
@@ -44,7 +87,7 @@ class AlbionOnlineData(Fetcher):
         except ReadTimeout:
             return None
 
-    def fetch_price(self, item_name: str, qualities: int = 1, cities: List[str] = []) -> Optional[List[dict[str, Any]]]:
+    async def fetch_price(self, item_name: str, qualities: int = 1, cities: List[str] = []) -> Optional[List[dict[str, Any]]]:
         try:
             response: Response = get(f"https://{self._server_prefix}.albion-online-data.com/api/v2/stats/prices/{item_name}.json?qualities={qualities}&locations={",".join(cities)}" if cities else f"https://{self._server_prefix}.albion-online-data.com/api/v2/stats/prices/{item_name}.json?qualities={qualities}",
                                          timeout=self._timeout)
@@ -154,18 +197,18 @@ class SandboxInteractiveInfo(Fetcher):
 
 class ItemManager:
     @staticmethod
-    def get_item(item_name: str) -> Optional[Tuple]:
-        with DATABASE as db:
+    def get_item(database: Database, item_name: str) -> Optional[Tuple]:
+        with database as db:
             db.execute("SELECT * FROM items WHERE name = ?", (item_name, ))
             item: Optional[Tuple] = db.fetchone()
         return item
 
     @staticmethod
-    def is_craftable(item_name: str) -> bool:
+    def is_craftable(database: Database, item_name: str) -> bool:
         if ItemManager.is_enchanted(item_name):
             item_name = item_name[:-2]
 
-        item: Optional[Tuple] = ItemManager.get_item(item_name)
+        item: Optional[Tuple] = ItemManager.get_item(database, item_name)
 
         if not item:
             return False
@@ -184,11 +227,11 @@ class ItemManager:
         return item_name[-2:] in ENCHANTMENTS
 
     @staticmethod
-    def is_resource(item_name: str) -> bool:
+    def is_resource(database: Database, item_name: str) -> bool:
         if ItemManager.is_enchanted(item_name):
             item_name = item_name[:-2]
 
-        item: Optional[Tuple] = ItemManager.get_item(item_name)
+        item: Optional[Tuple] = ItemManager.get_item(database, item_name)
 
         if not item:
             return False
@@ -196,11 +239,11 @@ class ItemManager:
         return "resources" in item
 
     @staticmethod
-    def is_artefact(item_name: str) -> bool:
+    def is_artefact(database: Database, item_name: str) -> bool:
         if ItemManager.is_enchanted(item_name):
             return False
 
-        item: Optional[Tuple] = ItemManager.get_item(item_name)
+        item: Optional[Tuple] = ItemManager.get_item(database, item_name)
 
         if not item:
             return False
@@ -208,11 +251,11 @@ class ItemManager:
         return "artefacts" in item
 
     @staticmethod
-    def is_fractional(item_name: str) -> bool:
+    def is_fractional(database: Database, item_name: str) -> bool:
         if ItemManager.is_enchanted(item_name):
             return False
 
-        item: Optional[Tuple] = ItemManager.get_item(item_name)
+        item: Optional[Tuple] = ItemManager.get_item(database, item_name)
 
         if not item:
             return False
@@ -220,8 +263,8 @@ class ItemManager:
         return "cityresources" in item
 
     @staticmethod
-    def is_consumable(item_name: str) -> bool:
-        item: Optional[Tuple] = ItemManager.get_item(item_name)
+    def is_consumable(database: Database, item_name: str) -> bool:
+        item: Optional[Tuple] = ItemManager.get_item(database, item_name)
 
         if not item:
             return False
@@ -229,12 +272,12 @@ class ItemManager:
         return "consumables" in item
 
     @staticmethod
-    def is_returnable(item_name: str) -> bool:
-        return not ItemManager.is_artefact(item_name) and not ItemManager.is_fractional(item_name)
+    def is_returnable(database: Database, item_name: str) -> bool:
+        return not ItemManager.is_artefact(database, item_name) and not ItemManager.is_fractional(database, item_name)
 
     @staticmethod
-    def is_sellable_on_black_market(item_name: str) -> bool:
-        item: Optional[Tuple] = ItemManager.get_item(item_name)
+    def is_sellable_on_black_market(database: Database, item_name: str) -> bool:
+        item: Optional[Tuple] = ItemManager.get_item(database, item_name)
 
         if not item:
             return False
@@ -268,8 +311,8 @@ def convert_api_timestamp(date: str) -> str:
     return datetime.strptime(date, "%Y-%m-%dT%H:%M:%S").strftime("%d %B %Y, %H:%M:%S UTC")
 
 
-def remove_suffix(item_name: str, is_enchanted: bool) -> str:
+def remove_suffix(database: Database, item_name: str, is_enchanted: bool) -> str:
     if is_enchanted:
-        return item_name[:-9] if ItemManager.is_resource(item_name) else item_name[:-2]
+        return item_name[:-9] if ItemManager.is_resource(database, item_name) else item_name[:-2]
     return item_name
 
