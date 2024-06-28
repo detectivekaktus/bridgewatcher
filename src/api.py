@@ -3,7 +3,7 @@ from abc import ABC
 from asyncio import Lock, sleep
 from datetime import datetime
 from typing import Any, Final, List, Optional, Tuple
-from requests import ReadTimeout, Response, get
+from requests import ConnectTimeout, ReadTimeout, Response, get
 from src.constants import CITIES, ENCHANTMENTS, NON_CRAFTABLE, NON_SELLABLE_ON_BLACK_MARKET
 from src.db import Database
 
@@ -103,7 +103,7 @@ class AlbionOnlineData(Fetcher):
                 return None
 
             return response.json()
-        except ReadTimeout:
+        except (ReadTimeout, ConnectTimeout):
             return None
 
     async def fetch_price(self, item_name: str, qualities: int = 1, cities: List[str] = []) -> Optional[List[dict[str, Any]]]:
@@ -114,7 +114,7 @@ class AlbionOnlineData(Fetcher):
                 return None
 
             return response.json()
-        except ReadTimeout:
+        except (ReadTimeout, ConnectTimeout):
             return None
 
 
