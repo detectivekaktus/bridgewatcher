@@ -4,7 +4,7 @@ from asyncio import Lock, sleep
 from datetime import datetime
 from typing import Any, Final, List, Optional, Tuple
 from requests import ReadTimeout, Response, get
-from src import ENCHANTMENTS, NON_CRAFTABLE, NON_SELLABLE_ON_BLACK_MARKET
+from src import CITIES, ENCHANTMENTS, NON_CRAFTABLE, NON_SELLABLE_ON_BLACK_MARKET
 from src.db import Database
 
 
@@ -26,7 +26,7 @@ class AlbionOnlineDataManager:
     def __init__(self, database: Database, update_interval_sec: int = 900) -> None:
         self.__database = database
         self.__update_interval_sec = update_interval_sec
-        self.__cache: list[dict[str, list[dict[str, Any]]]] = []
+        self.__cache: list[dict[str, list[dict[str, Any]]]] = [{}, {}, {}]
         self.__cached_item_names: list[str] = self.__fill_cached_item_names()
         self.__lock = Lock()
 
@@ -34,30 +34,50 @@ class AlbionOnlineDataManager:
     async def lifecycle(self) -> None:
         while True:
             await self.__update_cache()
-            print(self.__cache)
             await sleep(self.__update_interval_sec)
 
 
     async def __update_cache(self) -> None:
-        pass
+        async with self.__lock:
+            for server in range(1, 4):
+                fetcher: AlbionOnlineData = AlbionOnlineData(server)
+                chunk_size: int = 64
+                for i in range(0, len(self.__cached_item_names), chunk_size):
+                    names: list[str] = self.__cached_item_names[i:i + chunk_size]
+                    items: Optional[list[dict[str, Any]]] = await fetcher.fetch_price(",".join(names))
+                    if not items:
+                        continue
+
+                    for name in names:
+                        for item in range(0, len(items), len(CITIES)):
+                            print(items[item:item + len(CITIES)])
+                            self.__cache[server - 1][name] = items[item:item + len(CITIES)]
 
 
-    async def get(self, item_name: str, server: int, quality: int = 1, cities: list[str] = []) -> Optional[list[dict[str, Any]]]:
+    async def get(self, item_name: str, server: int, quality: int = 1) -> Optional[list[dict[str, Any]]]:
         async with self.__lock:
             if not self.__is_cached(item_name) or quality != 1:
                 fetcher: AlbionOnlineData = AlbionOnlineData(server)
-                return await fetcher.fetch_price(item_name, quality, cities)
+                return await fetcher.fetch_price(item_name, quality)
 
-            return self.__cache[server][item_name.lower()]
+            return self.__cache[server].get(item_name.lower(), None)
 
 
     def __fill_cached_item_names(self) -> list[str]:
+        names: list[str] = []
+
         with self.__database as db:
             db.execute("SELECT * FROM items WHERE shop_category IN (?, ?, ?, ?, ?, ?)",
                        ("armor", "mainhand", "offhand", "mounts", "artefacts", "resources"))
             items: list[tuple] = db.fetchall()
 
-        return [item[1].lower() for item in items]
+        for item in items:
+            if ItemManager.is_resource(self.__database, item[1]) and item[1][-1] in ("1", "2", "3", "4"):
+                names.append(f"{item[1]}@{item[1][-1]}")
+            else:
+                names.append(item[1])
+
+        return names
 
 
     def __is_cached(self, item_name: str) -> bool:
