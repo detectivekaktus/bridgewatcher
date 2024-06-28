@@ -11,6 +11,7 @@ from src.components.ui import CraftingView, FlipView
 from src.market import NON_PREMIUM_TAX, PREMIUM_TAX, Crafter, find_crafting_bonus_city, find_least_expensive_city, find_most_expensive_city
 from src.utils import format_name, strcityto_int, strtoquality_int, inttoemoji_server
 from src.utils.embeds import NameErrorEmbed, OutdatedDataErrorEmbed, ServerErrorEmbed, TimedOutErrorEmbed
+from src.utils.logging import LOGGER
 
 
 class Calcs(Cog):
@@ -64,6 +65,7 @@ class Calcs(Cog):
                     if view.return_rate == DEFAULT_RATE:
                         view.return_rate = BONUS_RATE
                 else:
+                    LOGGER.warn(f"Couldn't find crafting bonus city for {ITEM_NAMES[item_name]}.")
                     craft_city = find_least_expensive_city(data)
             if not sell_city:
                 sell_city = find_most_expensive_city(data, include_black_market=True if not ItemManager.is_resource(DATABASE, ITEM_NAMES[item_name]) else False)

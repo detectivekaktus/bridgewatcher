@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-from sys import stderr
 from typing import Any, Final
 from discord.ext.commands import BadArgument, Bot, Cog, CommandNotFound, Context, DisabledCommand, NoPrivateMessage
+from src.utils.logging import LOGGER
 
 
 IGNORED: Final[tuple[Any]] = (CommandNotFound, )
@@ -28,7 +28,7 @@ class CommandErrorHandler(Cog):
         elif isinstance(error, BadArgument):
             await context.send(f"You've entered a wrong argument to the {context.command} command.")
         else:
-            print(f"Encountered unexpected exception: {error} in command {context.command}.", file=stderr)
+            LOGGER.error(f"Encountered unhandled exception in CommandErrorHandler: {error}.")
 
 
 async def setup(bot: Bot) -> None:

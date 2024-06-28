@@ -6,6 +6,7 @@ from discord.ui import Button, View, button
 from src import ITEM_NAMES
 from src.client import SERVERS
 from src.utils import api_name_to_readable_name, format_name, inttoemoji_server, overrides
+from src.utils.logging import LOGGER
 
 
 class Card(ABC):
@@ -63,6 +64,7 @@ class PlayerCard(View, Card):
             if (partecipants := len(self._data[self._current]["Participants"])) != 1:
                 embed.add_field(name="🏘️ Killed in group of", value=f"**{partecipants} members**")
         except Exception:
+            LOGGER.error("Failed to load the log of kill/deaths. Probaly killer or victim haven't had a weapon equipped.")
             await self._interaction.followup.send("Failed to load the log. You won't see the data related to it, but you can continue exploring other results.", ephemeral=True)
             return
 

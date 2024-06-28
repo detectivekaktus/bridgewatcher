@@ -24,3 +24,6 @@ def get_logger() -> BotLogger:
     if not path.exists("logs/"):
         mkdir("logs/")
     return BotLogger("bridgewatcher", f"logs/{datetime.now().strftime("%d.%m.%Y")}")
+
+
+LOGGER: BotLogger = get_logger()

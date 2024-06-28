@@ -8,7 +8,7 @@ from discord.ext.commands import Bot
 from src.api import AlbionOnlineDataManager
 from src.config import Servers
 from src.db import Database
-from src.utils.logging import BotLogger, get_logger
+from src.utils.logging import LOGGER
 
 
 INTENTS: Final[Intents] = Intents.default()
@@ -24,7 +24,6 @@ bot.remove_command("help")
 DATABASE: Final[Database] = Database("res/items.db")
 SERVERS: Final[Servers] = Servers("servers/servers.db")
 MANAGER: Final[AlbionOnlineDataManager] = AlbionOnlineDataManager(DATABASE)
-LOGGER: Final[BotLogger] = get_logger()
 
 
 async def load_cogs():
@@ -36,15 +35,18 @@ async def load_cogs():
 @bot.event
 async def on_ready() -> None:
     await load_cogs()
+    LOGGER.info("Successfully loaded modules from src.commands.")
+
     synched = await bot.tree.sync()
+    LOGGER.info(f"Successfully syncronized {synched} commands globally.")
 
     create_task(MANAGER.lifecycle())
+    LOGGER.info("Created lifecycle loop for MANAGER to store cache.")
 
-    print(f"Successfully logged as {bot.user} on {datetime.now().strftime("%d.%m.%Y %I:%M:%S %p")}.")
-    print(f"Successfully synched {len(synched)} commands globally.")
-    print(f"Running on {len(bot.guilds)} servers.")
+    LOGGER.info("Bot instance is ready to handle requests.")
 
 
 @bot.event
 async def on_guild_join(guild: Guild) -> None:
+    LOGGER.info(f"Joined guild {guild.name}.")
     SERVERS.create_config(guild)

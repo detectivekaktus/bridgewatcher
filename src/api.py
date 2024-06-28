@@ -2,10 +2,13 @@
 from abc import ABC
 from asyncio import Lock, sleep
 from datetime import datetime
+from time import perf_counter
 from typing import Any, Final, Optional
 from requests import ConnectTimeout, ReadTimeout, Response, get
 from src.constants import CITIES, ENCHANTMENTS, NON_CRAFTABLE, NON_SELLABLE_ON_BLACK_MARKET
 from src.db import Database
+from src.utils import inttostr_server
+from src.utils.logging import LOGGER
 
 
 AOD_SERVER_URLS: Final = {
@@ -38,6 +41,9 @@ class AlbionOnlineDataManager:
 
 
     async def __update_cache(self) -> None:
+        LOGGER.info("Cache update started.")
+        start = perf_counter()
+
         async with self.__lock:
             for server in range(1, 4):
                 fetcher: AlbionOnlineData = AlbionOnlineData(server)
@@ -46,11 +52,14 @@ class AlbionOnlineDataManager:
                     names: list[str] = self.__cached_item_names[i:i + chunk_size]
                     items: Optional[list[dict[str, Any]]] = await fetcher.fetch_price(",".join(names))
                     if not items:
+                        LOGGER.error(f"Couldn't cache {",".join(names)} on {inttostr_server(server)} server.")
                         continue
 
                     for name in names:
                         for item in range(0, len(items), len(CITIES)):
                             self.__cache[server - 1][name] = items[item:item + len(CITIES)]
+
+        LOGGER.info(f"Finished caching. Took: {perf_counter() - start} seconds.")
 
 
     async def get(self, item_name: str, server: int, quality: int = 1) -> Optional[list[dict[str, Any]]]:
@@ -100,10 +109,12 @@ class AlbionOnlineData(Fetcher):
             response: Response = get(f"https://{self._server_prefix}.albion-online-data.com/api/v2/stats/gold?count={count}",
                                      timeout=self._timeout)
             if not response.ok:
+                LOGGER.error(f"Got status code {response.status_code} during gold fetch on {inttostr_server(self._server)} server.")
                 return None
 
             return response.json()
         except (ReadTimeout, ConnectTimeout):
+            LOGGER.error(f"Couldn't read or connect to fetch gold price on {inttostr_server(self._server)} server.")
             return None
 
     async def fetch_price(self, item_name: str, qualities: int = 1, cities: list[str] = []) -> Optional[list[dict[str, Any]]]:
@@ -111,10 +122,12 @@ class AlbionOnlineData(Fetcher):
             response: Response = get(f"https://{self._server_prefix}.albion-online-data.com/api/v2/stats/prices/{item_name}.json?qualities={qualities}&locations={",".join(cities)}" if cities else f"https://{self._server_prefix}.albion-online-data.com/api/v2/stats/prices/{item_name}.json?qualities={qualities}",
                                          timeout=self._timeout)
             if not response.ok:
+                LOGGER.error(f"Got status code {response.status_code} during item price fetch on {inttostr_server(self._server)} server.")
                 return None
 
             return response.json()
         except (ReadTimeout, ConnectTimeout):
+            LOGGER.error(f"Couldn't read or connect to fetch item price on {inttostr_server(self._server)} server.")
             return None
 
 
@@ -128,6 +141,7 @@ class SandboxInteractiveInfo(Fetcher):
         try:
             response: Response = get(f"https://{self._server_prefix}.albiononline.com/api/gameinfo/search?q={name}")
             if not response.ok:
+                LOGGER.error(f"Got status code {response.status_code} during player `{name}` lookup on {inttostr_server(self._server)} server.")
                 return None
 
             json: dict[str, Any] = response.json()
@@ -135,7 +149,9 @@ class SandboxInteractiveInfo(Fetcher):
                 return None
 
             return json["players"][0]
-        except ReadTimeout:
+        except (ReadTimeout, ConnectTimeout) as e:
+            LOGGER.error(f"Couldn't read or connect to find player `{name}` on {inttostr_server(self._server)} server.")
+            LOGGER.error(e)
             return None
 
 
@@ -143,6 +159,7 @@ class SandboxInteractiveInfo(Fetcher):
         try:
             response: Response = get(f"https://{self._server_prefix}.albiononline.com/api/gameinfo/search?q={name}")
             if not response.ok:
+                LOGGER.error(f"Got status code {response.status_code} during guild `{name}` lookup on {inttostr_server(self._server)} server.")
                 return None
 
             json: dict[str, Any] = response.json()
@@ -150,7 +167,9 @@ class SandboxInteractiveInfo(Fetcher):
                 return None
 
             return json["guilds"][0]
-        except ReadTimeout:
+        except (ReadTimeout, ConnectTimeout) as e:
+            LOGGER.error(f"Couldn't read or connect to find guild `{name}` on {inttostr_server(self._server)} server.")
+            LOGGER.error(e)
             return None
 
 
@@ -159,11 +178,17 @@ class SandboxInteractiveInfo(Fetcher):
         if not player:
             return None
 
-        response: Response = get(f"https://{self._server_prefix}.albiononline.com/api/gameinfo/players/{player["Id"]}")
-        if not response.ok:
-            return None
+        try:
+            response: Response = get(f"https://{self._server_prefix}.albiononline.com/api/gameinfo/players/{player["Id"]}")
+            if not response.ok:
+                LOGGER.error(f"Got status code {response.status_code} during player `{name}` fetch on {inttostr_server(self._server)} server.")
+                return None
 
-        return response.json()
+            return response.json()
+        except (ReadTimeout, ConnectTimeout) as e:
+            LOGGER.error(f"Couldn't read or connect to get player `{name}` on {inttostr_server(self._server)} server.")
+            LOGGER.error(e)
+            return None
 
 
     def get_deaths(self, name: str) -> Optional[list[dict[str, Any]]]:
@@ -171,11 +196,17 @@ class SandboxInteractiveInfo(Fetcher):
         if not player:
             return None
 
-        response: Response = get(f"https://{self._server_prefix}.albiononline.com/api/gameinfo/players/{player["Id"]}/deaths")
-        if not response.ok:
-            return None
+        try:
+            response: Response = get(f"https://{self._server_prefix}.albiononline.com/api/gameinfo/players/{player["Id"]}/deaths")
+            if not response.ok:
+                LOGGER.error(f"Got status code {response.status_code} during player `{name}` deaths fetch on {inttostr_server(self._server)} server.")
+                return None
 
-        return response.json()
+            return response.json()
+        except (ReadTimeout, ConnectTimeout) as e:
+            LOGGER.error(f"Couldn't read or connect to get player `{name}` deaths on {inttostr_server(self._server)} server.")
+            LOGGER.error(e)
+            return None
 
     
     def get_kills(self, name: str) -> Optional[list[dict[str, Any]]]:
@@ -183,11 +214,17 @@ class SandboxInteractiveInfo(Fetcher):
         if not player:
             return None
 
-        response: Response = get(f"https://{self._server_prefix}.albiononline.com/api/gameinfo/players/{player["Id"]}/kills")
-        if not response.ok:
-            return None
+        try:
+            response: Response = get(f"https://{self._server_prefix}.albiononline.com/api/gameinfo/players/{player["Id"]}/kills")
+            if not response.ok:
+                LOGGER.error(f"Got status code {response.status_code} during player `{name}` kills fetch on {inttostr_server(self._server)} server.")
+                return None
 
-        return response.json()
+            return response.json()
+        except (ReadTimeout, ConnectTimeout) as e:
+            LOGGER.error(f"Couldn't read or connect to get player `{name}` kills on {inttostr_server(self._server)} server.")
+            LOGGER.error(e)
+            return None
 
 
     def get_guild(self, name: str) -> Optional[dict[str, Any]]:
@@ -195,11 +232,17 @@ class SandboxInteractiveInfo(Fetcher):
         if not guild:
             return None
 
-        response: Response = get(f"https://{self._server_prefix}.albiononline.com/api/gameinfo/guilds/{guild["Id"]}/data")
-        if not response.ok:
-            return None
+        try:
+            response: Response = get(f"https://{self._server_prefix}.albiononline.com/api/gameinfo/guilds/{guild["Id"]}/data")
+            if not response.ok:
+                LOGGER.error(f"Got status code {response.status_code} during guild `{name}` fetch on {inttostr_server(self._server)} server.")
+                return None
 
-        return response.json()
+            return response.json()
+        except (ReadTimeout, ConnectTimeout) as e:
+            LOGGER.error(f"Couldn't read or connect to get guild `{name}` on {inttostr_server(self._server)} server.")
+            LOGGER.error(e)
+            return None
 
     
     def get_members(self, name: str) -> Optional[list[dict[str, Any]]]:
@@ -207,11 +250,17 @@ class SandboxInteractiveInfo(Fetcher):
         if not guild:
             return None
 
-        response: Response = get(f"https://{self._server_prefix}.albiononline.com/api/gameinfo/guilds/{guild["Id"]}/members")
-        if not response.ok:
-            return None
+        try:
+            response: Response = get(f"https://{self._server_prefix}.albiononline.com/api/gameinfo/guilds/{guild["Id"]}/members")
+            if not response.ok:
+                LOGGER.error(f"Got status code {response.status_code} during guild `{name}` members fetch on {inttostr_server(self._server)} server.")
+                return None
 
-        return response.json()
+            return response.json()
+        except (ReadTimeout, ConnectTimeout) as e:
+            LOGGER.error(f"Couldn't read or connect to get guild `{name}` members on {inttostr_server(self._server)} server.")
+            LOGGER.error(e)
+            return None
 
 
 class ItemManager:

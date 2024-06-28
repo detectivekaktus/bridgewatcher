@@ -3,7 +3,8 @@ from sys import argv
 from os import path
 from typing import List, cast
 from src import DEBUG_TOKEN, DISCORD_TOKEN
-from src.client import LOGGER, bot, DATABASE
+from src.client import bot, DATABASE
+from src.utils.logging import LOGGER
 
 
 def usage() -> None:
