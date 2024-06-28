@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 from asyncio import create_task
-from datetime import datetime
 from os import listdir
 from typing import Final
 from discord import Activity, ActivityType, Guild, Intents, Status
@@ -38,7 +37,7 @@ async def on_ready() -> None:
     LOGGER.info("Successfully loaded modules from src.commands.")
 
     synched = await bot.tree.sync()
-    LOGGER.info(f"Successfully syncronized {synched} commands globally.")
+    LOGGER.info(f"Successfully syncronized {len(synched)} commands globally.")
 
     create_task(MANAGER.lifecycle())
     LOGGER.info("Created lifecycle loop for MANAGER to store cache.")

@@ -59,7 +59,7 @@ class AlbionOnlineDataManager:
                         for item in range(0, len(items), len(CITIES)):
                             self.__cache[server - 1][name] = items[item:item + len(CITIES)]
 
-        LOGGER.info(f"Finished caching. Took: {perf_counter() - start} seconds.")
+        LOGGER.info(f"Finished caching. Took: {round(perf_counter() - start, 2)} seconds.")
 
 
     async def get(self, item_name: str, server: int, quality: int = 1) -> Optional[list[dict[str, Any]]]:
