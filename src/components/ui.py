@@ -4,7 +4,7 @@ from typing import Any, List, Optional
 from discord import ButtonStyle, Interaction, SelectOption
 from discord.ui import Button, Select, View, button
 from src.constants import CITIES, DEFAULT_RATE, QUALITIES
-from src.api import ItemManager
+from src.api import ItemManager, remove_suffix
 from src.client import DATABASE
 from src.components.modals import ReturnModal, ResourcesModal
 from src.utils import overrides
@@ -66,14 +66,10 @@ class PriceView(View):
     def __init__(self, *, timeout: Optional[float] = 180) -> None:
         super().__init__(timeout=timeout)
         self.quality: str = "normal"
-        self.cities: List[str] = []
 
         self.quality_select = QualitySelect(self, [SelectOption(label=label) for label in QUALITIES],
                                             placeholder="Select item quality.")
-        self.cities_select = CitiesSelect(self.cities, [SelectOption(label=city.capitalize()) for city in CITIES],
-                                          placeholder="Select cities.")
         self.add_item(self.quality_select)
-        self.add_item(self.cities_select)
 
 
     @button(label="Submit", style=ButtonStyle.green)
@@ -83,17 +79,17 @@ class PriceView(View):
 
 
 class CraftingView(View):
-    def __init__(self, item_name: str, *, timeout: Optional[float] = 180):
+    def __init__(self, item_name: str, is_enchated: bool, timeout: Optional[float] = 180):
         super().__init__(timeout=timeout)
-        self.item_name: str = item_name
-        self.is_enchanted: bool = False
+        self.item_name: str = remove_suffix(DATABASE, item_name, is_enchated)
+        self.is_enchanted: bool = is_enchated
         self.craft_city: List[str] = []
         self.sell_city: List[str] = []
         self.resources: dict[str, int] = {}
         self.return_rate: float = DEFAULT_RATE
 
         with DATABASE as db:
-            db.execute("SELECT * FROM items WHERE name = ?", (item_name, ))
+            db.execute("SELECT * FROM items WHERE name = ?", (self.item_name, ))
             item: List[dict[str, Any]] | dict[str, Any] = loads(db.fetchone()[4])
 
         if isinstance(item, list):
@@ -103,9 +99,9 @@ class CraftingView(View):
         self.crafting_requirements: dict[str, Any] = {}
         for requirement in requirements:
             if self.is_enchanted and int(requirement["@uniquename"][1]) > 3:
-                if not ItemManager.is_resource(requirement["@uniquename"]) and not ItemManager.is_artefact(requirement["@uniquename"]):
+                if not ItemManager.is_resource(DATABASE, requirement["@uniquename"]) and not ItemManager.is_artefact(DATABASE, requirement["@uniquename"]):
                     requirement["@uniquename"] = f"{requirement["@uniquename"]}{item_name[-2:]}" 
-                elif ItemManager.is_resource(requirement["@uniquename"]):
+                elif ItemManager.is_resource(DATABASE, requirement["@uniquename"]):
                     requirement["@uniquename"] = f"{requirement["@uniquename"]}_LEVEL{item_name[-1]}@{item_name[-1]}"
             self.crafting_requirements[requirement["@uniquename"]] = int(requirement["@count"])
 

@@ -50,7 +50,6 @@ class AlbionOnlineDataManager:
 
                     for name in names:
                         for item in range(0, len(items), len(CITIES)):
-                            print(items[item:item + len(CITIES)])
                             self.__cache[server - 1][name] = items[item:item + len(CITIES)]
 
 
@@ -60,7 +59,7 @@ class AlbionOnlineDataManager:
                 fetcher: AlbionOnlineData = AlbionOnlineData(server)
                 return await fetcher.fetch_price(item_name, quality)
 
-            return self.__cache[server].get(item_name.lower(), None)
+            return self.__cache[server - 1].get(item_name.lower(), None)
 
 
     def __fill_cached_item_names(self) -> list[str]:

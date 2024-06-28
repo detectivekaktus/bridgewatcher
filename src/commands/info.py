@@ -6,7 +6,7 @@ from discord.app_commands import command, describe
 from discord.ext.commands import Bot, Cog, guild_only
 from src import ITEM_NAMES
 from src.api import AlbionOnlineData, SandboxInteractiveRenderer, convert_api_timestamp, get_percent_variation
-from src.client import SERVERS
+from src.client import MANAGER, SERVERS
 from src.components.ui import PriceView
 from src.utils import format_name, strtoquality_int, inttoemoji_server
 from src.utils.embeds import InvalidValueErrorEmbed, NameErrorEmbed, ServerErrorEmbed, TimedOutErrorEmbed
@@ -101,8 +101,7 @@ class Info(Cog):
 
             quality: int = strtoquality_int(view.quality)
             server: int = SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"]
-            fetcher: AlbionOnlineData = AlbionOnlineData(server)
-            data: Optional[List[dict[str, Any]]] = await fetcher.fetch_price(ITEM_NAMES[item_name], quality, cast(List[str], view.cities))
+            data: Optional[List[dict[str, Any]]] = await MANAGER.get(ITEM_NAMES[item_name], server, strtoquality_int(view.quality))
             if not data:
                 await interaction.followup.send(embed=ServerErrorEmbed(), ephemeral=True)
                 return

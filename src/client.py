@@ -35,12 +35,12 @@ async def load_cogs():
 async def on_ready() -> None:
     await load_cogs()
     synched = await bot.tree.sync()
-    
+
+    create_task(MANAGER.lifecycle())
+
     print(f"Successfully logged as {bot.user} on {datetime.now().strftime("%d.%m.%Y %I:%M:%S %p")}.")
     print(f"Successfully synched {len(synched)} commands globally.")
     print(f"Running on {len(bot.guilds)} servers.")
-
-    create_task(MANAGER.lifecycle())
 
 
 @bot.event

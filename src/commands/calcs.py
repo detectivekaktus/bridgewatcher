@@ -36,8 +36,7 @@ class Calcs(Cog):
                                                     ephemeral=True)
             return
 
-        view: CraftingView = CraftingView(ITEM_NAMES[item_name], timeout=120)
-        view.is_enchanted = ItemManager.is_enchanted(ITEM_NAMES[item_name])
+        view: CraftingView = CraftingView(ITEM_NAMES[item_name], ItemManager.is_enchanted(ITEM_NAMES[item_name]), timeout=120)
         await interaction.response.send_message(embed=Embed(title="🛠️ Crafting calculator",
                                                             color=Color.magenta(),
                                                             description="Let's craft something! Use the 🔘 buttons below"
