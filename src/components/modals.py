@@ -15,7 +15,7 @@ class ResourcesModal(Modal):
         super().__init__(title=title, timeout=timeout, custom_id=custom_id)
         self.view = view
 
-        item_name: str = remove_suffix(self.view.item_name, self.view.is_enchanted)
+        item_name: str = remove_suffix(DATABASE, self.view.item_name, self.view.is_enchanted)
         with DATABASE as db:
             db.execute("SELECT * FROM items WHERE name = ?", (item_name, ))
             item: List[dict[str, Any]] | dict[str, Any] = loads(db.fetchone()[4])

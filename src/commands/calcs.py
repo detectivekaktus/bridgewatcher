@@ -3,12 +3,13 @@ from typing import Any, List, Optional, cast
 from discord import Color, Embed, Guild, Interaction
 from discord.app_commands import command, describe, guild_only
 from discord.ext.commands import Bot, Cog
-from src import CITIES, DEFAULT_RATE, BONUS_RATE, ITEM_NAMES
-from src.api import AlbionOnlineData, ItemManager, SandboxInteractiveRenderer
-from src.client import DATABASE, SERVERS
+from src import ITEM_NAMES
+from src.constants import CITIES, DEFAULT_RATE, BONUS_RATE
+from src.api import ItemManager, SandboxInteractiveRenderer
+from src.client import DATABASE, MANAGER, SERVERS
 from src.components.ui import CraftingView, FlipView
 from src.market import NON_PREMIUM_TAX, PREMIUM_TAX, Crafter, find_crafting_bonus_city, find_least_expensive_city, find_most_expensive_city
-from src.utils import format_name, strtoquality_int, inttoemoji_server
+from src.utils import format_name, strcityto_int, strtoquality_int, inttoemoji_server
 from src.utils.embeds import NameErrorEmbed, OutdatedDataErrorEmbed, ServerErrorEmbed, TimedOutErrorEmbed
 
 
@@ -51,8 +52,7 @@ class Calcs(Cog):
             await message.delete()
 
             server: int = SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"]
-            fetcher: AlbionOnlineData = AlbionOnlineData(server)
-            data: Optional[List[dict[str, Any]]] = await fetcher.fetch_price(ITEM_NAMES[item_name], qualities=1)
+            data: Optional[List[dict[str, Any]]] = await MANAGER.get(ITEM_NAMES[item_name], server)
             if not data:
                 await interaction.followup.send(embed=ServerErrorEmbed(), ephemeral=True)
                 return
@@ -71,14 +71,15 @@ class Calcs(Cog):
 
             resource_prices: dict[str, int] = {}
             for resource in view.crafting_requirements.keys():
-                resource_data: List[dict[str, Any]] | None = await fetcher.fetch_price(resource, qualities=1, cities=[craft_city.lower()])
-                if not resource_data:
+                resource_global_data: List[dict[str, Any]] | None = await MANAGER.get(resource, server)
+                if not resource_global_data:
                     await interaction.followup.send(embed=ServerErrorEmbed(), ephemeral=True)
                     return
-                elif resource_data[0]["sell_price_min"] == 0:
+                resource_data: dict[str, Any] = resource_global_data[strcityto_int(craft_city)]
+                if resource_data["sell_price_min"] == 0:
                     await interaction.followup.send(embed=OutdatedDataErrorEmbed(), ephemeral=True)
                     return
-                resource_prices[resource] = resource_data[0]["sell_price_min"]
+                resource_prices[resource] = resource_data["sell_price_min"]
 
             crafter: Crafter = Crafter(resource_prices, view.resources if view.resources else view.crafting_requirements, view.crafting_requirements, view.return_rate, has_premium)
             result: dict[str, Any] = crafter.printable(data[CITIES.index(sell_city.lower())])
@@ -143,14 +144,13 @@ class Calcs(Cog):
 
             quality: int = strtoquality_int(view.quality)
             view.cities.extend(["black market"] if view.cities else [cast(str, find_crafting_bonus_city(ITEM_NAMES[item_name])), "black market"])
-            cities: List[str] = view.cities
-
             server: int = SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"]
-            fetcher: AlbionOnlineData = AlbionOnlineData(server)
-            data: Optional[List[dict[str, Any]]] = await fetcher.fetch_price(ITEM_NAMES[item_name], quality, cities)
+            data: Optional[List[dict[str, Any]]] = await MANAGER.get(ITEM_NAMES[item_name], server, quality)
             if not data:
                 await interaction.followup.send(embed=ServerErrorEmbed(), ephemeral=True)
                 return
+
+            data = [data[strcityto_int(view.cities[1])], data[strcityto_int(view.cities[0])]]
             
             if not data[0]["sell_price_min"] or not data[1]["sell_price_min"]:
                 await interaction.followup.send(embed=OutdatedDataErrorEmbed(), ephemeral=True)

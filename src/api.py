@@ -4,7 +4,7 @@ from asyncio import Lock, sleep
 from datetime import datetime
 from typing import Any, Final, List, Optional, Tuple
 from requests import ReadTimeout, Response, get
-from src import CITIES, ENCHANTMENTS, NON_CRAFTABLE, NON_SELLABLE_ON_BLACK_MARKET
+from src.constants import CITIES, ENCHANTMENTS, NON_CRAFTABLE, NON_SELLABLE_ON_BLACK_MARKET
 from src.db import Database
 
 

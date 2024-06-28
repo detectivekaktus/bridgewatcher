@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 from math import floor
 from typing import Any, Final, List, Optional, Tuple, cast
-from src import CRAFTING_BONUSES, ITEM_NAMES
+from src import ITEM_NAMES
+from src.constants import CRAFTING_BONUSES
 from src.api import ItemManager, remove_suffix
 from src.client import DATABASE
 from src.utils import api_name_to_readable_name, format_name
