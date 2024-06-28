@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from datetime import datetime, timezone
-from typing import Any, List, Optional, cast
+from typing import Any, Optional, cast
 from discord import Color, Embed, Guild, Interaction
 from discord.app_commands import command, describe
 from discord.ext.commands import Bot, Cog, guild_only
@@ -28,7 +28,7 @@ class Info(Cog):
 
         server: int = SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"]
         fetcher: AlbionOnlineData = AlbionOnlineData(server)
-        data: Optional[List[dict[str, Any]]] = await fetcher.fetch_gold(count + 1)
+        data: Optional[list[dict[str, Any]]] = await fetcher.fetch_gold(count + 1)
         if not data:
             await interaction.response.send_message(embed=ServerErrorEmbed(), ephemeral=True)
             return
@@ -57,7 +57,7 @@ class Info(Cog):
     async def premium(self, interaction: Interaction) -> None:
         server: int = SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"]
         fetcher: AlbionOnlineData = AlbionOnlineData(server)
-        data: Optional[List[dict[str, Any]]] = await fetcher.fetch_gold(1)
+        data: Optional[list[dict[str, Any]]] = await fetcher.fetch_gold(1)
         
         if not data:
             await interaction.response.send_message(embed=ServerErrorEmbed(), ephemeral=True)
@@ -101,7 +101,7 @@ class Info(Cog):
 
             quality: int = strtoquality_int(view.quality)
             server: int = SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"]
-            data: Optional[List[dict[str, Any]]] = await MANAGER.get(ITEM_NAMES[item_name], server, strtoquality_int(view.quality))
+            data: Optional[list[dict[str, Any]]] = await MANAGER.get(ITEM_NAMES[item_name], server, strtoquality_int(view.quality))
             if not data:
                 await interaction.followup.send(embed=ServerErrorEmbed(), ephemeral=True)
                 return

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from json import loads
 from random import choice
-from typing import Any, List, Optional
+from typing import Any, Optional
 from discord import Interaction
 from discord.ui import Modal, TextInput
 from src import ITEM_NAMES
@@ -18,13 +18,13 @@ class ResourcesModal(Modal):
         item_name: str = remove_suffix(DATABASE, self.view.item_name, self.view.is_enchanted)
         with DATABASE as db:
             db.execute("SELECT * FROM items WHERE name = ?", (item_name, ))
-            item: List[dict[str, Any]] | dict[str, Any] = loads(db.fetchone()[4])
+            item: list[dict[str, Any]] | dict[str, Any] = loads(db.fetchone()[4])
 
         if isinstance(item, list):
             item = item[0]
 
-        requirements: List[dict[str, Any]] = [item["craftresource"]] if isinstance(item["craftresource"], dict) else item["craftresource"]
-        self.txt_inputs: List[TextInput] = []
+        requirements: list[dict[str, Any]] = [item["craftresource"]] if isinstance(item["craftresource"], dict) else item["craftresource"]
+        self.txt_inputs: list[TextInput] = []
         placeholders = ("Eg. 100", "Eg. 3350", "Eg. 305", "Eg. 5000")
         
         for requirement in requirements:

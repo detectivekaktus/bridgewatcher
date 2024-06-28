@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from os import makedirs, path
 from sqlite3 import Cursor, connect
-from typing import Any, Optional, Tuple
+from typing import Any, Optional
 from discord import Guild
 
 
@@ -53,7 +53,7 @@ class Servers:
 
         with self as servers:
             servers.execute("SELECT * FROM servers WHERE id = ?", (guild.id, ))
-            res: Tuple = servers.fetchone()
+            res: tuple = servers.fetchone()
 
         return {
             "name": res[0],
@@ -69,7 +69,7 @@ class Servers:
 
         with self as servers:
             servers.execute("SELECT * FROM servers WHERE id = ?", (guild.id, ))
-            server: Optional[Tuple] = servers.fetchone()
+            server: Optional[tuple] = servers.fetchone()
 
         if not server:
             return False

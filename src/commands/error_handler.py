@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 from sys import stderr
-from typing import Any, Final, Tuple
+from typing import Any, Final
 from discord.ext.commands import BadArgument, Bot, Cog, CommandNotFound, Context, DisabledCommand, NoPrivateMessage
 
 
-IGNORED: Final[Tuple[Any, ...]] = (CommandNotFound, )
+IGNORED: Final[tuple[Any]] = (CommandNotFound, )
 
 
 class CommandErrorHandler(Cog):

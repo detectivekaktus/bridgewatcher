@@ -2,7 +2,7 @@
 from abc import ABC
 from asyncio import Lock, sleep
 from datetime import datetime
-from typing import Any, Final, List, Optional, Tuple
+from typing import Any, Final, Optional
 from requests import ConnectTimeout, ReadTimeout, Response, get
 from src.constants import CITIES, ENCHANTMENTS, NON_CRAFTABLE, NON_SELLABLE_ON_BLACK_MARKET
 from src.db import Database
@@ -95,7 +95,7 @@ class AlbionOnlineData(Fetcher):
         self._server_prefix = AOD_SERVER_URLS[server]
 
 
-    async def fetch_gold(self, count: int = 3) -> Optional[List[dict[str, Any]]]:
+    async def fetch_gold(self, count: int = 3) -> Optional[list[dict[str, Any]]]:
         try:
             response: Response = get(f"https://{self._server_prefix}.albion-online-data.com/api/v2/stats/gold?count={count}",
                                      timeout=self._timeout)
@@ -106,7 +106,7 @@ class AlbionOnlineData(Fetcher):
         except (ReadTimeout, ConnectTimeout):
             return None
 
-    async def fetch_price(self, item_name: str, qualities: int = 1, cities: List[str] = []) -> Optional[List[dict[str, Any]]]:
+    async def fetch_price(self, item_name: str, qualities: int = 1, cities: list[str] = []) -> Optional[list[dict[str, Any]]]:
         try:
             response: Response = get(f"https://{self._server_prefix}.albion-online-data.com/api/v2/stats/prices/{item_name}.json?qualities={qualities}&locations={",".join(cities)}" if cities else f"https://{self._server_prefix}.albion-online-data.com/api/v2/stats/prices/{item_name}.json?qualities={qualities}",
                                          timeout=self._timeout)
@@ -216,10 +216,10 @@ class SandboxInteractiveInfo(Fetcher):
 
 class ItemManager:
     @staticmethod
-    def get_item(database: Database, item_name: str) -> Optional[Tuple]:
+    def get_item(database: Database, item_name: str) -> Optional[tuple]:
         with database as db:
             db.execute("SELECT * FROM items WHERE name = ?", (item_name, ))
-            item: Optional[Tuple] = db.fetchone()
+            item: Optional[tuple] = db.fetchone()
         return item
 
     @staticmethod
@@ -227,7 +227,7 @@ class ItemManager:
         if ItemManager.is_enchanted(item_name):
             item_name = item_name[:-2]
 
-        item: Optional[Tuple] = ItemManager.get_item(database, item_name)
+        item: Optional[tuple] = ItemManager.get_item(database, item_name)
 
         if not item:
             return False
@@ -250,7 +250,7 @@ class ItemManager:
         if ItemManager.is_enchanted(item_name):
             item_name = item_name[:-2]
 
-        item: Optional[Tuple] = ItemManager.get_item(database, item_name)
+        item: Optional[tuple] = ItemManager.get_item(database, item_name)
 
         if not item:
             return False
@@ -262,7 +262,7 @@ class ItemManager:
         if ItemManager.is_enchanted(item_name):
             return False
 
-        item: Optional[Tuple] = ItemManager.get_item(database, item_name)
+        item: Optional[tuple] = ItemManager.get_item(database, item_name)
 
         if not item:
             return False
@@ -274,7 +274,7 @@ class ItemManager:
         if ItemManager.is_enchanted(item_name):
             return False
 
-        item: Optional[Tuple] = ItemManager.get_item(database, item_name)
+        item: Optional[tuple] = ItemManager.get_item(database, item_name)
 
         if not item:
             return False
@@ -283,7 +283,7 @@ class ItemManager:
 
     @staticmethod
     def is_consumable(database: Database, item_name: str) -> bool:
-        item: Optional[Tuple] = ItemManager.get_item(database, item_name)
+        item: Optional[tuple] = ItemManager.get_item(database, item_name)
 
         if not item:
             return False
@@ -296,7 +296,7 @@ class ItemManager:
 
     @staticmethod
     def is_sellable_on_black_market(database: Database, item_name: str) -> bool:
-        item: Optional[Tuple] = ItemManager.get_item(database, item_name)
+        item: Optional[tuple] = ItemManager.get_item(database, item_name)
 
         if not item:
             return False
@@ -322,7 +322,7 @@ class SandboxInteractiveRenderer:
         return f"https://render.albiononline.com/v1/wardrobe/{identifier}.png" 
 
 
-def get_percent_variation(data: List[dict], index: int) -> float:
+def get_percent_variation(data: list[dict], index: int) -> float:
     return round((data[index]["price"] / data[index + 1]["price"] - 1) * 100, 2)
 
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from json import loads
-from typing import Any, List, Optional
+from typing import Any, Optional
 from discord import ButtonStyle, Interaction, SelectOption
 from discord.ui import Button, Select, View, button
 from src.constants import CITIES, DEFAULT_RATE, QUALITIES
@@ -13,7 +13,7 @@ from src.utils import overrides
 class QualitySelect(Select):
     def __init__(self,
                  parent_view: Any,
-                 options: List[SelectOption], *,
+                 options: list[SelectOption], *,
                  custom_id: str = "qualset",
                  placeholder: Optional[str] = None,
                  min_values: int = 1,
@@ -38,8 +38,8 @@ class QualitySelect(Select):
 
 class CitiesSelect(Select):
     def __init__(self,
-                 cities_holder: List[str],
-                 options: List[SelectOption], *,
+                 cities_holder: list[str],
+                 options: list[SelectOption], *,
                  custom_id: str = "citsel",
                  placeholder: Optional[str] = None,
                  min_values: int = 1,
@@ -83,19 +83,19 @@ class CraftingView(View):
         super().__init__(timeout=timeout)
         self.item_name: str = remove_suffix(DATABASE, item_name, is_enchated)
         self.is_enchanted: bool = is_enchated
-        self.craft_city: List[str] = []
-        self.sell_city: List[str] = []
+        self.craft_city: list[str] = []
+        self.sell_city: list[str] = []
         self.resources: dict[str, int] = {}
         self.return_rate: float = DEFAULT_RATE
 
         with DATABASE as db:
             db.execute("SELECT * FROM items WHERE name = ?", (self.item_name, ))
-            item: List[dict[str, Any]] | dict[str, Any] = loads(db.fetchone()[4])
+            item: list[dict[str, Any]] | dict[str, Any] = loads(db.fetchone()[4])
 
         if isinstance(item, list):
             item = item[0]
 
-        requirements: List[dict[str, Any]] = [item["craftresource"]] if isinstance(item["craftresource"], dict) else item["craftresource"]
+        requirements: list[dict[str, Any]] = [item["craftresource"]] if isinstance(item["craftresource"], dict) else item["craftresource"]
         self.crafting_requirements: dict[str, Any] = {}
         for requirement in requirements:
             if self.is_enchanted and int(requirement["@uniquename"][1]) > 3:
@@ -137,7 +137,7 @@ class FlipView(View):
     def __init__(self, *, timeout: Optional[float] = 180):
         super().__init__(timeout=timeout)
         self.quality: str = "normal"
-        self.cities: List[str] = []
+        self.cities: list[str] = []
 
         self.quality_select = QualitySelect(self,
                                             [SelectOption(label=label) for label in QUALITIES],

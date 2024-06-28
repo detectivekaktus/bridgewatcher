@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from math import floor
-from typing import Any, Final, List, Optional, Tuple, cast
+from typing import Any, Final, Optional, cast
 from src import ITEM_NAMES
 from src.constants import CRAFTING_BONUSES
 from src.api import ItemManager, remove_suffix
@@ -113,7 +113,7 @@ def find_crafting_bonus_city(item_name: str) -> Optional[str]:
 
     with DATABASE as db:
         db.execute("SELECT * FROM items WHERE name = ?", (item_name, ))
-        item: Optional[Tuple] = db.fetchone()
+        item: Optional[tuple] = db.fetchone()
 
     if not item:
         return None
@@ -126,7 +126,7 @@ def find_crafting_bonus_city(item_name: str) -> Optional[str]:
     return None
 
 
-def find_least_expensive_city(data: List[dict[str, Any]], include_black_market: bool = True) -> str:
+def find_least_expensive_city(data: list[dict[str, Any]], include_black_market: bool = True) -> str:
     curr_city: Optional[str] = None
     curr_price: Optional[int] = None
     index: int = 0
@@ -142,7 +142,7 @@ def find_least_expensive_city(data: List[dict[str, Any]], include_black_market: 
     return cast(str, curr_city)
 
 
-def find_most_expensive_city(data: List[dict[str, Any]], include_black_market: bool = True) -> str:
+def find_most_expensive_city(data: list[dict[str, Any]], include_black_market: bool = True) -> str:
     curr_city: Optional[str] = None
     curr_price: Optional[int] = None
     index: int = 0

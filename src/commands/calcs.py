@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from typing import Any, List, Optional, cast
+from typing import Any, Optional, cast
 from discord import Color, Embed, Guild, Interaction
 from discord.app_commands import command, describe, guild_only
 from discord.ext.commands import Bot, Cog
@@ -51,7 +51,7 @@ class Calcs(Cog):
             await message.delete()
 
             server: int = SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"]
-            data: Optional[List[dict[str, Any]]] = await MANAGER.get(ITEM_NAMES[item_name], server)
+            data: Optional[list[dict[str, Any]]] = await MANAGER.get(ITEM_NAMES[item_name], server)
             if not data:
                 await interaction.followup.send(embed=ServerErrorEmbed(), ephemeral=True)
                 return
@@ -70,7 +70,7 @@ class Calcs(Cog):
 
             resource_prices: dict[str, int] = {}
             for resource in view.crafting_requirements.keys():
-                resource_global_data: List[dict[str, Any]] | None = await MANAGER.get(resource, server)
+                resource_global_data: list[dict[str, Any]] | None = await MANAGER.get(resource, server)
                 if not resource_global_data:
                     await interaction.followup.send(embed=ServerErrorEmbed(), ephemeral=True)
                     return
@@ -144,7 +144,7 @@ class Calcs(Cog):
             quality: int = strtoquality_int(view.quality)
             view.cities.extend(["black market"] if view.cities else [cast(str, find_crafting_bonus_city(ITEM_NAMES[item_name])), "black market"])
             server: int = SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"]
-            data: Optional[List[dict[str, Any]]] = await MANAGER.get(ITEM_NAMES[item_name], server, quality)
+            data: Optional[list[dict[str, Any]]] = await MANAGER.get(ITEM_NAMES[item_name], server, quality)
             if not data:
                 await interaction.followup.send(embed=ServerErrorEmbed(), ephemeral=True)
                 return
