@@ -5,6 +5,7 @@ venv/
 .env
 
 servers/
+logs/
 
 __pycache__
 *.pyc

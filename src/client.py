@@ -8,6 +8,7 @@ from discord.ext.commands import Bot
 from src.api import AlbionOnlineDataManager
 from src.config import Servers
 from src.db import Database
+from src.utils.logging import BotLogger, get_logger
 
 
 INTENTS: Final[Intents] = Intents.default()
@@ -23,6 +24,7 @@ bot.remove_command("help")
 DATABASE: Final[Database] = Database("res/items.db")
 SERVERS: Final[Servers] = Servers("servers/servers.db")
 MANAGER: Final[AlbionOnlineDataManager] = AlbionOnlineDataManager(DATABASE)
+LOGGER: Final[BotLogger] = get_logger()
 
 
 async def load_cogs():

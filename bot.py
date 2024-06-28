@@ -3,7 +3,7 @@ from sys import argv
 from os import path
 from typing import List, cast
 from src import DEBUG_TOKEN, DISCORD_TOKEN
-from src.client import bot, DATABASE
+from src.client import LOGGER, bot, DATABASE
 
 
 def usage() -> None:
@@ -46,6 +46,7 @@ def main() -> None:
             verify_configuration()
 
             if len(cliargs) - 1 == i:
+                LOGGER.info("Production version is starting up.")
                 bot.run(cast(str, DISCORD_TOKEN))
             else:
                 if cliargs[i + 1] == "--debug":
@@ -56,6 +57,8 @@ def main() -> None:
                     if not DEBUG_TOKEN:
                         crash("ERROR: Your configuration is missing DEBUG_TOKEN environment variable.")
 
+
+                    LOGGER.info("Debug version is starting up.")
                     bot.run(cast(str, DEBUG_TOKEN))
                 else:
                     crash(f"ERROR: unexpected flag {cliargs[i + 1]} specified for the run subcommand.")
@@ -65,17 +68,21 @@ def main() -> None:
                 crash("ERROR: no flag specified for the database subcommand.")
 
             if cliargs[i] == "--populate":
+                LOGGER.info("Database is being populated.")
                 DATABASE.create_items_table()
                 DATABASE.populate_table()
                 exit(0)
             elif cliargs[i] == "--upgrade":
+                LOGGER.info("Database is being upgraded.")
                 DATABASE.upgrade_database()
                 exit(0)
             elif cliargs[i] == "--destroy":
                 i += 1
                 if len(cliargs) == i:
+                    LOGGER.info("Database is being destroyed.")
                     DATABASE.destroy(True)
                 elif cliargs[i] == "--entire":
+                    LOGGER.info("Database is being destroyed entirely.")
                     DATABASE.destroy()
                 else:
                     crash(f"ERROR: Unexpected flag {cliargs[i]} in sequence of `database` and `destroy` commands.")
