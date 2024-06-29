@@ -25,10 +25,9 @@ class ResourcesModal(Modal):
 
         requirements: list[dict[str, Any]] = [item["craftresource"]] if isinstance(item["craftresource"], dict) else item["craftresource"]
         self.txt_inputs: list[TextInput] = []
-        placeholders = ("Eg. 100", "Eg. 3350", "Eg. 305", "Eg. 5000")
         
         for requirement in requirements:
-            txt_input = TextInput(label=api_name_to_readable_name(ITEM_NAMES, requirement["@uniquename"]), placeholder=choice(placeholders))
+            txt_input = TextInput(label=api_name_to_readable_name(ITEM_NAMES, requirement["@uniquename"]), placeholder=choice(["Eg. 100", "Eg. 3350", "Eg. 305", "Eg. 5000"]))
             self.txt_inputs.append(txt_input)
             self.add_item(txt_input)
 
@@ -65,5 +64,7 @@ class ReturnModal(Modal):
             self.view.return_rate = return_rate
             await interaction.response.defer()
         except ValueError:
-            await interaction.response.send_message(f"{self.return_rate.value} is not a valid return rate.")
+            await interaction.response.send_message(f"{self.return_rate.value} is not a valid return rate.",
+                                                    ephemeral=True,
+                                                    delete_after=5)
             return
