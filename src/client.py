@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-from asyncio import create_task
 from os import listdir
 from typing import Final
 from discord import Activity, ActivityType, Guild, Intents, Status
@@ -7,16 +6,31 @@ from discord.ext.commands import Bot
 from src.api import AlbionOnlineDataManager
 from src.config import Servers
 from src.db import Database
+from src.utils import overrides
 from src.utils.logging import LOGGER
+
+
+class Bridgewatcher(Bot):
+    def __init__(self, intents: Intents) -> None:
+        super().__init__(command_prefix=';',
+                         intents=intents,
+                         owner_id=692305905123065918,
+                         activity=Activity(type=ActivityType.listening, name="/help"),
+                         status=Status.do_not_disturb)
+
+
+    @overrides(Bot)
+    async def setup_hook(self) -> None:
+        LOGGER.info("Loading modules from `src.commads`.")
+        await load_cogs()
+        LOGGER.info(f"Successfully syncronized {len(await bot.tree.sync())} commands globally.")
+        LOGGER.info("Creating separate task for cache manager.")
+        self.loop.create_task(MANAGER.lifecycle())
 
 
 INTENTS: Final[Intents] = Intents.default()
 INTENTS.message_content = True
-bot: Bot = Bot(command_prefix=";",
-               intents=INTENTS,
-               owner_id=692305905123065918,
-               activity=Activity(type=ActivityType.listening, name="/help"),
-               status=Status.do_not_disturb)
+bot: Bridgewatcher = Bridgewatcher(INTENTS)
 bot.remove_command("help")
 
 
@@ -33,15 +47,6 @@ async def load_cogs():
 
 @bot.event
 async def on_ready() -> None:
-    await load_cogs()
-    LOGGER.info("Successfully loaded modules from src.commands.")
-
-    synched = await bot.tree.sync()
-    LOGGER.info(f"Successfully syncronized {len(synched)} commands globally.")
-
-    create_task(MANAGER.lifecycle())
-    LOGGER.info("Created lifecycle loop for MANAGER to store cache.")
-
     LOGGER.info("Bot instance is ready to handle requests.")
 
 
