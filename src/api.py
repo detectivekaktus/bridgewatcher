@@ -2,6 +2,7 @@
 from abc import ABC
 from asyncio import Lock, sleep
 from datetime import datetime
+from sqlite3 import OperationalError, ProgrammingError
 from time import perf_counter
 from typing import Any, Final, Optional
 from requests import ConnectTimeout, ReadTimeout, Response, get
@@ -27,11 +28,14 @@ SBI_SERVER_URLS: Final = {
 
 class AlbionOnlineDataManager:
     def __init__(self, database: Database, update_interval_sec: int = 900) -> None:
-        self.__database = database
-        self.__update_interval_sec = update_interval_sec
-        self.__cache: list[dict[str, list[dict[str, Any]]]] = [{}, {}, {}]
-        self.__cached_item_names: list[str] = self.__fill_cached_item_names()
-        self.__lock = Lock()
+        try:
+            self.__database = database
+            self.__update_interval_sec = update_interval_sec
+            self.__cache: list[dict[str, list[dict[str, Any]]]] = [{}, {}, {}]
+            self.__lock = Lock()
+            self.__cached_item_names: list[str] = self.__fill_cached_item_names()
+        except (ProgrammingError, OperationalError):
+            LOGGER.error("No database table `items` found.")
 
 
     async def lifecycle(self) -> None:

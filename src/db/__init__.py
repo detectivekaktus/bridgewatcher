@@ -64,6 +64,3 @@ class Database:
 
         if not keep_file:
             remove(self.path)
-        else:
-            with self as db:
-                db.execute("DROP TABLE items")

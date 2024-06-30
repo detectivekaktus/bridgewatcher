@@ -44,25 +44,22 @@ def main() -> None:
     i = 0
     match cliargs[i]:
         case "run":
-            verify_configuration()
-
             if len(cliargs) - 1 == i:
                 LOGGER.info("Production version is starting up.")
                 bot.run(cast(str, DISCORD_TOKEN))
             else:
-                if cliargs[i + 1] == "--debug":
-                    i += 1
-                    if len(cliargs) - 1 != i:
-                        crash("ERROR: Got too many arguments for the run subcommand.")
+                i += 1
+                if cliargs[i] != "--debug":
+                    crash(f"ERROR: unexpected flag {cliargs[i]} specified for the run subcommand.")
 
-                    if not DEBUG_TOKEN:
-                        crash("ERROR: Your configuration is missing DEBUG_TOKEN environment variable.")
+                if len(cliargs) - 1 != i:
+                    crash("ERROR: Got too many arguments for the run subcommand.")
 
+                if not DEBUG_TOKEN:
+                    crash("ERROR: Your configuration is missing DEBUG_TOKEN environment variable.")
 
-                    LOGGER.info("Debug version is starting up.")
-                    bot.run(cast(str, DEBUG_TOKEN))
-                else:
-                    crash(f"ERROR: unexpected flag {cliargs[i + 1]} specified for the run subcommand.")
+                LOGGER.info("Debug version is starting up.")
+                bot.run(cast(str, DEBUG_TOKEN))
         case "database":
             i += 1
             if len(cliargs) == i:
@@ -79,14 +76,11 @@ def main() -> None:
                 exit(0)
             elif cliargs[i] == "--destroy":
                 i += 1
-                if len(cliargs) == i:
-                    LOGGER.info("Database is being destroyed.")
-                    DATABASE.destroy(True)
-                elif cliargs[i] == "--entire":
-                    LOGGER.info("Database is being destroyed entirely.")
-                    DATABASE.destroy()
-                else:
+                if len(cliargs) != i:
                     crash(f"ERROR: Unexpected flag {cliargs[i]} in sequence of `database` and `destroy` commands.")
+
+                LOGGER.info("Database is being destroyed.")
+                DATABASE.destroy()
                 exit(0)
             else:
                 crash(f"ERROR: unknown flag {cliargs[i]} for the database subcommand.")
