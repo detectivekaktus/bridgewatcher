@@ -21,7 +21,7 @@ class Social(Cog):
     @guild_only()
     async def player(self, interaction: Interaction, name: str) -> None:
         fetcher: SandboxInteractiveInfo = SandboxInteractiveInfo(SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"])
-        player: Optional[dict[str, Any]] = fetcher.get_player(name)
+        player: Optional[dict[str, Any]] = await fetcher.get_player(name)
         if not player:
             await interaction.response.send_message(embed=NameErrorEmbed(name), ephemeral=True)
             return
@@ -56,7 +56,7 @@ class Social(Cog):
     @guild_only()
     async def deaths(self, interaction: Interaction, name: str) -> None:
         fetcher: SandboxInteractiveInfo = SandboxInteractiveInfo(SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"])
-        deaths: Optional[list[dict[str, Any]]] = fetcher.get_deaths(name)
+        deaths: Optional[list[dict[str, Any]]] = await fetcher.get_deaths(name)
         if deaths == None:
             await interaction.response.send_message(embed=NameErrorEmbed(name), ephemeral=True)
             return
@@ -74,7 +74,7 @@ class Social(Cog):
     @guild_only()
     async def kills(self, interaction: Interaction, name: str) -> None:
         fetcher: SandboxInteractiveInfo = SandboxInteractiveInfo(SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"])
-        kills: Optional[list[dict[str, Any]]] = fetcher.get_kills(name)
+        kills: Optional[list[dict[str, Any]]] = await fetcher.get_kills(name)
         if kills == None:
             await interaction.response.send_message(embed=NameErrorEmbed(name), ephemeral=True)
             return
@@ -92,7 +92,7 @@ class Social(Cog):
     @guild_only()
     async def guild(self, interaction: Interaction, name: str) -> None:
         fetcher: SandboxInteractiveInfo = SandboxInteractiveInfo(SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"])
-        guild: Optional[dict[str, Any]] = fetcher.get_guild(name)
+        guild: Optional[dict[str, Any]] = await fetcher.get_guild(name)
         if not guild:
             await interaction.response.send_message(embed=NameErrorEmbed(name), ephemeral=True)
             return
@@ -119,7 +119,7 @@ class Social(Cog):
     @guild_only()
     async def members(self, interaction: Interaction, name: str) -> None:
         fetcher: SandboxInteractiveInfo = SandboxInteractiveInfo(SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"])
-        members: Optional[list[dict[str, Any]]] = fetcher.get_members(name)
+        members: Optional[list[dict[str, Any]]] = await fetcher.get_members(name)
         if members == None:
             await interaction.response.send_message(embed=NameErrorEmbed(name), ephemeral=True)
             return

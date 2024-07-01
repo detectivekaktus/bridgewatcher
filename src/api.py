@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 from abc import ABC
+from aiohttp import ClientSession, ClientTimeout
 from asyncio import Lock, sleep
 from datetime import datetime
 from sqlite3 import OperationalError, ProgrammingError
 from time import perf_counter
 from typing import Any, Final, Optional
-from requests import ConnectTimeout, ReadTimeout, Response, get
 from src.constants import CITIES, ENCHANTMENTS, NON_CRAFTABLE, NON_SELLABLE_ON_BLACK_MARKET
 from src.db import Database
 from src.utils import inttostr_server
@@ -110,28 +110,28 @@ class AlbionOnlineData(Fetcher):
 
     async def fetch_gold(self, count: int = 3) -> Optional[list[dict[str, Any]]]:
         try:
-            response: Response = get(f"https://{self._server_prefix}.albion-online-data.com/api/v2/stats/gold?count={count}",
-                                     timeout=self._timeout)
-            if not response.ok:
-                LOGGER.error(f"Got status code {response.status_code} during gold fetch on {inttostr_server(self._server)} server.")
-                return None
-
-            return response.json()
-        except (ReadTimeout, ConnectTimeout):
+            async with ClientSession(timeout=ClientTimeout(total=self._timeout)) as session:
+                async with session.get(f"https://{self._server_prefix}.albion-online-data.com/api/v2/stats/gold?count={count}") as r:
+                    if r.status == 200:
+                        return await r.json()
+                    else:
+                        LOGGER.error(f"Got status code {r.status} during gold fetch on {inttostr_server(self._server)} server.")
+                        return None
+        except TimeoutError:
             LOGGER.error(f"Couldn't read or connect to fetch gold price on {inttostr_server(self._server)} server.")
             return None
 
     async def fetch_price(self, item_name: str, qualities: int = 1, cities: list[str] = []) -> Optional[list[dict[str, Any]]]:
         try:
-            response: Response = get(f"https://{self._server_prefix}.albion-online-data.com/api/v2/stats/prices/{item_name}.json?qualities={qualities}&locations={",".join(cities)}" if cities else f"https://{self._server_prefix}.albion-online-data.com/api/v2/stats/prices/{item_name}.json?qualities={qualities}",
-                                         timeout=self._timeout)
-            if not response.ok:
-                LOGGER.error(f"Got status code {response.status_code} during item price fetch on {inttostr_server(self._server)} server.")
-                return None
-
-            return response.json()
-        except (ReadTimeout, ConnectTimeout):
-            LOGGER.error(f"Couldn't read or connect to fetch item price on {inttostr_server(self._server)} server.")
+            async with ClientSession(timeout=ClientTimeout(total=self._timeout)) as session:
+                async with session.get(f"https://{self._server_prefix}.albion-online-data.com/api/v2/stats/prices/{item_name}.json?qualities={qualities}&locations={",".join(cities)}" if cities else f"https://{self._server_prefix}.albion-online-data.com/api/v2/stats/prices/{item_name}.json?qualities={qualities}") as r:
+                    if r.status == 200:
+                        return await r.json()
+                    else:
+                        LOGGER.error(f"Got status code {r.status} during item `{item_name}` price fetch on {inttostr_server(self._server)} server.")
+                        return None
+        except TimeoutError:
+            LOGGER.error(f"Couldn't read or connect to fetch item `{item_name}` price on {inttostr_server(self._server)} server.")
             return None
 
 
@@ -141,129 +141,129 @@ class SandboxInteractiveInfo(Fetcher):
         self._server_prefix = SBI_SERVER_URLS[server]
 
 
-    def find_player(self, name: str) -> Optional[dict[str, Any]]:
+    async def find_player(self, name: str) -> Optional[dict[str, Any]]:
         try:
-            response: Response = get(f"https://{self._server_prefix}.albiononline.com/api/gameinfo/search?q={name}")
-            if not response.ok:
-                LOGGER.error(f"Got status code {response.status_code} during player `{name}` lookup on {inttostr_server(self._server)} server.")
-                return None
+            async with ClientSession(timeout=ClientTimeout(total=self._timeout)) as session:
+                async with session.get(f"https://{self._server_prefix}.albiononline.com/api/gameinfo/search?q={name}") as r:
+                    if r.status == 200:
+                        json = await r.json()
+                        if len(json["players"]) == 0:
+                            return None
 
-            json: dict[str, Any] = response.json()
-            if len(json["players"]) == 0:
-                return None
-
-            return json["players"][0]
-        except (ReadTimeout, ConnectTimeout) as e:
+                        return json["players"][0]
+                    else:
+                        LOGGER.error(f"Got status code {r.status} during player `{name}` lookup on {inttostr_server(self._server)} server.")
+                        return None
+        except TimeoutError:
             LOGGER.error(f"Couldn't read or connect to find player `{name}` on {inttostr_server(self._server)} server.")
-            LOGGER.error(e)
             return None
 
 
-    def find_guild(self, name: str) -> Optional[dict[str, Any]]:
+    async def find_guild(self, name: str) -> Optional[dict[str, Any]]:
         try:
-            response: Response = get(f"https://{self._server_prefix}.albiononline.com/api/gameinfo/search?q={name}")
-            if not response.ok:
-                LOGGER.error(f"Got status code {response.status_code} during guild `{name}` lookup on {inttostr_server(self._server)} server.")
-                return None
+            async with ClientSession(timeout=ClientTimeout(total=self._timeout)) as session:
+                async with session.get(f"https://{self._server_prefix}.albiononline.com/api/gameinfo/search?q={name}") as r:
+                    if r.status == 200:
+                        json = await r.json()
+                        if len(json["guilds"]) == 0:
+                            return None
 
-            json: dict[str, Any] = response.json()
-            if len(json["guilds"]) == 0:
-                return None
-
-            return json["guilds"][0]
-        except (ReadTimeout, ConnectTimeout) as e:
+                        return json["guilds"][0]
+                    else:
+                        LOGGER.error(f"Got status code {r.status} during guild `{name}` lookup on {inttostr_server(self._server)} server.")
+                        return None
+        except TimeoutError:
             LOGGER.error(f"Couldn't read or connect to find guild `{name}` on {inttostr_server(self._server)} server.")
-            LOGGER.error(e)
             return None
 
 
-    def get_player(self, name: str) -> Optional[dict[str, Any]]:
-        player: Optional[dict[str, Any]] = self.find_player(name)
+    async def get_player(self, name: str) -> Optional[dict[str, Any]]:
+        player: Optional[dict[str, Any]] = await self.find_player(name)
         if not player:
             return None
 
         try:
-            response: Response = get(f"https://{self._server_prefix}.albiononline.com/api/gameinfo/players/{player["Id"]}")
-            if not response.ok:
-                LOGGER.error(f"Got status code {response.status_code} during player `{name}` fetch on {inttostr_server(self._server)} server.")
-                return None
-
-            return response.json()
-        except (ReadTimeout, ConnectTimeout) as e:
+            async with ClientSession(timeout=ClientTimeout(total=self._timeout)) as session:
+                async with session.get(f"https://{self._server_prefix}.albiononline.com/api/gameinfo/players/{player["Id"]}") as r:
+                    if r.status == 200:
+                        return await r.json()
+                    else:
+                        LOGGER.error(f"Got status code {r.status} during player `{name}` fetch on {inttostr_server(self._server)} server.")
+                        return None
+        except TimeoutError:
             LOGGER.error(f"Couldn't read or connect to get player `{name}` on {inttostr_server(self._server)} server.")
-            LOGGER.error(e)
             return None
 
 
-    def get_deaths(self, name: str) -> Optional[list[dict[str, Any]]]:
-        player: Optional[dict[str, Any]] = self.find_player(name)
+    async def get_deaths(self, name: str) -> Optional[list[dict[str, Any]]]:
+        player: Optional[dict[str, Any]] = await self.find_player(name)
         if not player:
             return None
 
         try:
-            response: Response = get(f"https://{self._server_prefix}.albiononline.com/api/gameinfo/players/{player["Id"]}/deaths")
-            if not response.ok:
-                LOGGER.error(f"Got status code {response.status_code} during player `{name}` deaths fetch on {inttostr_server(self._server)} server.")
-                return None
-
-            return response.json()
-        except (ReadTimeout, ConnectTimeout) as e:
+            async with ClientSession(timeout=ClientTimeout(total=self._timeout)) as session:
+                async with session.get(f"https://{self._server_prefix}.albiononline.com/api/gameinfo/players/{player["Id"]}/deaths") as r:
+                    if r.status == 200:
+                        return await r.json()
+                    else:
+                        LOGGER.error(f"Got status code {r.status} during player `{name}` deaths fetch on {inttostr_server(self._server)} server.")
+                        return None
+        except TimeoutError:
             LOGGER.error(f"Couldn't read or connect to get player `{name}` deaths on {inttostr_server(self._server)} server.")
-            LOGGER.error(e)
             return None
-
     
-    def get_kills(self, name: str) -> Optional[list[dict[str, Any]]]:
-        player: Optional[dict[str, Any]] = self.find_player(name)
+
+    async def get_kills(self, name: str) -> Optional[list[dict[str, Any]]]:
+        player: Optional[dict[str, Any]] = await self.find_player(name)
         if not player:
             return None
 
         try:
-            response: Response = get(f"https://{self._server_prefix}.albiononline.com/api/gameinfo/players/{player["Id"]}/kills")
-            if not response.ok:
-                LOGGER.error(f"Got status code {response.status_code} during player `{name}` kills fetch on {inttostr_server(self._server)} server.")
-                return None
-
-            return response.json()
-        except (ReadTimeout, ConnectTimeout) as e:
+            async with ClientSession(timeout=ClientTimeout(total=self._timeout)) as session:
+                async with session.get(f"https://{self._server_prefix}.albiononline.com/api/gameinfo/players/{player["Id"]}/kills") as r:
+                    if r.status == 200:
+                        return await r.json()
+                    else:
+                        LOGGER.error(f"Got status code {r.status} during player `{name}` kills fetch on {inttostr_server(self._server)} server.")
+                        return None
+        except TimeoutError:
             LOGGER.error(f"Couldn't read or connect to get player `{name}` kills on {inttostr_server(self._server)} server.")
-            LOGGER.error(e)
             return None
 
 
-    def get_guild(self, name: str) -> Optional[dict[str, Any]]:
-        guild: Optional[dict[str, Any]] = self.find_guild(name)
+    async def get_guild(self, name: str) -> Optional[dict[str, Any]]:
+        guild: Optional[dict[str, Any]] = await self.find_guild(name)
         if not guild:
             return None
 
         try:
-            response: Response = get(f"https://{self._server_prefix}.albiononline.com/api/gameinfo/guilds/{guild["Id"]}/data")
-            if not response.ok:
-                LOGGER.error(f"Got status code {response.status_code} during guild `{name}` fetch on {inttostr_server(self._server)} server.")
-                return None
-
-            return response.json()
-        except (ReadTimeout, ConnectTimeout) as e:
+            async with ClientSession(timeout=ClientTimeout(total=self._timeout)) as session:
+                async with session.get(f"https://{self._server_prefix}.albiononline.com/api/gameinfo/guilds/{guild["Id"]}/data") as r:
+                    if r.status == 200:
+                        return await r.json()
+                    else:
+                        LOGGER.error(f"Got status code {r.status} during guild `{name}` fetch on {inttostr_server(self._server)} server.")
+                        return None
+        except TimeoutError:
             LOGGER.error(f"Couldn't read or connect to get guild `{name}` on {inttostr_server(self._server)} server.")
-            LOGGER.error(e)
             return None
-
     
-    def get_members(self, name: str) -> Optional[list[dict[str, Any]]]:
-        guild: Optional[dict[str, Any]] = self.find_guild(name)
+
+    async def get_members(self, name: str) -> Optional[list[dict[str, Any]]]:
+        guild: Optional[dict[str, Any]] = await self.find_guild(name)
         if not guild:
             return None
 
         try:
-            response: Response = get(f"https://{self._server_prefix}.albiononline.com/api/gameinfo/guilds/{guild["Id"]}/members")
-            if not response.ok:
-                LOGGER.error(f"Got status code {response.status_code} during guild `{name}` members fetch on {inttostr_server(self._server)} server.")
-                return None
-
-            return response.json()
-        except (ReadTimeout, ConnectTimeout) as e:
+            async with ClientSession(timeout=ClientTimeout(total=self._timeout)) as session:
+                async with session.get(f"https://{self._server_prefix}.albiononline.com/api/gameinfo/guilds/{guild["Id"]}/members") as r:
+                    if r.status == 200:
+                        return await r.json()
+                    else:
+                        LOGGER.error(f"Got status code {r.status} during guild `{name}` members fetch on {inttostr_server(self._server)} server.")
+                        return None
+        except TimeoutError:
             LOGGER.error(f"Couldn't read or connect to get guild `{name}` members on {inttostr_server(self._server)} server.")
-            LOGGER.error(e)
             return None
 
 
