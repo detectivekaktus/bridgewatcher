@@ -47,6 +47,7 @@ async def load_cogs():
 
 @bot.event
 async def on_ready() -> None:
+    LOGGER.info(f"Currently serving for {len(bot.guilds)} servers.")
     LOGGER.info("Bot instance is ready to handle requests.")
 
 

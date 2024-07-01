@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from abc import ABC
 from aiohttp import ClientSession, ClientTimeout
-from asyncio import Lock, sleep
+from asyncio import Lock, Task, create_task, gather, sleep
 from datetime import datetime
 from sqlite3 import OperationalError, ProgrammingError
 from time import perf_counter
@@ -27,11 +27,12 @@ SBI_SERVER_URLS: Final = {
 
 
 class AlbionOnlineDataManager:
-    def __init__(self, database: Database, update_interval_sec: int = 900) -> None:
+    def __init__(self, database: Database, update_interval_sec: int = 600) -> None:
         try:
             self.__database = database
             self.__update_interval_sec = update_interval_sec
             self.__cache: list[dict[str, list[dict[str, Any]]]] = [{}, {}, {}]
+            self.__chunk_size: int = 64
             self.__lock = Lock()
             self.__cached_item_names: list[str] = self.__fill_cached_item_names()
         except (ProgrammingError, OperationalError):
@@ -49,21 +50,28 @@ class AlbionOnlineDataManager:
         start = perf_counter()
 
         async with self.__lock:
+            tasks: dict[int, list[Task]] = self.__create_server_tasks()
             for server in range(1, 4):
-                fetcher: AlbionOnlineData = AlbionOnlineData(server)
-                chunk_size: int = 64
-                for i in range(0, len(self.__cached_item_names), chunk_size):
-                    names: list[str] = self.__cached_item_names[i:i + chunk_size]
-                    items: Optional[list[dict[str, Any]]] = await fetcher.fetch_price(",".join(names))
-                    if not items:
-                        LOGGER.error(f"Couldn't cache {",".join(names)} on {inttostr_server(server)} server.")
-                        continue
+                responses: list[list[dict[str, Any]]] = await gather(*tasks[server])
+                chained_responses: list[dict[str, Any]] = []
+                for response in responses:
+                    chained_responses.extend(response if response else [{}] * self.__chunk_size)
 
-                    for name in names:
-                        for item in range(0, len(items), len(CITIES)):
-                            self.__cache[server - 1][name] = items[item:item + len(CITIES)]
+                for name in self.__cached_item_names:
+                    for i in range(0, len(tasks[server]), len(CITIES)):
+                        self.__cache[server - 1][name.lower()] = chained_responses[i:i + len(CITIES)]
 
         LOGGER.info(f"Finished caching. Took: {round(perf_counter() - start, 2)} seconds.")
+
+
+    def __create_server_tasks(self) -> dict[int, list[Task]]:
+        tasks: dict[int, list[Task]] = {}
+
+        for server in range(1, 4):
+            fetcher: AlbionOnlineData = AlbionOnlineData(server)
+            tasks[server] = [create_task(fetcher.fetch_price(",".join(self.__cached_item_names[i:i + self.__chunk_size]))) for i in range(0, len(self.__cached_item_names), self.__chunk_size)]
+
+        return tasks
 
 
     async def get(self, item_name: str, server: int, quality: int = 1) -> Optional[list[dict[str, Any]]]:
