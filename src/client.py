@@ -21,7 +21,7 @@ class Bridgewatcher(Bot):
 
     @overrides(Bot)
     async def setup_hook(self) -> None:
-        LOGGER.info("Loading modules from `src.commads`.")
+        LOGGER.info("Loading modules from `src.commands`.")
         await load_cogs()
         LOGGER.info(f"Successfully syncronized {len(await bot.tree.sync())} commands globally.")
         LOGGER.info("Creating separate task for cache manager.")
