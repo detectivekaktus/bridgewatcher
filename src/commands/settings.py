@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 from typing import cast
-from discord import Color, Embed, Guild, Interaction
+from discord import ButtonStyle, Color, Embed, Guild, Interaction
 from discord.app_commands import Choice, choices, describe, command
 from discord.ext.commands import Bot, Cog, guild_only
+from discord.ui import Button, View
 from src.client import SERVERS
 from src.utils import inttostr_server, strtoint_server, inttoemoji_server
 
@@ -45,6 +46,9 @@ class Settings(Cog):
 
     @command(name="help", description="Provides basic information over the bot.")
     async def help(self, interaction: Interaction) -> None:
+        view: View = View()
+        view.add_item(Button(label="Support me on Patreon", style=ButtonStyle.blurple, url="https://www.patreon.com/detectivekaktus"))
+        view.add_item(Button(label="Add bot", url="https://discord.com/oauth2/authorize?client_id=1241428288195526796&permissions=8&scope=bot"))
         embed = Embed(title=":wave: Hello!",
                       color=Color.teal(),
                       description="I'm Bridgewatcher, a Discord bot created by <@692305905123065918>.\n"
@@ -70,7 +74,7 @@ class Settings(Cog):
                       "If the bot is behaving in unexpected way 🐞, please [report it to the developer]"
                       "(https://github.com/detectivekaktus/bridgewatcher/issues/new).")
         embed.set_author(name="Made by DetectiveKaktus", url="https://github.com/detectivekaktus")
-        await interaction.response.send_message(embed=embed)
+        await interaction.response.send_message(view=view, embed=embed)
 
 
 async def setup(bot: Bot) -> None:
