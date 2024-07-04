@@ -6,7 +6,7 @@ from datetime import datetime
 from sqlite3 import OperationalError, ProgrammingError
 from time import perf_counter
 from typing import Any, Final, Optional
-from src.constants import CITIES, ENCHANTMENTS, NON_CRAFTABLE, NON_SELLABLE_ON_BLACK_MARKET
+from src.constants import ENCHANTMENTS, NON_CRAFTABLE, NON_SELLABLE_ON_BLACK_MARKET
 from src.db import Database
 from src.utils import inttostr_server
 from src.utils.logging import LOGGER
@@ -57,9 +57,13 @@ class AlbionOnlineDataManager:
                 for response in responses:
                     chained_responses.extend(response if response else [{}] * self.__chunk_size)
 
-                for name in self.__cached_item_names:
-                    for i in range(0, len(tasks[server]), len(CITIES)):
-                        self.__cache[server - 1][name.lower()] = chained_responses[i:i + len(CITIES)]
+                for response in chained_responses:
+                    if not response:
+                        continue
+                    elif response["item_id"] not in self.__cache[server - 1]:
+                        self.__cache[server - 1][response["item_id"]] = [response]
+                    else:
+                        self.__cache[server - 1][response["item_id"]].append(response)
 
         LOGGER.info(f"Finished caching. Took: {round(perf_counter() - start, 2)} seconds.")
 
@@ -76,32 +80,32 @@ class AlbionOnlineDataManager:
 
     async def get(self, item_name: str, server: int, quality: int = 1) -> Optional[list[dict[str, Any]]]:
         async with self.__lock:
-            if not self.__is_cached(item_name) or quality != 1:
+            item: Optional[list[dict[str, Any]]] = self.__cache[server - 1].get(item_name, None)
+            if not self.__is_cached(item_name) or quality != 1 or not item:
+                LOGGER.debug(f"Getting {item_name} {quality} from API.")
                 fetcher: AlbionOnlineData = AlbionOnlineData(server)
                 return await fetcher.fetch_price(item_name, quality)
 
-            return self.__cache[server - 1].get(item_name.lower(), None)
+            LOGGER.debug(f"Getting {item_name} {quality} from cache.")
+            return item
 
 
     def __fill_cached_item_names(self) -> list[str]:
         names: list[str] = []
 
         with self.__database as db:
-            db.execute("SELECT * FROM items WHERE shop_category IN (?, ?, ?, ?, ?, ?)",
-                       ("armor", "mainhand", "offhand", "mounts", "artefacts", "resources"))
+            db.execute("SELECT * FROM items WHERE shop_category IN (?, ?, ?, ?, ?, ?, ?)",
+                       ("armor", "melee", "ranged", "offhand", "mounts", "artefacts", "resources"))
             items: list[tuple] = db.fetchall()
 
         for item in items:
-            if ItemManager.is_resource(self.__database, item[1]) and item[1][-1] in ("1", "2", "3", "4"):
-                names.append(f"{item[1]}@{item[1][-1]}")
-            else:
-                names.append(item[1])
+            names.append(f"{item[1]}@{item[1][-1]}" if ItemManager.is_resource(self.__database, item[1]) and item[1][-1] in ('1', '2', '3', '4') else item[1])
 
         return names
 
 
     def __is_cached(self, item_name: str) -> bool:
-        return item_name.lower() in self.__cached_item_names
+        return item_name in self.__cached_item_names
 
 
 class Fetcher(ABC):

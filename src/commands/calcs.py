@@ -9,7 +9,7 @@ from src.api import ItemManager, SandboxInteractiveRenderer
 from src.client import DATABASE, MANAGER, SERVERS
 from src.components.ui import CraftingView, FlipView
 from src.market import NON_PREMIUM_TAX, PREMIUM_TAX, Crafter, find_crafting_bonus_city, find_least_expensive_city, find_most_expensive_city
-from src.utils import format_name, strcityto_int, strtoquality_int, inttoemoji_server
+from src.utils import format_name, get_city_data, strtoquality_int, inttoemoji_server
 from src.utils.embeds import NameErrorEmbed, OutdatedDataErrorEmbed, ServerErrorEmbed, TimedOutErrorEmbed
 from src.utils.logging import LOGGER
 
@@ -72,11 +72,11 @@ class Calcs(Cog):
 
             resource_prices: dict[str, int] = {}
             for resource in view.crafting_requirements.keys():
-                resource_global_data: list[dict[str, Any]] | None = await MANAGER.get(resource, server)
-                if not resource_global_data:
+                global_resource_data: list[dict[str, Any]] | None = await MANAGER.get(resource, server)
+                if not global_resource_data:
                     await interaction.followup.send(embed=ServerErrorEmbed(), ephemeral=True)
                     return
-                resource_data: dict[str, Any] = resource_global_data[strcityto_int(craft_city)]
+                resource_data: dict[str, Any] = get_city_data(global_resource_data, craft_city)
                 if resource_data["sell_price_min"] == 0:
                     await interaction.followup.send(embed=OutdatedDataErrorEmbed(), ephemeral=True)
                     return
@@ -151,7 +151,7 @@ class Calcs(Cog):
                 await interaction.followup.send(embed=ServerErrorEmbed(), ephemeral=True)
                 return
 
-            data = [data[strcityto_int(view.cities[1])], data[strcityto_int(view.cities[0])]]
+            data = [get_city_data(data, view.cities[1]), get_city_data(data, view.cities[0])]
             
             if not data[0]["sell_price_min"] or not data[1]["sell_price_min"]:
                 await interaction.followup.send(embed=OutdatedDataErrorEmbed(), ephemeral=True)

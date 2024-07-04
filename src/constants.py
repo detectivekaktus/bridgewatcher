@@ -3,15 +3,6 @@ from typing import Final
 
 
 CITIES: Final[list[str]]  = ["black market", "brecilien", "bridgewatch", "caerleon", "fort sterling", "lymhurst", "martlock", "thetford"]
-BLACK_MARKET:  Final[int] = 0
-BRECILIEN:     Final[int] = 1
-BRIDGEWATCH:   Final[int] = 2
-CAERLEON:      Final[int] = 3
-FORT_STERLING: Final[int] = 4
-LYMHURST:      Final[int] = 5
-MARTLOCK:      Final[int] = 6
-THETFORD:      Final[int] = 7
-
 
 QUALITIES:     Final[tuple[str, ...]]                = ("Normal", "Good", "Outstanding", "Excellent", "Masterpiece")
 ENCHANTMENTS: Final[tuple[str, ...]]                 = ("@1", "@2", "@3", "@4")
@@ -27,7 +18,7 @@ BONUS_RATE: Final[int]   = 28
 
 CRAFTING_BONUSES: Final[dict[str, tuple]] = {
     "brecilien":     ("cape", "bag", "potion"),
-    "bridgewatch":   ("rock", "crossbow", "dagger", "cursestaff", "plate_armor", "cloth_shoes"),
+    "bridgewatch":   ("stoneblock", "crossbow", "dagger", "cursestaff", "plate_armor", "cloth_shoes"),
     "fort sterling": ("planks", "hammer", "spear", "holystaff", "plate_helmet", "cloth_armor"),
     "caerleon":      ("gatherergear", "tools", "knuckles", "shapeshifterstaff"),
     "lymhurst":      ("cloth", "sword", "bow", "arcanestaff", "leather_helmet", "leather_shoes"),

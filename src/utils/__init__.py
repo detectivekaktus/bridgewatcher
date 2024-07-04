@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-from typing import Callable, Type
-from src.constants import BLACK_MARKET, BRECILIEN, BRIDGEWATCH, CAERLEON, FORT_STERLING, LYMHURST, MARTLOCK, THETFORD
+from typing import Any, Callable, Type
 
 
 def overrides(interface_class: Type) -> Callable:
@@ -70,23 +69,9 @@ def inttoemoji_server(server: int) -> str:
             return "🇺🇸"
 
 
-def strcityto_int(city: str) -> int:
-    match city.lower():
-        case "black market":
-            return BLACK_MARKET
-        case "brecilien":
-            return BRECILIEN
-        case "bridgewatch":
-            return BRIDGEWATCH
-        case "caerleon":
-            return CAERLEON
-        case "fort sterling":
-            return FORT_STERLING
-        case "lymhurst":
-            return LYMHURST
-        case "martlock":
-            return MARTLOCK
-        case "thetford":
-            return THETFORD
-        case _:
-            return CAERLEON
+def get_city_data(data: list[dict[str, Any]], city: str) -> dict[str, Any]:
+    for field in data:
+        if field["city"].lower() == city.lower():
+            return field
+
+    return data[0]
