@@ -22,6 +22,8 @@ class Servers:
 
 
     def create_table(self) -> None:
+        if not path.exists("servers/"):
+            makedirs("servers/")
         with self as servers:
             servers.execute("CREATE TABLE IF NOT EXISTS servers(name TEXT, id INTEGER PRIMARY KEY, owner_id INTEGER, fetch_server INTEGER)")
 
