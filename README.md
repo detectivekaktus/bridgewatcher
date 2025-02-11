@@ -39,6 +39,8 @@ src:
 ```
 
 ## How do I get this to work?
+Be sure to have installed python 3.12.4
+
 If you have chosen the path of self-hosting the bot, follow the instructions in this section.
 
 ### Create a new Discord application
