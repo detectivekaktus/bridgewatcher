@@ -7,7 +7,7 @@ from src.constants import CITIES, DEFAULT_RATE, QUALITIES
 from src.api import ItemManager, remove_suffix
 from src.client import DATABASE
 from src.components.modals import ReturnModal, ResourcesModal
-from src.utils import overrides
+from src.utils.annotations import overrides
 
 
 class QualitySelect(Select):

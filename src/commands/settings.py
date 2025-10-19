@@ -5,7 +5,7 @@ from discord.app_commands import Choice, choices, describe, command
 from discord.ext.commands import Bot, Cog, guild_only
 from discord.ui import Button, View
 from src.client import SERVERS
-from src.utils import inttostr_server, strtoint_server, inttoemoji_server
+from src.utils.formatting import inttostr_server, strtoint_server, inttoemoji_server
 
 
 class Settings(Cog):

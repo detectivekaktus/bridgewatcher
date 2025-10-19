@@ -6,7 +6,7 @@ from discord.ext.commands import Bot, Cog
 from src.api import SandboxInteractiveInfo
 from src.client import SERVERS
 from src.components.cards import MembersCard, PlayerCard
-from src.utils import inttoemoji_server
+from src.utils.formatting import inttoemoji_server
 from src.utils.embeds import NameErrorEmbed, OutdatedDataErrorEmbed
 
 

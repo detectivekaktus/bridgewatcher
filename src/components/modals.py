@@ -7,7 +7,8 @@ from discord.ui import Modal, TextInput
 from src import ITEM_NAMES
 from src.api import remove_suffix
 from src.client import DATABASE
-from src.utils import api_name_to_readable_name, overrides
+from src.utils.formatting import api_name_to_readable_name
+from src.utils.annotations import overrides
 
 
 class ResourcesModal(Modal):

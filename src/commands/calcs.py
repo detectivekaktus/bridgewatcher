@@ -9,7 +9,7 @@ from src.api import ItemManager, SandboxInteractiveRenderer
 from src.client import DATABASE, MANAGER, SERVERS
 from src.components.ui import CraftingView, FlipView
 from src.market import NON_PREMIUM_TAX, PREMIUM_TAX, Crafter, find_crafting_bonus_city, find_least_expensive_city, find_most_expensive_city
-from src.utils import format_name, get_city_data, strtoquality_int, inttoemoji_server
+from src.utils.formatting import format_name, get_city_data, strtoquality_int, inttoemoji_server
 from src.utils.embeds import NameErrorEmbed, OutdatedDataErrorEmbed, ServerErrorEmbed, TimedOutErrorEmbed
 from src.utils.logging import LOGGER
 

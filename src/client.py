@@ -6,7 +6,7 @@ from discord.ext.commands import Bot
 from src.api import AlbionOnlineDataManager
 from src.config import Servers
 from src.db import Database
-from src.utils import overrides
+from src.utils.annotations import overrides
 from src.utils.logging import LOGGER
 
 

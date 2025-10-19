@@ -8,7 +8,7 @@ from src import ITEM_NAMES
 from src.api import AlbionOnlineData, SandboxInteractiveRenderer, convert_api_timestamp, get_percent_variation
 from src.client import MANAGER, SERVERS
 from src.components.ui import PriceView
-from src.utils import format_name, strtoquality_int, inttoemoji_server
+from src.utils.formatting import format_name, strtoquality_int, inttoemoji_server
 from src.utils.embeds import InvalidValueErrorEmbed, NameErrorEmbed, ServerErrorEmbed, TimedOutErrorEmbed
 
 

@@ -5,7 +5,8 @@ from discord import ButtonStyle, Color, Embed, Guild, Interaction, Message
 from discord.ui import Button, View, button
 from src import ITEM_NAMES
 from src.client import SERVERS
-from src.utils import api_name_to_readable_name, format_name, inttoemoji_server, overrides
+from src.utils.formatting import api_name_to_readable_name, format_name, inttoemoji_server
+from src.utils.annotations import overrides
 from src.utils.logging import LOGGER
 
 
@@ -27,12 +28,12 @@ class Card(ABC):
         pass
 
 
-    @button(label="<", style=ButtonStyle.blurple)
+    @button(label="<", style=ButtonStyle.blurple) # type: ignore
     @abstractmethod
     async def prev_button(self, interaction: Interaction, button: Button) -> None:
         pass
 
-    @button(label=">", style=ButtonStyle.blurple)
+    @button(label=">", style=ButtonStyle.blurple) # type: ignore
     @abstractmethod
     async def next_button(self, interaction: Interaction, button: Button) -> None:
         pass

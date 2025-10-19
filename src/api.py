@@ -8,7 +8,7 @@ from time import perf_counter
 from typing import Any, Final, Optional
 from src.constants import ENCHANTMENTS, NON_CRAFTABLE, NON_SELLABLE_ON_BLACK_MARKET
 from src.db import Database
-from src.utils import inttostr_server
+from src.utils.formatting import inttostr_server
 from src.utils.logging import LOGGER
 
 

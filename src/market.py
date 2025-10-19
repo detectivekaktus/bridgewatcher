@@ -5,7 +5,7 @@ from src import ITEM_NAMES
 from src.constants import CRAFTING_BONUSES
 from src.api import ItemManager, remove_suffix
 from src.client import DATABASE
-from src.utils import api_name_to_readable_name, format_name
+from src.utils.formatting import api_name_to_readable_name, format_name
 
 
 PREMIUM_TAX: Final[int] = 4
