@@ -16,7 +16,6 @@ def usage() -> None:
     print("    --populate: insert data into database if doesn't exist  ")
     print("    --upgrade:  update the data in the database             ")
     print("    --destroy:  delete the entire bot's database            ")
-    print("    Use --entire to delete the database file from the disk. ")
 
 
 def verify_configuration() -> None:
