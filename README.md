@@ -55,10 +55,9 @@ On the Discord Developers page within your application, go to the "Bot" tab and 
 
 After cloning the repository, create a `.env` file in the root directory and inside the file, paste: `DISCORD_TOKEN="your token"`. Your token is the token you copied from the Discord Developers. The quotes are obbligatory. If you also want to add a separate application as a debug version of the current application, specify `DEBUG_TOKEN="token"` following the steps you've done before.
 
-The application is containerized with Docker. Be sure to create a `logs` directory in the root folder of the project before proceeding.
+The application is containerized with Docker.
 
 Run:
 ```sh
-docker build -t bridgewatcher .
-docker run -d -v $(pwd)/logs:/app/logs bridgewatcher
+docker compose up -d --build
 ```
