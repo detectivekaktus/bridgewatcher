@@ -94,8 +94,8 @@ class AlbionOnlineDataManager:
         names: list[str] = []
 
         with self.__database as db:
-            db.execute("SELECT * FROM items WHERE shop_category IN (?, ?, ?, ?, ?)",
-                       ("armor", "melee", "ranged", "artefacts", "resources"))
+            db.execute("SELECT * FROM items WHERE shop_category IN (?, ?, ?, ?)",
+                       ("armors", "weapons", "artefacts", "crafting"))
             items: list[tuple] = db.fetchall()
 
         for item in items:
