@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-from os import path, remove
 from sqlite3 import Cursor, connect
 from json import dumps, load
 
@@ -22,7 +21,7 @@ class Database:
             db.execute("CREATE TABLE IF NOT EXISTS items(id INTEGER PRIMARY KEY, name TEXT, shop_category TEXT, shop_subcategory TEXT, crafting_requirements TEXT)")
 
 
-    def populate_table(self) -> None:
+    def seed(self) -> None:
         with open("res/items.json", "r") as f:
             items = load(f)
         categories = ("hideoutitem", "trackingitem", "farmableitem", "simpleitem", "consumableitem", "consumablefrominventoryitem", "equipmentitem", "weapon", "mount", "furnitureitem", "mountskin", "journalitem", "labourercontract", "transformationweapon", "crystalleagueitem", "siegebanner", "killtrophy")
@@ -43,24 +42,3 @@ class Database:
                 print(f"Added {item["@uniquename"]} into the database. Items added: {items_added}")
 
         print("Finished adding items...")
-
-
-    def upgrade_database(self) -> None:
-        if not path.exists(self.path):
-            print("ERROR: can't upgrade non existing database.")
-            exit(1)
-
-        with self as db:
-            db.execute("DROP TABLE items")
-
-        self.create_items_table()
-        self.populate_table()
-
-
-    def destroy(self, keep_file: bool = False) -> None:
-        if not path.exists(self.path):
-            print("ERROR: can't destroy non existing database.")
-            exit(1)
-
-        if not keep_file:
-            remove(self.path)

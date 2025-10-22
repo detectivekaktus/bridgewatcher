@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from os import makedirs, path
+from os import path
 from sqlite3 import Cursor, connect
 from typing import Any, Optional
 from discord import Guild
@@ -22,16 +22,11 @@ class Servers:
 
 
     def create_table(self) -> None:
-        if not path.exists("servers/"):
-            makedirs("servers/")
         with self as servers:
             servers.execute("CREATE TABLE IF NOT EXISTS servers(name TEXT, id INTEGER PRIMARY KEY, owner_id INTEGER, fetch_server INTEGER)")
 
 
     def create_config(self, guild: Guild) -> None:
-        if not path.exists("servers/"):
-            makedirs("servers/")
-
         self.write_config(guild, 1)
 
 
@@ -66,7 +61,7 @@ class Servers:
 
 
     def has_config(self, guild: Guild) -> bool:
-        if not path.exists("servers/servers.db"):
+        if not path.exists(self.path):
             return False
 
         with self as servers:

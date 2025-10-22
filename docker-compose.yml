@@ -1,0 +1,12 @@
+services:
+  bridgewatcher:
+    build: .
+    volumes:
+      - bridgewatcher_sqlite:/data
+    env_file:
+      - .env
+    environment:
+      - MODE=CONTAINER
+
+volumes:
+  bridgewatcher_sqlite:

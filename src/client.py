@@ -34,8 +34,8 @@ bot: Bridgewatcher = Bridgewatcher(INTENTS)
 bot.remove_command("help")
 
 
-DATABASE: Final[Database] = Database("res/items.db")
-SERVERS: Final[Servers] = Servers("servers/servers.db")
+DATABASE: Final[Database] = Database("/data/items.db")
+SERVERS: Final[Servers] = Servers("/data/servers.db")
 MANAGER: Final[AlbionOnlineDataManager] = AlbionOnlineDataManager(DATABASE)
 
 

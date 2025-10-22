@@ -3,7 +3,6 @@
 
 venv/
 
-servers/
 logs/
 
 __pycache__
