@@ -17,7 +17,7 @@ BONUS_RATE: Final[int]   = 28
 
 
 CRAFTING_BONUSES: Final[dict[str, tuple]] = {
-    "brecilien":     ("cape", "bag", "potion"),
+    "brecilien":     ("capes", "bags", "potions"),
     "bridgewatch":   ("stoneblock", "crossbow", "dagger", "cursestaff", "plate_armor", "cloth_shoes"),
     "fort sterling": ("planks", "hammer", "spear", "holystaff", "plate_helmet", "cloth_armor"),
     "caerleon":      ("gatherergear", "tools", "knuckles", "shapeshifterstaff"),
