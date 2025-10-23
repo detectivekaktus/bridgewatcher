@@ -8,12 +8,12 @@ class Database:
         self.path = path
 
     def __enter__(self) -> Cursor:
-        self.connection = connect(self.path)
-        return self.connection.cursor()
+        self._connection = connect(self.path)
+        return self._connection.cursor()
 
     def __exit__(self, *args) -> None:
-        self.connection.commit()
-        self.connection.close()
+        self._connection.commit()
+        self._connection.close()
 
 
     def create_items_table(self) -> None:

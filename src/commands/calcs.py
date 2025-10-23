@@ -65,7 +65,7 @@ class Calcs(Cog):
                     if view.return_rate == DEFAULT_RATE:
                         view.return_rate = BONUS_RATE
                 else:
-                    LOGGER.warn(f"Couldn't find crafting bonus city for {ITEM_NAMES[item_name]}.")
+                    LOGGER.warning(f"Couldn't find crafting bonus city for {ITEM_NAMES[item_name]}.")
                     craft_city = find_least_expensive_city(data)
             if not sell_city:
                 sell_city = find_most_expensive_city(data, include_black_market=True if not ItemManager.is_resource(DATABASE, ITEM_NAMES[item_name]) else False)

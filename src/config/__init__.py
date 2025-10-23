@@ -7,12 +7,12 @@ from discord import Guild
 
 class Servers:
     def __init__(self, path: str) -> None:
-        self.path = path
+        self._path = path
         self.create_table()
 
 
     def __enter__(self) -> Cursor:
-        self.connection = connect(self.path)
+        self.connection = connect(self._path)
         return self.connection.cursor()
 
 
@@ -61,7 +61,7 @@ class Servers:
 
 
     def has_config(self, guild: Guild) -> bool:
-        if not path.exists(self.path):
+        if not path.exists(self._path):
             return False
 
         with self as servers:
