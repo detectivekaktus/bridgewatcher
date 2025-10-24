@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from typing import Any
 
+
 def strtoquality_int(quality: str) -> int:
     match quality.lower():
         case "normal":

@@ -15,30 +15,63 @@ class Database:
         self._connection.commit()
         self._connection.close()
 
-
     def create_items_table(self) -> None:
         with self as db:
-            db.execute("CREATE TABLE IF NOT EXISTS items(id INTEGER PRIMARY KEY, name TEXT, shop_category TEXT, shop_subcategory TEXT, crafting_requirements TEXT)")
-
+            db.execute(
+                "CREATE TABLE IF NOT EXISTS items(id INTEGER PRIMARY KEY, name TEXT, shop_category TEXT, shop_subcategory TEXT, crafting_requirements TEXT)"
+            )
 
     def seed(self) -> None:
         with open("res/items.json", "r") as f:
             items = load(f)
-        categories = ("hideoutitem", "trackingitem", "farmableitem", "simpleitem", "consumableitem", "consumablefrominventoryitem", "equipmentitem", "weapon", "mount", "furnitureitem", "mountskin", "journalitem", "labourercontract", "transformationweapon", "crystalleagueitem", "siegebanner", "killtrophy")
+        categories = (
+            "hideoutitem",
+            "trackingitem",
+            "farmableitem",
+            "simpleitem",
+            "consumableitem",
+            "consumablefrominventoryitem",
+            "equipmentitem",
+            "weapon",
+            "mount",
+            "furnitureitem",
+            "mountskin",
+            "journalitem",
+            "labourercontract",
+            "transformationweapon",
+            "crystalleagueitem",
+            "siegebanner",
+            "killtrophy",
+        )
 
         items_added: int = 0
 
         for category in categories:
             for item in items["items"][category]:
-                if not isinstance(item, dict): continue
-                
+                if not isinstance(item, dict):
+                    continue
+
                 with self as db:
-                    db.execute("INSERT INTO items (name, shop_category, shop_subcategory, crafting_requirements) VALUES (?, ?, ?, ?)",
-                             (item["@uniquename"],
-                              item["@shopcategory"] if "@shopcategory" in item else None,
-                              item["@shopsubcategory1"] if "@shopsubcategory1" in item else None,
-                              dumps(item["craftingrequirements"]) if "craftingrequirements" in item else None))
+                    db.execute(
+                        "INSERT INTO items (name, shop_category, shop_subcategory, crafting_requirements) VALUES (?, ?, ?, ?)",
+                        (
+                            item["@uniquename"],
+                            item["@shopcategory"] if "@shopcategory" in item else None,
+                            (
+                                item["@shopsubcategory1"]
+                                if "@shopsubcategory1" in item
+                                else None
+                            ),
+                            (
+                                dumps(item["craftingrequirements"])
+                                if "craftingrequirements" in item
+                                else None
+                            ),
+                        ),
+                    )
                 items_added += 1
-                print(f"Added {item["@uniquename"]} into the database. Items added: {items_added}")
+                print(
+                    f"Added {item["@uniquename"]} into the database. Items added: {items_added}"
+                )
 
         print("Finished adding items...")

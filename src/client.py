@@ -12,18 +12,21 @@ from src.utils.logging import LOGGER
 
 class Bridgewatcher(Bot):
     def __init__(self, intents: Intents) -> None:
-        super().__init__(command_prefix=';',
-                         intents=intents,
-                         owner_id=692305905123065918,
-                         activity=Activity(type=ActivityType.listening, name="/help"),
-                         status=Status.do_not_disturb)
-
+        super().__init__(
+            command_prefix=";",
+            intents=intents,
+            owner_id=692305905123065918,
+            activity=Activity(type=ActivityType.listening, name="/help"),
+            status=Status.do_not_disturb,
+        )
 
     @overrides(Bot)
     async def setup_hook(self) -> None:
         LOGGER.info("Loading modules from `src.commands`.")
         await load_cogs()
-        LOGGER.info(f"Successfully syncronized {len(await bot.tree.sync())} commands globally.")
+        LOGGER.info(
+            f"Successfully syncronized {len(await bot.tree.sync())} commands globally."
+        )
         LOGGER.info("Creating separate task for cache manager.")
         self.loop.create_task(MANAGER.lifecycle())
 
