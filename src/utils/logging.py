@@ -7,9 +7,11 @@ from os import path, mkdir
 class BotLogger(Logger):
     def __init__(self, name: str, filename: str, level: int = DEBUG) -> None:
         super().__init__(name=name, level=level)
-        
-        formatter: Formatter = Formatter("%(asctime)s - %(name)s - %(levelname)s: %(message)s",
-                                         datefmt="%d/%m/%Y %I:%M:%S %p")
+
+        formatter: Formatter = Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s: %(message)s",
+            datefmt="%d/%m/%Y %I:%M:%S %p",
+        )
         fileHandler: FileHandler = FileHandler(filename)
         fileHandler.setFormatter(formatter)
         console: StreamHandler = StreamHandler()
