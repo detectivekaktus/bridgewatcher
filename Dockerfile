@@ -6,4 +6,4 @@ COPY . /app
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Not sure if seeding here is the best choice...
-CMD [ "sh", "-c", "python3 seed.py && python3 bot.py" ]
+CMD [ "sh", "-c", "python3 seed.py && python3 main.py" ]
