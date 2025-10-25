@@ -108,7 +108,7 @@ class Calcs(Cog):
                     LOGGER.warning(
                         f"Couldn't find crafting bonus city for {ITEM_NAMES[item_name]}."
                     )
-                    craft_city = find_least_expensive_city(data)
+                    craft_city = find_least_expensive_city(data) # type: ignore
             if not sell_city:
                 sell_city = find_most_expensive_city(
                     data,
@@ -116,8 +116,8 @@ class Calcs(Cog):
                         True
                         if not ItemManager.is_resource(DATABASE, ITEM_NAMES[item_name])
                         else False
-                    ),
-                )
+                    ), 
+                ) # type: ignore
 
             resource_prices: dict[str, int] = {}
             for resource in view.crafting_requirements.keys():
