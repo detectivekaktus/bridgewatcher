@@ -36,8 +36,7 @@ class Info(Cog):
             return
 
         server: int = SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"]
-        fetcher: AlbionOnlineData = AlbionOnlineData(server)
-        data: Optional[list[dict[str, Any]]] = await fetcher.fetch_gold(count + 1)
+        data: Optional[list[dict[str, Any]]] = await MANAGER.get_gold(server, count + 1)
         if not data:
             await interaction.response.send_message(
                 embed=ServerErrorEmbed(), ephemeral=True
@@ -77,8 +76,7 @@ class Info(Cog):
     @guild_only()
     async def premium(self, interaction: Interaction) -> None:
         server: int = SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"]
-        fetcher: AlbionOnlineData = AlbionOnlineData(server)
-        data: Optional[list[dict[str, Any]]] = await fetcher.fetch_gold(1)
+        data: Optional[list[dict[str, Any]]] = await MANAGER.get_gold(server, 1)
 
         if not data:
             await interaction.response.send_message(

@@ -17,8 +17,6 @@ AOD_SERVER_URLS: Final = {1: "west", 2: "europe", 3: "east"}
 SBI_SERVER_URLS: Final = {1: "gameinfo", 2: "gameinfo-ams", 3: "gameinfo-sgp"}
 
 
-# TODO: Add gold fetching method and make `AlbionOnlineDataManager` the main
-#       fetching class, so `AlbionOnlineData` becomes internal-only.
 class AlbionOnlineDataManager:
     """
     Albion Online Data Project manager class. The class provides facade interface
@@ -162,6 +160,21 @@ class AlbionOnlineDataManager:
 
             LOGGER.debug(f"Getting {item_name} {quality} from cache.")
             return item
+        
+    async def get_gold(self, server: int, count: int = 3) -> Optional[list[dict[str, Any]]]:
+        """
+        Get latest gold prices from Albion Online Data project server.
+
+        Args:
+            server (int): 1 for NA, 2 for Europe, and 3 for Asia
+            count (int): entries to fetch
+
+        Returns:
+            Optional[list[dict[str, Any]]]: list of the latest gold prices or `None`
+            if the request fails.
+        """
+        fetcher = AlbionOnlineData(server)
+        return await fetcher.fetch_gold(count)
 
     def __fill_cached_item_names(self) -> list[str]:
         """
@@ -292,8 +305,7 @@ class SandboxInteractiveInfo(Fetcher):
             LOGGER.error(f"Timed out on {url} fetch.")
             return None
 
-    # TODO: make this method internal-only.
-    async def find_player(self, name: str) -> Optional[dict[str, Any]]:
+    async def _find_player(self, name: str) -> Optional[dict[str, Any]]:
         """
         Get the player's details by their name. If there are multiple players matching
         the name criteria, the first one is returned.
@@ -329,8 +341,7 @@ class SandboxInteractiveInfo(Fetcher):
             )
             return None
 
-    # TODO: make this method internal-only.
-    async def find_guild(self, name: str) -> Optional[dict[str, Any]]:
+    async def _find_guild(self, name: str) -> Optional[dict[str, Any]]:
         """
         Get the guild's details by its name. If there are multiple guilds matching
         the name criteria, the first one is returned.
@@ -378,7 +389,7 @@ class SandboxInteractiveInfo(Fetcher):
             Optional[dict[str, Any]]: detailed player info, or None if the request fails
             or there's no player with the given name.
         """
-        player: Optional[dict[str, Any]] = await self.find_player(name)
+        player: Optional[dict[str, Any]] = await self._find_player(name)
         if not player:
             return None
 
@@ -398,7 +409,7 @@ class SandboxInteractiveInfo(Fetcher):
             Optional[list[dict[str, Any]]]: detailed log of player's deaths, or None if the request
             fails or there's no player with the given name.
         """
-        player: Optional[dict[str, Any]] = await self.find_player(name)
+        player: Optional[dict[str, Any]] = await self._find_player(name)
         if not player:
             return None
 
@@ -418,7 +429,7 @@ class SandboxInteractiveInfo(Fetcher):
             Optional[list[dict[str, Any]]]: detailed log of player's kills, or None if the request
             fails or there's no player with the given name.
         """
-        player: Optional[dict[str, Any]] = await self.find_player(name)
+        player: Optional[dict[str, Any]] = await self._find_player(name)
         if not player:
             return None
 
@@ -438,7 +449,7 @@ class SandboxInteractiveInfo(Fetcher):
             Optional[dict[str, Any]]: detailed guild info, or None if the request fails
             or there's no guild with the given name.
         """
-        guild: Optional[dict[str, Any]] = await self.find_guild(name)
+        guild: Optional[dict[str, Any]] = await self._find_guild(name)
         if not guild:
             return None
 
@@ -458,7 +469,7 @@ class SandboxInteractiveInfo(Fetcher):
             Optional[dict[str, Any]]: detailed list of guild members, or None if the request fails
             or there's no guild with the given name.
         """
-        guild: Optional[dict[str, Any]] = await self.find_guild(name)
+        guild: Optional[dict[str, Any]] = await self._find_guild(name)
         if not guild:
             return None
 
