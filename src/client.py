@@ -28,7 +28,6 @@ class Bridgewatcher(Bot):
             f"Successfully syncronized {len(await bot.tree.sync())} commands globally."
         )
         LOGGER.info("Creating separate task for cache manager.")
-        self.loop.create_task(MANAGER.lifecycle())
 
 
 INTENTS: Final[Intents] = Intents.default()
@@ -39,7 +38,7 @@ bot.remove_command("help")
 
 DATABASE: Final[Database] = Database("/data/items.db")
 SERVERS: Final[Servers] = Servers("/data/servers.db")
-MANAGER: Final[AlbionOnlineDataManager] = AlbionOnlineDataManager(DATABASE)
+MANAGER: Final[AlbionOnlineDataManager] = AlbionOnlineDataManager()
 
 
 async def load_cogs():

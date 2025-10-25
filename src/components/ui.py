@@ -3,7 +3,7 @@ from json import loads
 from typing import Any, Optional
 from discord import ButtonStyle, Interaction, SelectOption
 from discord.ui import Button, Select, View, button
-from src.constants import CITIES, DEFAULT_RATE, QUALITIES
+from src.utils.constants import CITIES, DEFAULT_RATE, QUALITIES
 from src.api import ItemManager, remove_suffix
 from src.client import DATABASE
 from src.components.modals import ReturnModal, ResourcesModal

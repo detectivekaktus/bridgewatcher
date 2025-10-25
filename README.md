@@ -34,7 +34,6 @@ src:
   - utils:       -> helper functions and classes.
   - api.py       -> utilities to interact with 3rd party APIs.
   - client.py    -> bot definition.
-  - constants.py -> constant values.
   - market.py    -> market calculations.
 ```
 
