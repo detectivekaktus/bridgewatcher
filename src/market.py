@@ -2,7 +2,7 @@
 from math import floor
 from typing import Any, Final, Optional
 from src import ITEM_NAMES
-from src.constants import CRAFTING_BONUSES
+from src.utils.constants import CRAFTING_BONUSES
 from src.api import ItemManager, remove_suffix
 from src.client import DATABASE
 from src.utils.formatting import api_name_to_readable_name, format_name

@@ -1,13 +1,9 @@
 #!/usr/bin/env python3
-import sys
 from abc import ABC, abstractmethod
 from aiohttp import ClientSession, ClientTimeout
-from asyncio import Lock, Task, create_task, gather, sleep
 from datetime import datetime
-from sqlite3 import OperationalError, ProgrammingError
-from time import perf_counter
 from typing import Any, Final, Optional
-from src.constants import ENCHANTMENTS, NON_CRAFTABLE, NON_SELLABLE_ON_BLACK_MARKET
+from src.utils.constants import ENCHANTMENTS, NON_CRAFTABLE, NON_SELLABLE_ON_BLACK_MARKET
 from src.db import Database
 from src.utils.formatting import inttostr_server
 from src.utils.logging import LOGGER
@@ -24,121 +20,18 @@ class AlbionOnlineDataManager:
     data retrieval and load balancing API requests to evade HTTP 429.
     """
 
-    def __init__(self, database: Database, update_interval_sec: int = 600) -> None:
-        """
-        Initialize AlbionOnlineDataManager class.
-
-        Args:
-            database (Database): global database reference.
-            update_interval_sec (int): recache interval in seconds.
-        """
-        try:
-            self._database = database
-            self._update_interval_sec = update_interval_sec
-            self._cache: list[dict[str, list[dict[str, Any]]]] = [{}, {}, {}]
-            # number of items fetched per request.
-            self._chunk_size: int = 64
-            # async lock that allows to queue incoming requests during caching
-            self._lock = Lock()
-            self._cached_item_names: list[str] = self.__fill_cached_item_names()
-        except (ProgrammingError, OperationalError):
-            LOGGER.error("PANIC: No database table `items` found.")
-            LOGGER.error(
-                "FATAL ERROR: `__fill_cached_item_names()` has failed with an SQL error. This is likely due to a programming error inside the codebase. Please, double check SQL queries and try running the application again."
-            )
-            sys.exit(1)
-
-    async def lifecycle(self) -> None:
-        """
-        Manager's lifecycle that runs forever. During the lifecycle
-        the manager object updates global data cache.
-        """
-        while True:
-            await self.__update_cache()
-            await sleep(self._update_interval_sec)
-
-    async def __update_cache(self) -> None:
-        """
-        Update global data cache. The update happens in parallel on American, European,
-        and Asian servers. For each server async tasks are created, gathered and processed
-        to update internal cache with the latest data on Albion Online Data Project server.
-        Missing responses are padded with empty placeholders to preserve chunk size consistent.
-
-        The update is thread safe because it's guarded with an internal async lock. This prevents
-        concurrent write or read operations.
-
-        Workflow:
-            1. Create async fetch tasks for each server via `__create_server_tasks()`.
-            2. Await completion of each fetch task with `asyncio.gather()`.
-            3. Chain all received responses per server.
-            4. Insert data into cache for each item.
-            5. Log the performance of caching.
-
-        Note:
-            This function is called only and only inside `lifecycle()` method and is not intended
-            to be called anywhere else.
-        """
-        LOGGER.info("Cache update started.")
-        start = perf_counter()
-
-        async with self._lock:
-            tasks: dict[int, list[Task]] = self.__create_server_tasks()
-            for server in range(1, 4):
-                responses: list[list[dict[str, Any]]] = await gather(*tasks[server])
-                chained_responses: list[dict[str, Any]] = []
-
-                # If no response, add `[{}] * self_chunk_size` padding to keep
-                # the data consistent.
-                for response in responses:
-                    chained_responses.extend(
-                        response if response else [{}] * self._chunk_size
-                    )
-
-                for response in chained_responses:
-                    # the [{}] responses from top
-                    if not response:
-                        continue
-                    # This may be a memory hog because previous responses aren't(?) discarded.
-                    elif response["item_id"] not in self._cache[server - 1]:
-                        self._cache[server - 1][response["item_id"]] = [response]
-                    else:
-                        self._cache[server - 1][response["item_id"]].append(response)
-
-        LOGGER.info(
-            f"Finished caching. Took: {round(perf_counter() - start, 2)} seconds."
-        )
-
-    def __create_server_tasks(self) -> dict[int, list[Task]]:
-        """
-        For each server create fetch tasks for internal data caching using `AlbionOnlineData`
-        object. Each task fetches `self._chunk_size` items.
-
-        Returns:
-            dict[int, list[Task]]: A mapping of server ID to a list of fetch tasks.
-        """
-        tasks: dict[int, list[Task]] = {}
-
-        for server in range(1, 4):
-            fetcher: AlbionOnlineData = AlbionOnlineData(server)
-            tasks[server] = [
-                create_task(
-                    fetcher.fetch_price(
-                        ",".join(self._cached_item_names[i : i + self._chunk_size])
-                    )
-                )
-                for i in range(0, len(self._cached_item_names), self._chunk_size)
-            ]
-
-        return tasks
+    def __init__(self) -> None:
+        # list of 3 dictionaries (1 for each server) containing cached items
+        self._cache: list[dict[str, list[dict[str, Any]]]] = [{}, {}, {}]
+        self._cache_updates: list[dict[str, datetime]] = [{}, {}, {}]
 
     async def get(
         self, item_name: str, server: int, quality: int = 1
     ) -> Optional[list[dict[str, Any]]]:
         """
-        Get item data by its name and quality on specified server. This method triggers an
-        async lock which blocks incoming concurrent write and read requests. If the item is
-        cached and its quality is equal to 1, returns the item data from cache, otherwise
-        makes an additional API request.
+        Get item data by its name and quality on specified server. If the item is
+        cached, return the item data from cache, otherwise make an additional API request
+        and cache.
 
         Args:
             item_name (str): internal item name.
@@ -149,19 +42,51 @@ class AlbionOnlineDataManager:
             Optional[list[dict[str, Any]]]: item data from cache or API, or `None` if the
             request fails.
         """
-        async with self._lock:
-            item: Optional[list[dict[str, Any]]] = self._cache[server - 1].get(
-                item_name, None
-            )
-            if not self.__is_cached(item_name) or quality != 1 or not item:
-                LOGGER.debug(f"Getting {item_name} {quality} from API.")
-                fetcher: AlbionOnlineData = AlbionOnlineData(server)
-                return await fetcher.fetch_price(item_name, quality)
-
-            LOGGER.debug(f"Getting {item_name} {quality} from cache.")
-            return item
+        item: Optional[list[dict[str, Any]]] = self._cache[server - 1].get(
+            item_name, None
+        )
+        if not item:
+            LOGGER.debug(f"Getting {item_name} {quality} from API.")
+            await self._cache_item(item_name, server, quality)
+            return self._cache[server - 1][item_name]
         
-    async def get_gold(self, server: int, count: int = 3) -> Optional[list[dict[str, Any]]]:
+        cache_date = self._cache_updates[server - 1][item_name]
+        if (datetime.now() - cache_date).total_seconds() > 300:
+            LOGGER.debug(f"Recaching {item_name} {quality}.")
+            item = await self._cache_item(item_name, server, quality)
+
+        LOGGER.debug(f"Getting {item_name} {quality} from cache.")
+        return item
+    
+    async def _cache_item(
+        self, item_name: str, server: int, quality: int
+    ) -> Optional[list[dict[str, Any]]]:
+        """
+        Cache item by its name, server, and quality by making a request to
+        the Albion Online Data Project API.
+
+        Args:
+            item_name (str): internal item name.
+            server (int): 1 for NA, 2 for Europe, 3 for Asia.
+            quality (int): normal to masterpiece written in integer form.
+
+        Returns:
+            Optional[list[dict[str, Any]]]: the item data or `None` if the request
+            fails.
+        """
+        fetcher: AlbionOnlineData = AlbionOnlineData(server)
+        data = await fetcher.fetch_price(item_name, quality)
+
+        if not data:
+            return None
+
+        self._cache[server - 1][item_name] = data
+        self._cache_updates[server - 1][item_name] = datetime.now()
+        return data
+
+    async def get_gold(
+        self, server: int, count: int = 3
+    ) -> Optional[list[dict[str, Any]]]:
         """
         Get latest gold prices from Albion Online Data project server.
 
@@ -175,41 +100,6 @@ class AlbionOnlineDataManager:
         """
         fetcher = AlbionOnlineData(server)
         return await fetcher.fetch_gold(count)
-
-    def __fill_cached_item_names(self) -> list[str]:
-        """
-        Select items from `armors`, `weapons`, and `crafting` categories from the items database.
-
-        Returns:
-            list[str]: List of cachable item names.
-        """
-        names: list[str] = []
-
-        with self._database as db:
-            db.execute(
-                "SELECT * FROM items WHERE shop_category IN (?, ?, ?)",
-                ("armors", "weapons", "crafting"),
-            )
-            items: list[tuple] = db.fetchall()
-
-        # item[0] is an id
-        # item[1] is a name
-        # See src.db.__init__.py
-
-        # Add enchanted resources and skip other enchanted items.
-        for item in items:
-            names.append(
-                f"{item[1]}@{item[1][-1]}"
-                if ItemManager.is_resource(self._database, item[1])
-                and item[1][-1] in ("1", "2", "3", "4")
-                else item[1]
-            )
-
-        return names
-
-    def __is_cached(self, item_name: str) -> bool:
-        """Check if item is cachable."""
-        return item_name in self._cached_item_names
 
 
 class Fetcher(ABC):
@@ -500,7 +390,7 @@ class ItemManager:
         Returns:
             bool: False if 1. Item name is invalid, 2. Item's got no crafting requirements.
                 3. Item's inside NON_CRAFTABLE category, True otherwise.
-        
+
         """
         if ItemManager.is_enchanted(item_name):
             item_name = item_name[:-2]
@@ -530,7 +420,7 @@ class ItemManager:
     @staticmethod
     def is_resource(database: Database, item_name: str) -> bool:
         """
-        Check if `shop_category` of item is equal to `crafting`. 
+        Check if `shop_category` of item is equal to `crafting`.
         """
         if ItemManager.is_enchanted(item_name):
             item_name = item_name[:-2]
@@ -545,7 +435,7 @@ class ItemManager:
     @staticmethod
     def is_artefact(database: Database, item_name: str) -> bool:
         """
-        Check if `shop_category` of item is equal to `artefacts`. 
+        Check if `shop_category` of item is equal to `artefacts`.
         """
         if ItemManager.is_enchanted(item_name):
             return False
@@ -560,7 +450,7 @@ class ItemManager:
     @staticmethod
     def is_fractional(database: Database, item_name: str) -> bool:
         """
-        Check if `shop_category` of item is equal to `cityresources`. 
+        Check if `shop_category` of item is equal to `cityresources`.
         """
         if ItemManager.is_enchanted(item_name):
             return False
@@ -575,7 +465,7 @@ class ItemManager:
     @staticmethod
     def is_consumable(database: Database, item_name: str) -> bool:
         """
-        Check if `shop_category` of item is equal to `consumables`. 
+        Check if `shop_category` of item is equal to `consumables`.
         """
         item: Optional[tuple] = ItemManager.get_item(database, item_name)
 
@@ -624,7 +514,7 @@ class SandboxInteractiveRenderer:
     def fetch_item(identifier: str, quality: int = 1) -> str:
         """
         Get item icon url by its name and quality.
-        
+
         Args:
             identifier (str): internal item name
             quality (int): normal to masterpiece quality in integer form.
@@ -638,7 +528,7 @@ class SandboxInteractiveRenderer:
     def fetch_spell(identifier: str) -> str:
         """
         Get spell icon url by its name.
-        
+
         Args:
             identifier (str): internal spell name
 
@@ -651,7 +541,7 @@ class SandboxInteractiveRenderer:
     def fetch_wardrobe(identifier: str) -> str:
         """
         Get wardrobe icon url by its name.
-        
+
         Args:
             identifier (str): internal wardrobe name
 
