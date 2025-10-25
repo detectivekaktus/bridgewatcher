@@ -141,7 +141,7 @@ class Crafter:
         """
         Get maximum number of items crafted by selecting the minimum craftable number of
         items for each resource involved into crafting.
-        
+
         Args:
             total_resources (dict[str, int]): user-given and returned resources combined in a
                 single dictionary, keyed by resource name.
@@ -152,7 +152,9 @@ class Crafter:
         items_number: float = float("inf")
 
         for resource in total_resources.keys():
-            items_number = min(items_number, total_resources[resource] // self._requirements[resource])
+            items_number = min(
+                items_number, total_resources[resource] // self._requirements[resource]
+            )
 
         return int(items_number)
 
@@ -223,7 +225,7 @@ def find_crafting_bonus_city(item_name: str) -> Optional[str]:
     Returns:
         Optional[str]: city name with crafting bonus for the selected item
             or `None` if failed to find any.
-    
+
     Example:
         >>> find_crafting_bonus_city("T4_METALBAR")
         "thetford"
