@@ -1,27 +1,28 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: Report a bug that you've encountered while using Bridgewatcher bot
 title: ''
 labels: ''
 assignees: ''
 
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+### Before submitting your bug report
+- Check if your bug has already been reported by other users.
+- If possible, check the latest git `master` version of the bot by self-running it.
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+### General information
+- Bot version: (use `/help` command and see *Version* name at the bottom)
+- Your keyboard layout: (for example `en/us`, `it/it`, or `ru/ru`)
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+### Describe the issue
+Please, describe what the problem is with as many details as possible. What happens? When does it happen? How frequent is the bug? Can you reproduce it? Do other users on the server have it?
 
-**Additional context**
-Add any other context about the problem here.
+Please, **DO NOT** write "it doesn't work", because your issue will be closed as unplaned.
+
+### Regression
+Did it use to work? If you know exactly when the bug has appeared, this would be a huge detail to mention.
+
+### Logs
+Please, attach any logs, screenshots or messages that are helpful in solving this issue. If there aren't any, leave this section blank.

@@ -16,8 +16,10 @@ updates:
         applies-to: version-updates
         patterns:
           - "*"
+    commit-message:
+      prefix: "chore(deps)"
 
-- package-ecosystem: "github-actions"
+  - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "cron"
@@ -28,4 +30,5 @@ updates:
         applies-to: version-updates
         patterns:
           - "*"
-          
+    commit-message:
+      prefix: "chore(github)"
