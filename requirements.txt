@@ -13,5 +13,5 @@ pathspec==0.12.1
 platformdirs==4.5.0
 python-dotenv==1.0.1
 pytokens==0.2.0
-setuptools==70.1.1
+setuptools==78.1.1
 yarl==1.9.4
