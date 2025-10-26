@@ -22,6 +22,8 @@ def map_readable_item_names() -> dict[str, str]:
 load_dotenv()
 assert getenv("MODE") == "CONTAINER", "Cannot run the application outside a container."
 
+__VERSION__ = "1.0.0"
+
 DISCORD_TOKEN: str | None = getenv("DISCORD_TOKEN")
 DEBUG_TOKEN: str | None = getenv("DEBUG_TOKEN")
 ITEM_NAMES: Final[dict[str, str]] = map_readable_item_names()

@@ -27,7 +27,6 @@ class Bridgewatcher(Bot):
         LOGGER.info(
             f"Successfully syncronized {len(await bot.tree.sync())} commands globally."
         )
-        LOGGER.info("Creating separate task for cache manager.")
 
 
 INTENTS: Final[Intents] = Intents.default()

@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 from typing import cast
-from discord import ButtonStyle, Color, Embed, Guild, Interaction
+from discord import Color, Embed, Guild, Interaction
 from discord.app_commands import Choice, choices, describe, command
 from discord.ext.commands import Bot, Cog, guild_only
 from discord.ui import Button, View
 from src.client import SERVERS
 from src.utils.formatting import inttostr_server, strtoint_server, inttoemoji_server
+from src import __VERSION__
 
 
 class Settings(Cog):
@@ -62,13 +63,6 @@ class Settings(Cog):
         view: View = View()
         view.add_item(
             Button(
-                label="Support me on Patreon",
-                style=ButtonStyle.blurple,
-                url="https://www.patreon.com/detectivekaktus",
-            )
-        )
-        view.add_item(
-            Button(
                 label="Add bot",
                 url="https://discord.com/oauth2/authorize?client_id=1241428288195526796&permissions=8&scope=bot",
             )
@@ -95,11 +89,12 @@ class Settings(Cog):
             "👨 `/members`: get members of the guild\n\n"
             "**Found a bug?**\n"
             "If the bot is behaving in unexpected way 🐞, please [report it to the developer]"
-            "(https://github.com/detectivekaktus/bridgewatcher/issues/new).",
+            "(https://github.com/detectivekaktus/bridgewatcher/issues).",
         )
         embed.set_author(
             name="Made by DetectiveKaktus", url="https://github.com/detectivekaktus"
         )
+        embed.set_footer(text=f"Version: {__VERSION__}")
         await interaction.response.send_message(view=view, embed=embed)
 
 
