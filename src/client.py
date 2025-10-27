@@ -4,7 +4,7 @@ from typing import Final
 from discord import Activity, ActivityType, Guild, Intents, Status
 from discord.ext.commands import Bot
 from src.api import AlbionOnlineDataManager
-from src.config import Servers
+from src.server import ServerManager
 from src.db import Database
 from src.utils.annotations import overrides
 from src.utils.logging import LOGGER
@@ -36,7 +36,7 @@ bot.remove_command("help")
 
 
 DATABASE: Final[Database] = Database("/data/items.db")
-SERVERS: Final[Servers] = Servers("/data/servers.db")
+SERVERS: Final[ServerManager] = ServerManager("/data/servers.db")
 MANAGER: Final[AlbionOnlineDataManager] = AlbionOnlineDataManager()
 
 

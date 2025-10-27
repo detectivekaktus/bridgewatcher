@@ -35,7 +35,8 @@ class Info(Cog):
             await interaction.response.send_message(embed=InvalidValueErrorEmbed(count))
             return
 
-        server: int = SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"]
+        config = SERVERS.get_config(cast(Guild, interaction.guild))
+        server: int = config.fetch_server
         data: Optional[list[dict[str, Any]]] = await MANAGER.get_gold(server, count + 1)
         if not data:
             await interaction.response.send_message(
@@ -75,7 +76,8 @@ class Info(Cog):
     )
     @guild_only()
     async def premium(self, interaction: Interaction) -> None:
-        server: int = SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"]
+        config = SERVERS.get_config(cast(Guild, interaction.guild))
+        server: int = config.fetch_server
         data: Optional[list[dict[str, Any]]] = await MANAGER.get_gold(server, 1)
 
         if not data:
@@ -130,9 +132,8 @@ class Info(Cog):
             await message.delete()
 
             quality: int = strtoquality_int(view.quality)
-            server: int = SERVERS.get_config(cast(Guild, interaction.guild))[
-                "fetch_server"
-            ]
+            config = SERVERS.get_config(cast(Guild, interaction.guild))
+            server: int = config.fetch_server
             data: Optional[list[dict[str, Any]]] = await MANAGER.get(
                 ITEM_NAMES[item_name], server, strtoquality_int(view.quality)
             )
