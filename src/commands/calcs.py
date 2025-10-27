@@ -4,7 +4,7 @@ from discord import Color, Embed, Guild, Interaction
 from discord.app_commands import command, describe, guild_only
 from discord.ext.commands import Bot, Cog
 from src import ITEM_NAMES
-from src.utils.constants import CITIES, DEFAULT_RATE, BONUS_RATE
+from src.utils.constants import Quality, CITIES, DEFAULT_RATE, BONUS_RATE
 from src.api import ItemManager, SandboxInteractiveRenderer
 from src.client import DATABASE, MANAGER, SERVERS
 from src.components.ui import CraftingView, FlipView
@@ -168,7 +168,7 @@ class Calcs(Cog):
             )
             embed.set_thumbnail(
                 url=SandboxInteractiveRenderer.fetch_item(
-                    ITEM_NAMES[item_name], quality=1
+                    ITEM_NAMES[item_name], Quality.NORMAL
                 )
             )
             embed.set_footer(
@@ -234,7 +234,6 @@ class Calcs(Cog):
             message = await interaction.original_response()
             await message.delete()
 
-            quality: int = strtoquality_int(view.quality)
             view.cities.extend(
                 ["black market"]
                 if view.cities
@@ -247,7 +246,7 @@ class Calcs(Cog):
             config = SERVERS.get_config(cast(Guild, interaction.guild))
             server: int = config.fetch_server
             data: Optional[list[dict[str, Any]]] = await MANAGER.get(
-                ITEM_NAMES[item_name], server, quality
+                ITEM_NAMES[item_name], server, view.quality
             )
             if not data:
                 await interaction.followup.send(
@@ -293,7 +292,7 @@ class Calcs(Cog):
             )
             embed.set_thumbnail(
                 url=SandboxInteractiveRenderer.fetch_item(
-                    ITEM_NAMES[item_name], quality=quality
+                    ITEM_NAMES[item_name], quality=view.quality
                 )
             )
             embed.set_footer(

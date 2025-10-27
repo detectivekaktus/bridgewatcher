@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from enum import StrEnum
 from typing import Final
 
 
@@ -13,14 +14,19 @@ CITIES: Final[list[str]] = [
     "thetford",
 ]
 
-QUALITIES: Final[tuple[str, ...]] = (
-    "Normal",
-    "Good",
-    "Outstanding",
-    "Excellent",
-    "Masterpiece",
-)
-ENCHANTMENTS: Final[tuple[str, ...]] = ("@1", "@2", "@3", "@4")
+class Quality(StrEnum):
+    NORMAL = "normal"
+    GOOD = "good"
+    OUTSTANDING = "outstanding"
+    EXCELLENT = "excellent"
+    MASTERPIECE = "masterpiece"
+
+
+class Enchantment(StrEnum):
+    LEVEL_1 = "@1"
+    LEVEL_2 = "@2"
+    LEVEL_3 = "@3"
+    LEVEL_4 = "@4"
 
 
 NON_CRAFTABLE: Final[tuple[str, ...]] = ("artefacts", "mounts", "labourers")

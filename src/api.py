@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from aiohttp import ClientSession, ClientTimeout
 from datetime import datetime
 from typing import Any, Final, Optional
-from src.utils.constants import ENCHANTMENTS, NON_CRAFTABLE, NON_SELLABLE_ON_BLACK_MARKET
+from src.utils.constants import Enchantment, Quality, NON_CRAFTABLE, NON_SELLABLE_ON_BLACK_MARKET
 from src.db import Database
 from src.utils.formatting import inttostr_server
 from src.utils.logging import LOGGER
@@ -26,7 +26,7 @@ class AlbionOnlineDataManager:
         self._cache_updates: list[dict[str, datetime]] = [{}, {}, {}]
 
     async def get(
-        self, item_name: str, server: int, quality: int = 1
+        self, item_name: str, server: int, quality: Quality = Quality.NORMAL
     ) -> Optional[list[dict[str, Any]]]:
         """
         Get item data by its name and quality on specified server. If the item is
@@ -59,7 +59,7 @@ class AlbionOnlineDataManager:
         return item
     
     async def _cache_item(
-        self, item_name: str, server: int, quality: int
+        self, item_name: str, server: int, quality: Quality
     ) -> Optional[list[dict[str, Any]]]:
         """
         Cache item by its name, server, and quality by making a request to
@@ -155,7 +155,7 @@ class AlbionOnlineData(Fetcher):
         )
 
     async def fetch_price(
-        self, item_name: str, qualities: int = 1, cities: list[str] = []
+        self, item_name: str, quality: Quality = Quality.NORMAL, cities: list[str] = []
     ) -> Optional[list[dict[str, Any]]]:
         """
         Get latest item prices from Albion Online Data project server.
@@ -164,6 +164,8 @@ class AlbionOnlineData(Fetcher):
             Optional[list[dict[str, Any]]]: list of the latest item prices in each city
             or `None` if the request fails.
         """
+        qualities = list(Quality).index(quality) + 1
+
         return await self._fetch(
             f"https://{self._server_prefix}.albion-online-data.com/api/v2/stats/prices/{item_name}.json?qualities={qualities}&locations={",".join(cities)}"
             if cities
@@ -415,7 +417,7 @@ class ItemManager:
         """
         Check if the last two characters inside item's name are in (@1, @2, @3, @4).
         """
-        return item_name[-2:] in ENCHANTMENTS
+        return item_name[-2:] in Enchantment
 
     @staticmethod
     def is_resource(database: Database, item_name: str) -> bool:
@@ -511,7 +513,7 @@ class SandboxInteractiveRenderer:
     """
 
     @staticmethod
-    def fetch_item(identifier: str, quality: int = 1) -> str:
+    def fetch_item(identifier: str, quality: Quality = Quality.NORMAL) -> str:
         """
         Get item icon url by its name and quality.
 
@@ -522,7 +524,7 @@ class SandboxInteractiveRenderer:
         Returns:
             str: icon url for the item.
         """
-        return f"https://render.albiononline.com/v1/item/{identifier}.png?quality={quality}"
+        return f"https://render.albiononline.com/v1/item/{identifier}.png?quality={list(Quality).index(quality) + 1}"
 
     @staticmethod
     def fetch_spell(identifier: str) -> str:

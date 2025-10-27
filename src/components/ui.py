@@ -3,7 +3,7 @@ from json import loads
 from typing import Any, Optional
 from discord import ButtonStyle, Interaction, SelectOption
 from discord.ui import Button, Select, View, button
-from src.utils.constants import CITIES, DEFAULT_RATE, QUALITIES
+from src.utils.constants import CITIES, DEFAULT_RATE, Quality
 from src.api import ItemManager, remove_suffix
 from src.client import DATABASE
 from src.components.modals import ReturnModal, ResourcesModal
@@ -73,11 +73,11 @@ class CitiesSelect(Select):
 class PriceView(View):
     def __init__(self, *, timeout: Optional[float] = 180) -> None:
         super().__init__(timeout=timeout)
-        self.quality: str = "normal"
+        self.quality: Quality = Quality.NORMAL
 
         self.quality_select = QualitySelect(
             self,
-            [SelectOption(label=label) for label in QUALITIES],
+            [SelectOption(label=label) for label in Quality],
             placeholder="Select item quality.",
         )
         self.add_item(self.quality_select)
@@ -169,12 +169,12 @@ class CraftingView(View):
 class FlipView(View):
     def __init__(self, *, timeout: Optional[float] = 180):
         super().__init__(timeout=timeout)
-        self.quality: str = "normal"
+        self.quality: Quality = Quality.NORMAL
         self.cities: list[str] = []
 
         self.quality_select = QualitySelect(
             self,
-            [SelectOption(label=label) for label in QUALITIES],
+            [SelectOption(label=label) for label in Quality],
             placeholder="Enter item quality.",
         )
         self.cities_select = CitiesSelect(
