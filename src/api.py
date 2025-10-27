@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from aiohttp import ClientSession, ClientTimeout
 from datetime import datetime
 from typing import Any, Final, Optional
-from src.utils.constants import Enchantment, Quality, NON_CRAFTABLE, NON_SELLABLE_ON_BLACK_MARKET
+from src.utils.constants import AlbionServer, Enchantment, Quality, NON_CRAFTABLE, NON_SELLABLE_ON_BLACK_MARKET
 from src.db import Database
 from src.utils.formatting import inttostr_server
 from src.utils.logging import LOGGER
@@ -26,7 +26,7 @@ class AlbionOnlineDataManager:
         self._cache_updates: list[dict[str, datetime]] = [{}, {}, {}]
 
     async def get(
-        self, item_name: str, server: int, quality: Quality = Quality.NORMAL
+        self, item_name: str, server: AlbionServer, quality: Quality = Quality.NORMAL
     ) -> Optional[list[dict[str, Any]]]:
         """
         Get item data by its name and quality on specified server. If the item is
@@ -59,7 +59,7 @@ class AlbionOnlineDataManager:
         return item
     
     async def _cache_item(
-        self, item_name: str, server: int, quality: Quality
+        self, item_name: str, server: AlbionServer, quality: Quality
     ) -> Optional[list[dict[str, Any]]]:
         """
         Cache item by its name, server, and quality by making a request to
@@ -85,7 +85,7 @@ class AlbionOnlineDataManager:
         return data
 
     async def get_gold(
-        self, server: int, count: int = 3
+        self, server: AlbionServer, count: int = 3
     ) -> Optional[list[dict[str, Any]]]:
         """
         Get latest gold prices from Albion Online Data project server.
@@ -109,7 +109,7 @@ class Fetcher(ABC):
     abstract `_fetch(self, url: str)` method for hiding internal logic.
     """
 
-    def __init__(self, server: int, timeout: int = 5) -> None:
+    def __init__(self, server: AlbionServer, timeout: int = 5) -> None:
         self._server = server
         self._timeout = timeout
 
@@ -124,7 +124,7 @@ class AlbionOnlineData(Fetcher):
     please, use `AlbionOnlineDataManager` instead.
     """
 
-    def __init__(self, server: int, timeout: int = 5) -> None:
+    def __init__(self, server: AlbionServer, timeout: int = 5) -> None:
         super().__init__(server=server, timeout=timeout)
         self._server_prefix = AOD_SERVER_URLS[server]
 
@@ -179,7 +179,7 @@ class SandboxInteractiveInfo(Fetcher):
     Sandbox Interactive API. It can fetch player and guild data.
     """
 
-    def __init__(self, server: int, timeout: int = 5) -> None:
+    def __init__(self, server: AlbionServer, timeout: int = 5) -> None:
         super().__init__(server=server, timeout=timeout)
         self._server_prefix = SBI_SERVER_URLS[server]
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from enum import StrEnum
+from enum import IntEnum, StrEnum
 from typing import Final
 
 
@@ -14,11 +14,18 @@ CITIES: Final[list[str]] = [
     "thetford",
 ]
 
+
+class AlbionServer(IntEnum):
+    WEST    = 1
+    EUROPE  = 2
+    EAST    = 3
+
+
 class Quality(StrEnum):
-    NORMAL = "normal"
-    GOOD = "good"
+    NORMAL      = "normal"
+    GOOD        = "good"
     OUTSTANDING = "outstanding"
-    EXCELLENT = "excellent"
+    EXCELLENT   = "excellent"
     MASTERPIECE = "masterpiece"
 
 
