@@ -29,10 +29,10 @@ res:             -> 3rd party information that the bot relies on when first star
 src:
   - commands:    -> `Cog` classes.
   - components:  -> reusable UI components.
-  - db:          -> database logic.
   - utils:       -> helper functions and classes.
   - api.py       -> utilities to interact with 3rd party APIs.
   - client.py    -> bot definition.
+  - db.py:       -> database logic.
   - market.py    -> market calculations.
   - server.py:   -> discord server config logic.
 ```
