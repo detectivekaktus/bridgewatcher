@@ -1,11 +1,22 @@
 #!/usr/bin/env python3
+from dataclasses import dataclass
 from os import path
 from sqlite3 import Cursor, connect
 from typing import Any, Optional
 from discord import Guild
 
 
-class Servers:
+@dataclass
+class ServerConfig:
+    """Class for keeping individual server configuration"""
+    name: str
+    id: int
+    owner_id: int
+    # to be changed to an enum value
+    fetch_server: int
+
+
+class ServerManager:
     def __init__(self, path: str) -> None:
         self._path = path
         self.create_table()
@@ -41,7 +52,7 @@ class Servers:
                 (guild.name, guild.id, guild.owner_id, fetch_server),
             )
 
-    def get_config(self, guild: Guild) -> dict[str, Any]:
+    def get_config(self, guild: Guild) -> ServerConfig:
         if not self.has_config(guild):
             self.create_config(guild)
 
@@ -49,12 +60,8 @@ class Servers:
             servers.execute("SELECT * FROM servers WHERE id = ?", (guild.id,))
             res: tuple = servers.fetchone()
 
-        return {
-            "name": res[0],
-            "id": res[1],
-            "owner_id": res[2],
-            "fetch_server": res[3],
-        }
+        config = ServerConfig(*res)
+        return config
 
     def has_config(self, guild: Guild) -> bool:
         if not path.exists(self._path):

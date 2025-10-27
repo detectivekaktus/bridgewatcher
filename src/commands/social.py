@@ -19,9 +19,10 @@ class Social(Cog):
     @describe(name="Name of the player you are looking for.")
     @guild_only()
     async def player(self, interaction: Interaction, name: str) -> None:
-        fetcher: SandboxInteractiveInfo = SandboxInteractiveInfo(
-            SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"]
-        )
+        config = SERVERS.get_config(cast(Guild, interaction.guild))
+        server: int = config.fetch_server
+
+        fetcher: SandboxInteractiveInfo = SandboxInteractiveInfo(server)
         player: Optional[dict[str, Any]] = await fetcher.get_player(name)
         if not player:
             await interaction.response.send_message(
@@ -75,7 +76,7 @@ class Social(Cog):
             icon_url=interaction.user.avatar,
         )
         embed.set_footer(
-            text=f"The data is provided by Sandbox Interactive GmbH. | {inttoemoji_server(SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"])} server"
+            text=f"The data is provided by Sandbox Interactive GmbH. | {inttoemoji_server(server)} server"
         )
         await interaction.response.send_message(embed=embed)
 
@@ -83,9 +84,10 @@ class Social(Cog):
     @describe(name="Name of the player you are looking for.")
     @guild_only()
     async def deaths(self, interaction: Interaction, name: str) -> None:
-        fetcher: SandboxInteractiveInfo = SandboxInteractiveInfo(
-            SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"]
-        )
+        config = SERVERS.get_config(cast(Guild, interaction.guild))
+        server: int = config.fetch_server
+
+        fetcher: SandboxInteractiveInfo = SandboxInteractiveInfo(server)
         deaths: Optional[list[dict[str, Any]]] = await fetcher.get_deaths(name)
         if deaths == None:
             await interaction.response.send_message(
@@ -106,9 +108,10 @@ class Social(Cog):
     @describe(name="Name of the player you are looking for.")
     @guild_only()
     async def kills(self, interaction: Interaction, name: str) -> None:
-        fetcher: SandboxInteractiveInfo = SandboxInteractiveInfo(
-            SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"]
-        )
+        config = SERVERS.get_config(cast(Guild, interaction.guild))
+        server: int = config.fetch_server
+
+        fetcher: SandboxInteractiveInfo = SandboxInteractiveInfo(server)
         kills: Optional[list[dict[str, Any]]] = await fetcher.get_kills(name)
         if kills == None:
             await interaction.response.send_message(
@@ -129,9 +132,10 @@ class Social(Cog):
     @describe(name="Name of the guild you are looking for.")
     @guild_only()
     async def guild(self, interaction: Interaction, name: str) -> None:
-        fetcher: SandboxInteractiveInfo = SandboxInteractiveInfo(
-            SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"]
-        )
+        config = SERVERS.get_config(cast(Guild, interaction.guild))
+        server: int = config.fetch_server
+    
+        fetcher: SandboxInteractiveInfo = SandboxInteractiveInfo(server)
         guild: Optional[dict[str, Any]] = await fetcher.get_guild(name)
         if not guild:
             await interaction.response.send_message(
@@ -166,7 +170,7 @@ class Social(Cog):
             icon_url=interaction.user.avatar,
         )
         embed.set_footer(
-            text=f"The data is provided by Sandbox Interactive GmbH. | {inttoemoji_server(SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"])} server"
+            text=f"The data is provided by Sandbox Interactive GmbH. | {inttoemoji_server(server)} server"
         )
         await interaction.response.send_message(embed=embed)
 
@@ -174,9 +178,10 @@ class Social(Cog):
     @describe(name="Name of the guild you are looking for")
     @guild_only()
     async def members(self, interaction: Interaction, name: str) -> None:
-        fetcher: SandboxInteractiveInfo = SandboxInteractiveInfo(
-            SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"]
-        )
+        config = SERVERS.get_config(cast(Guild, interaction.guild))
+        server: int = config.fetch_server
+
+        fetcher: SandboxInteractiveInfo = SandboxInteractiveInfo(server)
         members: Optional[list[dict[str, Any]]] = await fetcher.get_members(name)
         if members == None:
             await interaction.response.send_message(

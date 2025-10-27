@@ -49,7 +49,8 @@ class Settings(Cog):
             color=Color.orange(),
             description=f"There you have a configuration info about {guild.name}.",
         )
-        server = SERVERS.get_config(cast(Guild, interaction.guild))["fetch_server"]
+        config = SERVERS.get_config(cast(Guild, interaction.guild))
+        server: int = config.fetch_server
         embed.add_field(
             name="🌐 Albion Online server",
             value=f"{inttoemoji_server(server)} {inttostr_server(server).capitalize()}",

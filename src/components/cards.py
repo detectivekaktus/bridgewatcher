@@ -98,7 +98,7 @@ class PlayerCard(View, Card):
                 icon_url=self._interaction.user.avatar,
             )
             embed.set_footer(
-                text=f"The data is provided by Sandbox Interactive GmbH. | {inttoemoji_server(SERVERS.get_config(cast(Guild, self._interaction.guild))["fetch_server"])} server"
+                text=f"The data is provided by Sandbox Interactive GmbH. | {inttoemoji_server(SERVERS.get_config(cast(Guild, self._interaction.guild)).fetch_server)} server"
             )
             if (partecipants := len(self._data[self._current]["Participants"])) != 1:
                 embed.add_field(
@@ -188,7 +188,7 @@ class MembersCard(View, Card):
             icon_url=self._interaction.user.avatar,
         )
         embed.set_footer(
-            text=f"The data is provided by Sandbox Interactive GmbH. | {inttoemoji_server(SERVERS.get_config(cast(Guild, self._interaction.guild))["fetch_server"])} server"
+            text=f"The data is provided by Sandbox Interactive GmbH. | {inttoemoji_server(SERVERS.get_config(cast(Guild, self._interaction.guild)).fetch_server)} server"
         )
 
         if edit:

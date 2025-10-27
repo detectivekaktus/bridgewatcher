@@ -85,9 +85,8 @@ class Calcs(Cog):
             message = await interaction.original_response()
             await message.delete()
 
-            server: int = SERVERS.get_config(cast(Guild, interaction.guild))[
-                "fetch_server"
-            ]
+            config = SERVERS.get_config(cast(Guild, interaction.guild))
+            server: int = config.fetch_server
             data: Optional[list[dict[str, Any]]] = await MANAGER.get(
                 ITEM_NAMES[item_name], server
             )
@@ -244,9 +243,9 @@ class Calcs(Cog):
                     "black market",
                 ]
             )
-            server: int = SERVERS.get_config(cast(Guild, interaction.guild))[
-                "fetch_server"
-            ]
+            
+            config = SERVERS.get_config(cast(Guild, interaction.guild))
+            server: int = config.fetch_server
             data: Optional[list[dict[str, Any]]] = await MANAGER.get(
                 ITEM_NAMES[item_name], server, quality
             )
