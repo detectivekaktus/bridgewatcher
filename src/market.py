@@ -264,7 +264,7 @@ def find_least_expensive_city(
         include_black_market (bool): consider black market prices.
 
     Returns:
-        Optional[str]: city with the least expensive price for the item or `None` if
+        Optional[City]: city with the least expensive price for the item or `None` if
             not found any.
     """
     curr_city: Optional[City] = None
@@ -297,7 +297,7 @@ def find_most_expensive_city(
         include_black_market (bool): consider black market prices.
 
     Returns:
-        Optional[str]: city with the most expensive price for the item or `None` if
+        Optional[City]: city with the most expensive price for the item or `None` if
             not found any.
     """
     curr_city: Optional[City] = None

@@ -3,7 +3,14 @@ from abc import ABC, abstractmethod
 from aiohttp import ClientSession, ClientTimeout
 from datetime import datetime
 from typing import Any, Final, Optional
-from src.utils.constants import AlbionServer, City, Enchantment, Quality, NON_CRAFTABLE, NON_SELLABLE_ON_BLACK_MARKET
+from src.utils.constants import (
+    AlbionServer,
+    City,
+    Enchantment,
+    Quality,
+    NON_CRAFTABLE,
+    NON_SELLABLE_ON_BLACK_MARKET,
+)
 from src.db import Database
 from src.utils.formatting import inttostr_server
 from src.utils.logging import LOGGER
@@ -35,8 +42,8 @@ class AlbionOnlineDataManager:
 
         Args:
             item_name (str): internal item name.
-            server (int): 1 for NA, 2 for Europe, and 3 for Asia.
-            quality (int): normal to masterpiece quality expressed with an integer.
+            server (AlbionServer): albion fetch server.
+            quality (Quality): item quality.
 
         Returns:
             Optional[list[dict[str, Any]]]: item data from cache or API, or `None` if the
@@ -49,7 +56,7 @@ class AlbionOnlineDataManager:
             LOGGER.debug(f"Getting {item_name} {quality} from API.")
             await self._cache_item(item_name, server, quality)
             return self._cache[server - 1][f"{item_name}:{quality}"]
-        
+
         cache_date = self._cache_updates[server - 1][f"{item_name}:{quality}"]
         if (datetime.now() - cache_date).total_seconds() > 300:
             LOGGER.debug(f"Recaching {item_name} {quality}.")
@@ -57,7 +64,7 @@ class AlbionOnlineDataManager:
 
         LOGGER.debug(f"Getting {item_name} {quality} from cache.")
         return item
-    
+
     async def _cache_item(
         self, item_name: str, server: AlbionServer, quality: Quality
     ) -> Optional[list[dict[str, Any]]]:
@@ -67,8 +74,8 @@ class AlbionOnlineDataManager:
 
         Args:
             item_name (str): internal item name.
-            server (int): 1 for NA, 2 for Europe, 3 for Asia.
-            quality (int): normal to masterpiece written in integer form.
+            server (AlbionServer): albion fetch server.
+            quality (Quality): item quality.
 
         Returns:
             Optional[list[dict[str, Any]]]: the item data or `None` if the request
@@ -91,7 +98,7 @@ class AlbionOnlineDataManager:
         Get latest gold prices from Albion Online Data project server.
 
         Args:
-            server (int): 1 for NA, 2 for Europe, and 3 for Asia
+            server (AlbionServer): albion fetch server.
             count (int): entries to fetch
 
         Returns:

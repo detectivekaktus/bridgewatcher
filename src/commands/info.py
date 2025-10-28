@@ -131,7 +131,6 @@ class Info(Cog):
             message = await interaction.original_response()
             await message.delete()
 
-
             config = SERVERS.get_config(cast(Guild, interaction.guild))
             server: int = config.fetch_server
             data: Optional[list[dict[str, Any]]] = await MANAGER.get(

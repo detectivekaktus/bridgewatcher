@@ -4,27 +4,27 @@ from typing import Final
 
 
 class City(StrEnum):
-    BLACK_MARKET    = "black market"
-    BRECILIEN       = "brecilien"
-    BRIDGEWATCH     = "bridgewatch"
-    CAERLEON        = "caerleon"
-    FORT_STERLING   = "fort sterling"
-    LYMHURST        = "lymhurst"
-    MARTLOCK        = "martlock"
-    THETFORD        = "thetford"
+    BLACK_MARKET = "black market"
+    BRECILIEN = "brecilien"
+    BRIDGEWATCH = "bridgewatch"
+    CAERLEON = "caerleon"
+    FORT_STERLING = "fort sterling"
+    LYMHURST = "lymhurst"
+    MARTLOCK = "martlock"
+    THETFORD = "thetford"
 
 
 class AlbionServer(IntEnum):
-    WEST    = 1
-    EUROPE  = 2
-    EAST    = 3
+    WEST = 1
+    EUROPE = 2
+    EAST = 3
 
 
 class Quality(StrEnum):
-    NORMAL      = "normal"
-    GOOD        = "good"
+    NORMAL = "normal"
+    GOOD = "good"
     OUTSTANDING = "outstanding"
-    EXCELLENT   = "excellent"
+    EXCELLENT = "excellent"
     MASTERPIECE = "masterpiece"
 
 

@@ -10,6 +10,7 @@ from src.utils.constants import AlbionServer
 @dataclass
 class ServerConfig:
     """Class for keeping individual server configuration"""
+
     name: str
     id: int
     owner_id: int
