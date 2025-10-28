@@ -134,7 +134,7 @@ class Social(Cog):
     async def guild(self, interaction: Interaction, name: str) -> None:
         config = SERVERS.get_config(cast(Guild, interaction.guild))
         server: int = config.fetch_server
-    
+
         fetcher: SandboxInteractiveInfo = SandboxInteractiveInfo(server)
         guild: Optional[dict[str, Any]] = await fetcher.get_guild(name)
         if not guild:

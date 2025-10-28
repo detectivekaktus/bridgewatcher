@@ -1,26 +1,38 @@
 #!/usr/bin/env python3
+from enum import IntEnum, StrEnum
 from typing import Final
 
 
-CITIES: Final[list[str]] = [
-    "black market",
-    "brecilien",
-    "bridgewatch",
-    "caerleon",
-    "fort sterling",
-    "lymhurst",
-    "martlock",
-    "thetford",
-]
+class City(StrEnum):
+    BLACK_MARKET = "black market"
+    BRECILIEN = "brecilien"
+    BRIDGEWATCH = "bridgewatch"
+    CAERLEON = "caerleon"
+    FORT_STERLING = "fort sterling"
+    LYMHURST = "lymhurst"
+    MARTLOCK = "martlock"
+    THETFORD = "thetford"
 
-QUALITIES: Final[tuple[str, ...]] = (
-    "Normal",
-    "Good",
-    "Outstanding",
-    "Excellent",
-    "Masterpiece",
-)
-ENCHANTMENTS: Final[tuple[str, ...]] = ("@1", "@2", "@3", "@4")
+
+class AlbionServer(IntEnum):
+    WEST = 1
+    EUROPE = 2
+    EAST = 3
+
+
+class Quality(StrEnum):
+    NORMAL = "normal"
+    GOOD = "good"
+    OUTSTANDING = "outstanding"
+    EXCELLENT = "excellent"
+    MASTERPIECE = "masterpiece"
+
+
+class Enchantment(StrEnum):
+    LEVEL_1 = "@1"
+    LEVEL_2 = "@2"
+    LEVEL_3 = "@3"
+    LEVEL_4 = "@4"
 
 
 NON_CRAFTABLE: Final[tuple[str, ...]] = ("artefacts", "mounts", "labourers")

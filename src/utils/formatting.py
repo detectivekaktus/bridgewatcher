@@ -1,21 +1,6 @@
 #!/usr/bin/env python3
 from typing import Any
-
-
-def strtoquality_int(quality: str) -> int:
-    match quality.lower():
-        case "normal":
-            return 1
-        case "good":
-            return 2
-        case "outstanding":
-            return 3
-        case "excellent":
-            return 4
-        case "masterpiece":
-            return 5
-        case _:
-            return 1
+from src.utils.constants import AlbionServer
 
 
 def api_name_to_readable_name(item_names: dict[str, str], name: str) -> str:
@@ -38,7 +23,7 @@ def strtoint_server(server: str) -> int:
             return 1
 
 
-def inttostr_server(server: int) -> str:
+def inttostr_server(server: AlbionServer) -> str:
     match server:
         case 1:
             return "america"

@@ -6,6 +6,7 @@ from src.utils.constants import CRAFTING_BONUSES
 from src.api import ItemManager, remove_suffix
 from src.client import DATABASE
 from src.utils.formatting import api_name_to_readable_name, format_name
+from src.utils.constants import City
 
 
 PREMIUM_TAX: Final[int] = 4
@@ -252,7 +253,7 @@ def find_crafting_bonus_city(item_name: str) -> Optional[str]:
 
 def find_least_expensive_city(
     data: list[dict[str, Any]], include_black_market: bool = True
-) -> Optional[str]:
+) -> Optional[City]:
     """
     Get city with the least expensive price for selected item, passed via `data`
     argument. The `data` argument is Albion Online Data Project API response
@@ -263,10 +264,10 @@ def find_least_expensive_city(
         include_black_market (bool): consider black market prices.
 
     Returns:
-        Optional[str]: city with the least expensive price for the item or `None` if
+        Optional[City]: city with the least expensive price for the item or `None` if
             not found any.
     """
-    curr_city: Optional[str] = None
+    curr_city: Optional[City] = None
     curr_price: Optional[int] = None
     index: int = 0
 
@@ -285,7 +286,7 @@ def find_least_expensive_city(
 
 def find_most_expensive_city(
     data: list[dict[str, Any]], include_black_market: bool = True
-) -> Optional[str]:
+) -> Optional[City]:
     """
     Get city with the most expensive price for selected item, passed via `data`
     argument. The `data` argument is Albion Online Data Project API response
@@ -296,10 +297,10 @@ def find_most_expensive_city(
         include_black_market (bool): consider black market prices.
 
     Returns:
-        Optional[str]: city with the most expensive price for the item or `None` if
+        Optional[City]: city with the most expensive price for the item or `None` if
             not found any.
     """
-    curr_city: Optional[str] = None
+    curr_city: Optional[City] = None
     curr_price: Optional[int] = None
     index: int = 0
 

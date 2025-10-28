@@ -2,18 +2,19 @@
 from dataclasses import dataclass
 from os import path
 from sqlite3 import Cursor, connect
-from typing import Any, Optional
+from typing import Optional
 from discord import Guild
+from src.utils.constants import AlbionServer
 
 
 @dataclass
 class ServerConfig:
     """Class for keeping individual server configuration"""
+
     name: str
     id: int
     owner_id: int
-    # to be changed to an enum value
-    fetch_server: int
+    fetch_server: AlbionServer
 
 
 class ServerManager:

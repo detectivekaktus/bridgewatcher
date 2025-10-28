@@ -13,7 +13,7 @@ from src.api import (
 )
 from src.client import MANAGER, SERVERS
 from src.components.ui import PriceView
-from src.utils.formatting import format_name, strtoquality_int, inttoemoji_server
+from src.utils.formatting import format_name, inttoemoji_server
 from src.utils.embeds import (
     InvalidValueErrorEmbed,
     NameErrorEmbed,
@@ -131,11 +131,10 @@ class Info(Cog):
             message = await interaction.original_response()
             await message.delete()
 
-            quality: int = strtoquality_int(view.quality)
             config = SERVERS.get_config(cast(Guild, interaction.guild))
             server: int = config.fetch_server
             data: Optional[list[dict[str, Any]]] = await MANAGER.get(
-                ITEM_NAMES[item_name], server, strtoquality_int(view.quality)
+                ITEM_NAMES[item_name], server, view.quality
             )
             if not data:
                 await interaction.followup.send(
@@ -148,7 +147,7 @@ class Info(Cog):
             )
             embed.set_thumbnail(
                 url=SandboxInteractiveRenderer.fetch_item(
-                    ITEM_NAMES[item_name], quality
+                    ITEM_NAMES[item_name], view.quality
                 )
             )
             embed.set_author(
