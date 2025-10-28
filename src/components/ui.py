@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 from json import loads
-from typing import Any, Optional
+from typing import Any, Optional, cast
 from discord import ButtonStyle, Interaction, SelectOption
 from discord.ui import Button, Select, View, button
-from src.utils.constants import CITIES, DEFAULT_RATE, Quality
+from src.utils.constants import DEFAULT_RATE, Quality, City
 from src.api import ItemManager, remove_suffix
 from src.client import DATABASE
 from src.components.modals import ReturnModal, ResourcesModal
@@ -43,13 +43,13 @@ class QualitySelect(Select):
 class CitiesSelect(Select):
     def __init__(
         self,
-        cities_holder: list[str],
+        cities_holder: list[City],
         options: list[SelectOption],
         *,
         custom_id: str = "citsel",
         placeholder: Optional[str] = None,
         min_values: int = 1,
-        max_values: int = len(CITIES),
+        max_values: int = len(list(City)),
         disabled: bool = False,
         row: Optional[int] = None,
     ) -> None:
@@ -66,7 +66,7 @@ class CitiesSelect(Select):
 
     @overrides(Select)
     async def callback(self, interaction: Interaction) -> Any:
-        self.cities_holder.extend(self.values)
+        self.cities_holder.extend(cast(list[City], self.values))
         await interaction.response.defer()
 
 
@@ -95,8 +95,8 @@ class CraftingView(View):
         super().__init__(timeout=timeout)
         self.item_name: str = remove_suffix(DATABASE, item_name, is_enchated)
         self.is_enchanted: bool = is_enchated
-        self.craft_city: list[str] = []
-        self.sell_city: list[str] = []
+        self.craft_city: list[City] = []
+        self.sell_city: list[City] = []
         self.resources: dict[str, int] = {}
         self.return_rate: float = DEFAULT_RATE
 
@@ -133,7 +133,7 @@ class CraftingView(View):
             self.craft_city,
             options=[
                 SelectOption(label=label.capitalize())
-                for label in CITIES
+                for label in City
                 if label != "black market"
             ],
             placeholder="Enter crafting city.",
@@ -142,7 +142,7 @@ class CraftingView(View):
         )
         self.sell_city_select = CitiesSelect(
             self.sell_city,
-            options=[SelectOption(label=label.capitalize()) for label in CITIES],
+            options=[SelectOption(label=label.capitalize()) for label in City],
             placeholder="Enter selling city.",
             custom_id="sellcit",
             max_values=1,
@@ -170,7 +170,7 @@ class FlipView(View):
     def __init__(self, *, timeout: Optional[float] = 180):
         super().__init__(timeout=timeout)
         self.quality: Quality = Quality.NORMAL
-        self.cities: list[str] = []
+        self.cities: list[City] = []
 
         self.quality_select = QualitySelect(
             self,
@@ -181,7 +181,7 @@ class FlipView(View):
             self.cities,
             [
                 SelectOption(label=label.capitalize())
-                for label in CITIES
+                for label in City
                 if label != "black market"
             ],
             placeholder="Enter start city.",

@@ -3,16 +3,15 @@ from enum import IntEnum, StrEnum
 from typing import Final
 
 
-CITIES: Final[list[str]] = [
-    "black market",
-    "brecilien",
-    "bridgewatch",
-    "caerleon",
-    "fort sterling",
-    "lymhurst",
-    "martlock",
-    "thetford",
-]
+class City(StrEnum):
+    BLACK_MARKET    = "black market"
+    BRECILIEN       = "brecilien"
+    BRIDGEWATCH     = "bridgewatch"
+    CAERLEON        = "caerleon"
+    FORT_STERLING   = "fort sterling"
+    LYMHURST        = "lymhurst"
+    MARTLOCK        = "martlock"
+    THETFORD        = "thetford"
 
 
 class AlbionServer(IntEnum):

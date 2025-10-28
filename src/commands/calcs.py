@@ -4,7 +4,7 @@ from discord import Color, Embed, Guild, Interaction
 from discord.app_commands import command, describe, guild_only
 from discord.ext.commands import Bot, Cog
 from src import ITEM_NAMES
-from src.utils.constants import Quality, CITIES, DEFAULT_RATE, BONUS_RATE
+from src.utils.constants import Quality, City, DEFAULT_RATE, BONUS_RATE
 from src.api import ItemManager, SandboxInteractiveRenderer
 from src.client import DATABASE, MANAGER, SERVERS
 from src.components.ui import CraftingView, FlipView
@@ -19,7 +19,6 @@ from src.market import (
 from src.utils.formatting import (
     format_name,
     get_city_data,
-    strtoquality_int,
     inttoemoji_server,
 )
 from src.utils.embeds import (
@@ -146,7 +145,7 @@ class Calcs(Cog):
                 has_premium,
             )
             result: dict[str, Any] = crafter.printable(
-                data[CITIES.index(sell_city.lower())]
+                data[list(City).index(cast(City, sell_city.lower()))]
             )
             embed: Embed = Embed(
                 title=f"🛠️ Crafting {format_name(item_name)}",
@@ -235,11 +234,11 @@ class Calcs(Cog):
             await message.delete()
 
             view.cities.extend(
-                ["black market"]
+                [City.BLACK_MARKET]
                 if view.cities
                 else [
-                    cast(str, find_crafting_bonus_city(ITEM_NAMES[item_name])),
-                    "black market",
+                    cast(City, find_crafting_bonus_city(ITEM_NAMES[item_name])),
+                    City.BLACK_MARKET,
                 ]
             )
             

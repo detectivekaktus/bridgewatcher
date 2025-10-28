@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from aiohttp import ClientSession, ClientTimeout
 from datetime import datetime
 from typing import Any, Final, Optional
-from src.utils.constants import AlbionServer, Enchantment, Quality, NON_CRAFTABLE, NON_SELLABLE_ON_BLACK_MARKET
+from src.utils.constants import AlbionServer, City, Enchantment, Quality, NON_CRAFTABLE, NON_SELLABLE_ON_BLACK_MARKET
 from src.db import Database
 from src.utils.formatting import inttostr_server
 from src.utils.logging import LOGGER
@@ -48,9 +48,9 @@ class AlbionOnlineDataManager:
         if not item:
             LOGGER.debug(f"Getting {item_name} {quality} from API.")
             await self._cache_item(item_name, server, quality)
-            return self._cache[server - 1][item_name]
+            return self._cache[server - 1][f"{item_name}:{quality}"]
         
-        cache_date = self._cache_updates[server - 1][item_name]
+        cache_date = self._cache_updates[server - 1][f"{item_name}:{quality}"]
         if (datetime.now() - cache_date).total_seconds() > 300:
             LOGGER.debug(f"Recaching {item_name} {quality}.")
             item = await self._cache_item(item_name, server, quality)
@@ -80,8 +80,8 @@ class AlbionOnlineDataManager:
         if not data:
             return None
 
-        self._cache[server - 1][item_name] = data
-        self._cache_updates[server - 1][item_name] = datetime.now()
+        self._cache[server - 1][f"{item_name}:{quality}"] = data
+        self._cache_updates[server - 1][f"{item_name}:{quality}"] = datetime.now()
         return data
 
     async def get_gold(
@@ -155,7 +155,7 @@ class AlbionOnlineData(Fetcher):
         )
 
     async def fetch_price(
-        self, item_name: str, quality: Quality = Quality.NORMAL, cities: list[str] = []
+        self, item_name: str, quality: Quality = Quality.NORMAL, cities: list[City] = []
     ) -> Optional[list[dict[str, Any]]]:
         """
         Get latest item prices from Albion Online Data project server.
