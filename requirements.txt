@@ -1,4 +1,4 @@
-aiohttp==3.13.1
+aiohttp==3.13.2
 aiosignal==1.4.0
 attrs==25.4.0
 black==25.9.0
@@ -11,7 +11,7 @@ mypy_extensions==1.1.0
 packaging==25.0
 pathspec==0.12.1
 platformdirs==4.5.0
-python-dotenv==1.1.1
+python-dotenv==1.2.1
 pytokens==0.2.0
 setuptools==80.9.0
 yarl==1.22.0
