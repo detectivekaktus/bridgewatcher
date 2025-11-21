@@ -2,7 +2,7 @@ aiohttp==3.13.2
 aiosignal==1.4.0
 attrs==25.4.0
 black==25.11.0
-click==8.3.0
+click==8.3.1
 discord.py==2.6.4
 frozenlist==1.8.0
 idna==3.11
