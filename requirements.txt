@@ -5,12 +5,12 @@ black==26.5.1
 click==8.4.1
 discord.py==2.7.1
 frozenlist==1.8.0
-idna==3.16
+idna==3.17
 multidict==6.7.1
 mypy_extensions==1.1.0
 packaging==26.2
 pathspec==1.1.1
-platformdirs==4.9.6
+platformdirs==4.10.0
 python-dotenv==1.2.2
 pytokens==0.4.1
 setuptools==82.0.1
