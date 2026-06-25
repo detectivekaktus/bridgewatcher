@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from sqlite3 import Cursor, connect
 from json import dumps, load
 

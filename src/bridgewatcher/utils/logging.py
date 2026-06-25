@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from datetime import datetime
 from logging import DEBUG, FileHandler, Formatter, Logger, StreamHandler
 from os import path, mkdir

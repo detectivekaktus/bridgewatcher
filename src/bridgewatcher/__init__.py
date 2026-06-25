@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from os import getenv
 from typing import Final
 from dotenv import load_dotenv

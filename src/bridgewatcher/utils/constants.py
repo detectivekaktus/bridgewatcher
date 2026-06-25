@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from enum import IntEnum, StrEnum
 from typing import Final
 
