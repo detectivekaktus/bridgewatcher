@@ -1,7 +1,6 @@
-#!/usr/bin/env python3
 import os
 import sqlite3
-from src.db import Database
+from bridgewatcher.db import Database
 
 
 def main() -> None:

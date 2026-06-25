@@ -1,13 +1,11 @@
-#!/usr/bin/env python3
 from math import floor
 from typing import Any, Final, Optional
-from src import ITEM_NAMES
-from src.utils.constants import CRAFTING_BONUSES
-from src.api import ItemManager, remove_suffix
-from src.client import DATABASE
-from src.utils.formatting import api_name_to_readable_name, format_name
-from src.utils.constants import City
-
+from bridgewatcher import ITEM_NAMES
+from bridgewatcher.utils.constants import CRAFTING_BONUSES
+from bridgewatcher.api import ItemManager, remove_suffix
+from bridgewatcher.client import DATABASE
+from bridgewatcher.utils.formatting import api_name_to_readable_name, format_name
+from bridgewatcher.utils.constants import City
 
 PREMIUM_TAX: Final[int] = 4
 NON_PREMIUM_TAX: Final[int] = 8

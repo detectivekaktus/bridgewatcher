@@ -1,13 +1,12 @@
-#!/usr/bin/env python3
 from typing import Any, Optional, cast
 from discord import Color, Embed, Guild, Interaction
 from discord.app_commands import command, describe, guild_only
 from discord.ext.commands import Bot, Cog
-from src.api import SandboxInteractiveInfo
-from src.client import SERVERS
-from src.components.cards import MembersCard, PlayerCard
-from src.utils.formatting import inttoemoji_server
-from src.utils.embeds import NameErrorEmbed, OutdatedDataErrorEmbed
+from bridgewatcher.api import SandboxInteractiveInfo
+from bridgewatcher.client import SERVERS
+from bridgewatcher.components.cards import MembersCard, PlayerCard
+from bridgewatcher.utils.formatting import inttoemoji_server
+from bridgewatcher.utils.embeds import NameErrorEmbed, OutdatedDataErrorEmbed
 
 
 class Social(Cog):

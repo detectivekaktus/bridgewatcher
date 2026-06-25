@@ -1,7 +1,6 @@
-#!/usr/bin/env python3
 from typing import Any
 from discord import Color, Embed
-from src.utils.formatting import format_name
+from bridgewatcher.utils.formatting import format_name
 
 
 class NameErrorEmbed(Embed):

@@ -1,9 +1,10 @@
-FROM python:3.12.4-alpine3.19
+FROM python:3.13.7-slim
 
 WORKDIR /app
 
 COPY . /app
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip
+RUN pip install --no-cache-dir poetry
+RUN poetry install --without dev
 
-# Not sure if seeding here is the best choice...
-CMD [ "sh", "-c", "python3 seed.py && python3 main.py" ]
+CMD [ "poetry", "run", "python3", "main.py" ]

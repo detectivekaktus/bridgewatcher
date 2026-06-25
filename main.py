@@ -1,8 +1,7 @@
-#!/usr/bin/env python3
 import sys
-from src import DEBUG_TOKEN, DISCORD_TOKEN
-from src.client import bot
-from src.utils.logging import LOGGER
+from bridgewatcher import DEBUG_TOKEN, DISCORD_TOKEN
+from bridgewatcher.client import bot
+from bridgewatcher.utils.logging import LOGGER
 
 
 def main() -> None:

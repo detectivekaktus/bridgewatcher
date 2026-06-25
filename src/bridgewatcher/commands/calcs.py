@@ -1,14 +1,13 @@
-#!/usr/bin/env python3
 from typing import Any, Optional, cast
 from discord import Color, Embed, Guild, Interaction
 from discord.app_commands import command, describe, guild_only
 from discord.ext.commands import Bot, Cog
-from src import ITEM_NAMES
-from src.utils.constants import Quality, City, DEFAULT_RATE, BONUS_RATE
-from src.api import ItemManager, SandboxInteractiveRenderer
-from src.client import DATABASE, MANAGER, SERVERS
-from src.components.ui import CraftingView, FlipView
-from src.market import (
+from bridgewatcher import ITEM_NAMES
+from bridgewatcher.utils.constants import Quality, City, DEFAULT_RATE, BONUS_RATE
+from bridgewatcher.api import ItemManager, SandboxInteractiveRenderer
+from bridgewatcher.client import DATABASE, MANAGER, SERVERS
+from bridgewatcher.components.ui import CraftingView, FlipView
+from bridgewatcher.market import (
     NON_PREMIUM_TAX,
     PREMIUM_TAX,
     Crafter,
@@ -16,18 +15,18 @@ from src.market import (
     find_least_expensive_city,
     find_most_expensive_city,
 )
-from src.utils.formatting import (
+from bridgewatcher.utils.formatting import (
     format_name,
     get_city_data,
     inttoemoji_server,
 )
-from src.utils.embeds import (
+from bridgewatcher.utils.embeds import (
     NameErrorEmbed,
     OutdatedDataErrorEmbed,
     ServerErrorEmbed,
     TimedOutErrorEmbed,
 )
-from src.utils.logging import LOGGER
+from bridgewatcher.utils.logging import LOGGER
 
 
 class Calcs(Cog):

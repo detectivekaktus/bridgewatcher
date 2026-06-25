@@ -1,9 +1,8 @@
-#!/usr/bin/env python3
 from abc import ABC, abstractmethod
 from aiohttp import ClientSession, ClientTimeout
 from datetime import datetime
 from typing import Any, Final, Optional
-from src.utils.constants import (
+from bridgewatcher.utils.constants import (
     AlbionServer,
     City,
     Enchantment,
@@ -11,10 +10,9 @@ from src.utils.constants import (
     NON_CRAFTABLE,
     NON_SELLABLE_ON_BLACK_MARKET,
 )
-from src.db import Database
-from src.utils.formatting import inttostr_server
-from src.utils.logging import LOGGER
-
+from bridgewatcher.db import Database
+from bridgewatcher.utils.formatting import inttostr_server
+from bridgewatcher.utils.logging import LOGGER
 
 AOD_SERVER_URLS: Final = {1: "west", 2: "europe", 3: "east"}
 SBI_SERVER_URLS: Final = {1: "gameinfo", 2: "gameinfo-ams", 3: "gameinfo-sgp"}

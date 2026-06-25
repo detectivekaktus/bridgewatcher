@@ -1,13 +1,12 @@
-#!/usr/bin/env python3
 from json import loads
 from typing import Any, Optional, cast
 from discord import ButtonStyle, Interaction, SelectOption
 from discord.ui import Button, Select, View, button
-from src.utils.constants import DEFAULT_RATE, Quality, City
-from src.api import ItemManager, remove_suffix
-from src.client import DATABASE
-from src.components.modals import ReturnModal, ResourcesModal
-from src.utils.annotations import overrides
+from bridgewatcher.utils.constants import DEFAULT_RATE, Quality, City
+from bridgewatcher.api import ItemManager, remove_suffix
+from bridgewatcher.client import DATABASE
+from bridgewatcher.components.modals import ReturnModal, ResourcesModal
+from bridgewatcher.utils.annotations import overrides
 
 
 class QualitySelect(Select):

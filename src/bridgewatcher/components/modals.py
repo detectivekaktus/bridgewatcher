@@ -1,14 +1,13 @@
-#!/usr/bin/env python3
 from json import loads
 from random import choice
 from typing import Any, Optional
 from discord import Interaction
 from discord.ui import Modal, TextInput
-from src import ITEM_NAMES
-from src.api import remove_suffix
-from src.client import DATABASE
-from src.utils.formatting import api_name_to_readable_name
-from src.utils.annotations import overrides
+from bridgewatcher import ITEM_NAMES
+from bridgewatcher.api import remove_suffix
+from bridgewatcher.client import DATABASE
+from bridgewatcher.utils.formatting import api_name_to_readable_name
+from bridgewatcher.utils.annotations import overrides
 
 
 class ResourcesModal(Modal):

@@ -1,17 +1,16 @@
-#!/usr/bin/env python3
 from abc import ABC, abstractmethod
 from typing import Any, Optional, cast
 from discord import ButtonStyle, Color, Embed, Guild, Interaction, Message
 from discord.ui import Button, View, button
-from src import ITEM_NAMES
-from src.client import SERVERS
-from src.utils.formatting import (
+from bridgewatcher import ITEM_NAMES
+from bridgewatcher.client import SERVERS
+from bridgewatcher.utils.formatting import (
     api_name_to_readable_name,
     format_name,
     inttoemoji_server,
 )
-from src.utils.annotations import overrides
-from src.utils.logging import LOGGER
+from bridgewatcher.utils.annotations import overrides
+from bridgewatcher.utils.logging import LOGGER
 
 
 class Card(ABC):

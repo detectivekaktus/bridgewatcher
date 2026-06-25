@@ -1,13 +1,12 @@
-#!/usr/bin/env python3
 from os import listdir
 from typing import Final
 from discord import Activity, ActivityType, Guild, Intents, Status
 from discord.ext.commands import Bot
-from src.api import AlbionOnlineDataManager
-from src.server import ServerManager
-from src.db import Database
-from src.utils.annotations import overrides
-from src.utils.logging import LOGGER
+from bridgewatcher.api import AlbionOnlineDataManager
+from bridgewatcher.server import ServerManager
+from bridgewatcher.db import Database
+from bridgewatcher.utils.annotations import overrides
+from bridgewatcher.utils.logging import LOGGER
 
 
 class Bridgewatcher(Bot):
@@ -22,7 +21,7 @@ class Bridgewatcher(Bot):
 
     @overrides(Bot)
     async def setup_hook(self) -> None:
-        LOGGER.info("Loading modules from `src.commands`.")
+        LOGGER.info("Loading modules from `bridgewatcher.commands`.")
         await load_cogs()
         LOGGER.info(
             f"Successfully syncronized {len(await bot.tree.sync())} commands globally."
@@ -41,9 +40,9 @@ MANAGER: Final[AlbionOnlineDataManager] = AlbionOnlineDataManager()
 
 
 async def load_cogs():
-    for filename in listdir("src/commands"):
+    for filename in listdir("src/bridgewatcher/commands"):
         if filename.endswith(".py"):
-            await bot.load_extension(f"src.commands.{filename[:-3]}")
+            await bot.load_extension(f"bridgewatcher.commands.{filename[:-3]}")
 
 
 @bot.event

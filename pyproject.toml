@@ -1,0 +1,26 @@
+[project]
+name = "bridgewatcher"
+version = "0.2.0"
+description = "Discord bot for trading and crafting in Albion Online"
+authors = [
+    {name = "Artiom Astashonak",email = "artiomastashonak@gmail.com"}
+]
+license = "GPL-3.0-only"
+readme = "README.md"
+requires-python = ">=3.13.7,<3.15"
+dependencies = [
+    "discord-py (>=2.7.1,<3.0.0)",
+    "sqlalchemy (>=2.0.51,<3.0.0)",
+    "aiosqlite (>=0.22.1,<0.23.0)",
+    "dotenv (>=0.9.9,<0.10.0)"
+]
+
+
+[tool.poetry.group.dev.dependencies]
+black = ">=26.1.0,<27.0.0"
+flake8 = "^7.3.0"
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

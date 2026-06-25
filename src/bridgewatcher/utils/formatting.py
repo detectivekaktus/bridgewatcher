@@ -1,6 +1,5 @@
-#!/usr/bin/env python3
 from typing import Any
-from src.utils.constants import AlbionServer
+from bridgewatcher.utils.constants import AlbionServer
 
 
 def api_name_to_readable_name(item_names: dict[str, str], name: str) -> str:

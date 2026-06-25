@@ -1,12 +1,15 @@
-#!/usr/bin/env python3
 from typing import cast
 from discord import Color, Embed, Guild, Interaction
 from discord.app_commands import Choice, choices, describe, command
 from discord.ext.commands import Bot, Cog, guild_only
 from discord.ui import Button, View
-from src.client import SERVERS
-from src.utils.formatting import inttostr_server, strtoint_server, inttoemoji_server
-from src import __VERSION__
+from bridgewatcher.client import SERVERS
+from bridgewatcher.utils.formatting import (
+    inttostr_server,
+    strtoint_server,
+    inttoemoji_server,
+)
+from bridgewatcher import __VERSION__
 
 
 class Settings(Cog):

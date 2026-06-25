@@ -1,20 +1,19 @@
-#!/usr/bin/env python3
 from datetime import datetime, timezone
 from typing import Any, Optional, cast
 from discord import Color, Embed, Guild, Interaction
 from discord.app_commands import command, describe
 from discord.ext.commands import Bot, Cog, guild_only
-from src import ITEM_NAMES
-from src.api import (
+from bridgewatcher import ITEM_NAMES
+from bridgewatcher.api import (
     AlbionOnlineData,
     SandboxInteractiveRenderer,
     convert_api_timestamp,
     get_percent_variation,
 )
-from src.client import MANAGER, SERVERS
-from src.components.ui import PriceView
-from src.utils.formatting import format_name, inttoemoji_server
-from src.utils.embeds import (
+from bridgewatcher.client import MANAGER, SERVERS
+from bridgewatcher.components.ui import PriceView
+from bridgewatcher.utils.formatting import format_name, inttoemoji_server
+from bridgewatcher.utils.embeds import (
     InvalidValueErrorEmbed,
     NameErrorEmbed,
     ServerErrorEmbed,

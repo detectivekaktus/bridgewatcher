@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from typing import Any, Final
 from discord.ext.commands import (
     BadArgument,
@@ -9,8 +8,7 @@ from discord.ext.commands import (
     DisabledCommand,
     NoPrivateMessage,
 )
-from src.utils.logging import LOGGER
-
+from bridgewatcher.utils.logging import LOGGER
 
 IGNORED: Final[tuple[Any]] = (CommandNotFound,)
 

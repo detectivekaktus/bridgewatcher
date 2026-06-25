@@ -1,10 +1,9 @@
-#!/usr/bin/env python3
 from dataclasses import dataclass
 from os import path
 from sqlite3 import Cursor, connect
 from typing import Optional
 from discord import Guild
-from src.utils.constants import AlbionServer
+from bridgewatcher.utils.constants import AlbionServer
 
 
 @dataclass
