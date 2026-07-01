@@ -5,7 +5,7 @@ set -e
 echo "Starting MongoDB setup script"
 
 mongosh admin <<EOF
-    db = db.getSiblingDB("${MONGO_DB}");
+    db = db.getSiblingDB("admin");
 
     db.createUser({
         user: "${MONGO_USERNAME}",
