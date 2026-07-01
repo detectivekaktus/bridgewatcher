@@ -1,12 +1,27 @@
 services:
   bridgewatcher:
     build: .
-    volumes:
-      - bridgewatcher_sqlite:/data
     env_file:
       - .env
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_started
+        restart: true
+
+  db:
+    image: mongo@sha256:48a009d2d8007e92d6d7e8baa31713cd11c48c06e827e856240e5a1d319b49d9
     environment:
-      - MODE=CONTAINER
+      - MONGODB_INITDB_ROOT_USERNAME=${MONGO_ROOT_USERNAME}
+      - MONGODB_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
+    env_file:
+      - .env
+    ports:
+      - ${MONGO_PORT}:27017
+    volumes:
+      - ./init:/docker-entrypoint-initdb.d:ro
+      - mongodata:/data/db
+
 
 volumes:
-  bridgewatcher_sqlite:
+  mongodata:
