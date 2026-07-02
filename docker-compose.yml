@@ -3,7 +3,6 @@ services:
     build: .
     env_file:
       - .env
-    restart: unless-stopped
     depends_on:
       db:
         condition: service_started
