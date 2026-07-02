@@ -7,9 +7,10 @@ from typing import Any
 from aiohttp import ClientSession
 
 from bridgewatcher.db import db
-from bridgewatcher.db.schema import Version, Item, CraftingRequirement
+from bridgewatcher.db.schema import Version, Item, CraftingRequirement, ItemName
 
 ITEMS_URL = "https://raw.githubusercontent.com/ao-data/ao-bin-dumps/refs/heads/master/items.json"
+ITEM_NAMES_URL = "https://raw.githubusercontent.com/ao-data/ao-bin-dumps/refs/heads/master/formatted/items.txt"
 
 NOT_INCLUDED_IN_DATABASE = (
     "@xmlns:xsi",
@@ -50,8 +51,8 @@ NOT_INCLUDED_IN_DATABASE = (
 # }
 #
 # There's a lot of ambiguity with this schema, for example craftresource may be not an array
-# but a map if there's only one craft resource. Or it can also be absent if there's no crafting requirements
-# instead of having a null value
+# but a map if there's only one craft resource. Or it can also be absent if there's no
+# crafting requirements instead of having a null value
 async def seed_items_collection() -> None:
     async with ClientSession() as session:
         async with session.get(ITEMS_URL) as res:
@@ -67,7 +68,7 @@ async def seed_items_collection() -> None:
     await items_collection.drop()
 
     for category_items in dump_items.values():
-        items: list[dict] = []
+        items = []
         for category_item in category_items:
             print(f"Attempting to insert {category_item["@uniquename"]}")
 
@@ -108,8 +109,35 @@ async def seed_items_collection() -> None:
         await items_collection.insert_many(items)
 
 
+# This file is formatted differently but easily understandable. Here's an example:
+# 1: ITEM_UNIQUE_NAME                   : Item Readable Name
+# 2: MUCH_LONGER_ITEM_UNIQUE_NAME       : Much Longer Item Readable Name
+# 3: ITEM_WITH_MISSING_READABLE_NAME
+async def seed_item_names_collection() -> None:
+    async with ClientSession() as session:
+        async with session.get(ITEM_NAMES_URL) as res:
+            if not res.ok:
+                raise ValueError("Unsatisfied response gotten from item names dump")
+            content = await res.text()
+
+    names = []
+    lines = content.split("\n")
+    for line in lines:
+        items = line.split(":")
+        if len(items) < 3:
+            continue
+
+        name = ItemName(items[1].strip(), items[2].strip())
+        names.append(name.to_mongo())
+
+    names_collection = db.get_collection("item_names")
+    await names_collection.drop()
+    await names_collection.insert_many(names)
+
+
 async def seed() -> None:
     await seed_items_collection()
+    await seed_item_names_collection()
 
 
 async def get_current_hash() -> str:
@@ -130,25 +158,28 @@ async def update_hash(hash: str) -> None:
     await version_collection.insert_one(version.to_mongo())
 
 
-async def seed_if_needed() -> None:
+async def seed_if_needed(forced: bool = False) -> None:
     current_hash = await get_current_hash()
 
-    version_doc = await db.get_collection("version").find_one()
-    if version_doc is not None:
-        version = Version.from_mongo(version_doc)
-        if version.hash == current_hash:
-            print("Hashes match. No seeding will run")
-            return
+    if not forced:
+        version_doc = await db.get_collection("version").find_one()
+        if version_doc is not None:
+            version = Version.from_mongo(version_doc)
+            if version.hash == current_hash:
+                print("Hashes match. No seeding will run")
+                return
+    else:
+        print("Forced seeding detected")
 
-    print(f"Hashes don't match. Seeding the database with new values from {ITEMS_URL}")
+    print("Seeding the database")
     await seed()
     await update_hash(current_hash)
     print("Seeding complete")
 
 
-def seed_if_needed_sync() -> None:
-    run(seed_if_needed())
+def seed_if_needed_sync(forced: bool = False) -> None:
+    run(seed_if_needed(forced))
 
 
 if __name__ == "__main__":
-    seed_if_needed_sync()
+    seed_if_needed_sync(True)
