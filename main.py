@@ -1,33 +1,9 @@
-import sys
-from bridgewatcher import DEBUG_TOKEN, DISCORD_TOKEN
-from bridgewatcher.client import bot
-from bridgewatcher.utils.logging import LOGGER
+from bridgewatcher.db.seed.run import seed_if_needed_sync
 
 
 def main() -> None:
-    if "--debug" in sys.argv:
-        if not DEBUG_TOKEN:
-            print(
-                "ERROR: Your configuration is missing DEBUG_TOKEN environment variable."
-            )
-            sys.exit(1)
-
-        LOGGER.info("Debug version is starting up.")
-        bot.run(DEBUG_TOKEN)
-    elif len(sys.argv) == 1:
-        if not DISCORD_TOKEN:
-            print(
-                "ERROR: Your configuration is missing DISCORD_TOKEN environment variable."
-            )
-            sys.exit(1)
-
-        LOGGER.info("Production version is starting up.")
-        bot.run(DISCORD_TOKEN)
-    else:
-        print(
-            "ERROR: Unknown flags specified. For debugging the application use --debug flag."
-        )
-        sys.exit(1)
+    seed_if_needed_sync()
+    print("Starting over")
 
 
 if __name__ == "__main__":
