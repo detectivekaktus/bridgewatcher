@@ -66,6 +66,7 @@ async def seed_items_collection() -> None:
 
     items_collection = db.get_collection("items")
     await items_collection.drop()
+    await items_collection.create_index("name")
 
     for category_items in dump_items.values():
         items = []
@@ -120,6 +121,11 @@ async def seed_item_names_collection() -> None:
                 raise ValueError("Unsatisfied response gotten from item names dump")
             content = await res.text()
 
+    names_collection = db.get_collection("item_names")
+    await names_collection.drop()
+    await names_collection.create_index("identifier")
+    await names_collection.create_index("name")
+
     names = []
     lines = content.split("\n")
     for line in lines:
@@ -129,9 +135,6 @@ async def seed_item_names_collection() -> None:
 
         name = ItemName(items[1].strip(), items[2].strip())
         names.append(name.to_mongo())
-
-    names_collection = db.get_collection("item_names")
-    await names_collection.drop()
     await names_collection.insert_many(names)
 
 
