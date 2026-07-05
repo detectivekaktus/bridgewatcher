@@ -7,9 +7,13 @@ services:
       db:
         condition: service_started
         restart: true
+      redis:
+        condition: service_started
+        restart: true
 
   db:
     image: mongo@sha256:48a009d2d8007e92d6d7e8baa31713cd11c48c06e827e856240e5a1d319b49d9
+    restart: unless-stopped
     environment:
       - MONGODB_INITDB_ROOT_USERNAME=${MONGO_ROOT_USERNAME}
       - MONGODB_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
@@ -20,6 +24,14 @@ services:
     volumes:
       - ./init:/docker-entrypoint-initdb.d:ro
       - mongodata:/data/db
+
+  redis:
+    image: redis@sha256:2838d5524559494f6f1cd66e97e76b200d64a633a8614200620755ed395daf32
+    restart: unless-stopped
+    ports:
+      - ${REDIS_PORT}:6379
+    environment:
+      - REDIS_ARGS=--requirepass ${REDIS_PASSWORD} --appendonly yes
 
 
 volumes:
