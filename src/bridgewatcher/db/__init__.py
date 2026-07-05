@@ -4,7 +4,7 @@ from urllib.parse import quote
 
 from dotenv import load_dotenv
 from pymongo import AsyncMongoClient
-from redis import Redis
+from redis.asyncio import Redis
 
 load_dotenv()
 
