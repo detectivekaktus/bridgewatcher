@@ -43,7 +43,10 @@ class AlbionOnline:
         key = f"{id}:{self.server.value}"
         if await redis.exists(key):
             raw_prices = loads(await redis.get(key))  # type: ignore
-            prices = [CityPrice(**raw_price) for raw_price in raw_prices]
+            prices = [
+                from_dict(data_class=CityPrice, data=raw_price)
+                for raw_price in raw_prices
+            ]
             return prices
 
         async with ClientSession(timeout=ClientTimeout(total=5)) as session:
@@ -65,7 +68,10 @@ class AlbionOnline:
         key = f"gold:{self.server.value}"
         if await redis.exists(key):
             raw_prices = loads(await redis.get(key))  # type: ignore
-            prices = [GoldPrice(**raw_price) for raw_price in raw_prices]
+            prices = [
+                from_dict(data_class=GoldPrice, data=raw_price)
+                for raw_price in raw_prices
+            ]
             return prices
 
         async with ClientSession(timeout=ClientTimeout(total=5)) as session:
