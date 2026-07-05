@@ -1,0 +1,14 @@
+language: "en-US"
+reviews:
+  profile: "chill"
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: true
+  review_status: true
+  review_details: false
+  auto_review:
+    enabled: false
+    drafts: false
+    description_keyword: "Rabbit review"
+chat:
+  auto_reply: true
