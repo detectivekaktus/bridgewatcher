@@ -50,3 +50,9 @@ class CityPrice:
     buy_price_min_date: str
     buy_price_max: int
     buy_price_max_date: str
+
+
+@dataclass
+class GoldPrice:
+    price: int
+    timestamp: str
