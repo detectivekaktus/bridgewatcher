@@ -2,7 +2,7 @@ from enum import StrEnum
 from json import dumps, loads
 from typing import overload
 
-from aiohttp import ClientSession
+from aiohttp import ClientSession, ClientTimeout
 from dacite import from_dict
 
 from bridgewatcher.api.model import CityPrice, GoldPrice
@@ -41,11 +41,11 @@ class AlbionOnline:
 
         # items are stored as item_id:server
         key = f"{id}:{self.server.value}"
-        if redis.exists(key):
+        if await redis.exists(key):
             prices = loads(await redis.get(key))  # type: ignore
             return prices
 
-        async with ClientSession() as session:
+        async with ClientSession(timeout=ClientTimeout(total=5)) as session:
             url = f"https://{self.server.value}.{self.base_uri}/prices/{id}"
             async with session.get(url) as res:
                 if not res.ok:
@@ -62,11 +62,11 @@ class AlbionOnline:
 
     async def get_gold_prices(self) -> list[GoldPrice]:
         key = f"gold:{self.server.value}"
-        if redis.exists(key):
+        if await redis.exists(key):
             prices = loads(await redis.get(key))  # type: ignore
             return prices
 
-        async with ClientSession() as session:
+        async with ClientSession(timeout=ClientTimeout(total=5)) as session:
             url = f"https://{self.server.value}.{self.base_uri}/gold?count={self.MAX_GOLD_PRICE_COUNT}"
             async with session.get(url) as res:
                 if not res.ok:
