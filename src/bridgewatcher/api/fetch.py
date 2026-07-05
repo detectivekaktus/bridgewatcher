@@ -8,6 +8,7 @@ from dacite import from_dict
 from bridgewatcher.api.model import CityPrice, GoldPrice
 from bridgewatcher.db import redis
 from bridgewatcher.db.schema import Item
+from bridgewatcher.loggers import LOGGER
 
 
 class AlbionOnlineServers(StrEnum):
@@ -48,7 +49,9 @@ class AlbionOnline:
             url = f"https://{self.server.value}.{self.base_uri}/prices/{id}"
             async with session.get(url) as res:
                 if not res.ok:
-                    # TODO: Add logger warning
+                    LOGGER.warning(
+                        f"{res.status}: Couldn't fetch item prices for {id}."
+                    )
                     return []
 
                 body = await res.json()
@@ -67,7 +70,7 @@ class AlbionOnline:
             url = f"https://{self.server.value}.{self.base_uri}/gold?count={self.MAX_GOLD_PRICE_COUNT}"
             async with session.get(url) as res:
                 if not res.ok:
-                    # TODO: Add logger warning
+                    LOGGER.warning(f"{res.status}: Couldn't fetch gold prices.")
                     return []
 
                 body = await res.json()
