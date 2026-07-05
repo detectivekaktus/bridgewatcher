@@ -57,7 +57,7 @@ class AlbionOnline:
                 body = await res.json()
 
         prices = [from_dict(data_class=CityPrice, data=price) for price in body]
-        await redis.set(key, dumps(prices), ex=self.ITEM_CACHE_EXPIRATION_PERIOD)
+        await redis.set(key, dumps(body), ex=self.ITEM_CACHE_EXPIRATION_PERIOD)
         return prices
 
     async def get_gold_prices(self) -> list[GoldPrice]:
@@ -76,5 +76,5 @@ class AlbionOnline:
                 body = await res.json()
 
         prices = [from_dict(data_class=GoldPrice, data=price) for price in body]
-        await redis.set(key, dumps(prices), ex=self.GOLD_CACHE_EXPIRATION_PERIOD)
+        await redis.set(key, dumps(body), ex=self.GOLD_CACHE_EXPIRATION_PERIOD)
         return prices
