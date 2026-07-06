@@ -16,6 +16,13 @@ class AlbionOnlineServers(StrEnum):
     EUROPE = "europe"
     ASIA = "east"
 
+    @staticmethod
+    def from_str(s: str) -> "AlbionOnlineServers":
+        try:
+            return AlbionOnlineServers(s)
+        except ValueError:
+            return AlbionOnlineServers.AMERICA
+
 
 class AlbionOnline:
     MAX_GOLD_PRICE_COUNT = 24
