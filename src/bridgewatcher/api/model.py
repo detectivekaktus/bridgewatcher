@@ -30,7 +30,7 @@ class Cities(StrEnum):
     @staticmethod
     def from_str(s: str) -> "Cities":
         try:
-            return Cities(s)
+            return Cities(s.lower())
         except ValueError:
             return Cities.BLACK_MARKET
 
@@ -41,14 +41,16 @@ class CityPrice:
     city: str
     quality: int
 
-    sell_price_min: int
+    # these namings come directly from the albion online data project
+    # api, so i don't want to confuse anybody by giving different names
+    sell_price_min: int  # top of the sell orders
     sell_price_min_date: str
-    sell_price_max: int
+    sell_price_max: int  # bottom of the sell orders
     sell_price_max_date: str
 
-    buy_price_min: int
+    buy_price_min: int  # bottom of the buy orders
     buy_price_min_date: str
-    buy_price_max: int
+    buy_price_max: int  # top of the buy orders
     buy_price_max_date: str
 
 

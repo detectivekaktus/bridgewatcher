@@ -24,6 +24,9 @@ class MarketQuery:
         return MarketQuery(item_or_id, quality, False)
 
 
+# The fields for cheapest buy and sell price on CityPrice object
+# may seem off but I believe they are the right ones for the job.
+# See the definition of CityPrice for more detailed information
 class MarketHelper:
     def __init__(self, albion: AlbionOnline) -> None:
         self.albion = albion
@@ -54,37 +57,7 @@ class MarketHelper:
         include_black_market: bool = True,
     ) -> CityPrice:
         filtered = self._get_prices_for_quality(prices, quality, include_black_market)
-        return min(filtered, key=lambda p: p.buy_price_min)
-
-    async def get_cheapest_item_sell_price(self, query: MarketQuery) -> CityPrice:
-        prices = await self.albion.get_item_prices(query.item_or_id)
-        return self._find_cheapest_sell_price(
-            prices, query.quality, query.include_black_market
-        )
-
-    def _find_cheapest_sell_price(
-        self,
-        prices: list[CityPrice],
-        quality: Qualities,
-        include_black_market: bool = True,
-    ) -> CityPrice:
-        filtered = self._get_prices_for_quality(prices, quality, include_black_market)
-        return min(filtered, key=lambda p: p.sell_price_min)
-
-    async def get_expensive_item_buy_price(self, query: MarketQuery) -> CityPrice:
-        prices = await self.albion.get_item_prices(query.item_or_id)
-        return self._find_expensive_buy_price(
-            prices, query.quality, query.include_black_market
-        )
-
-    def _find_expensive_buy_price(
-        self,
-        prices: list[CityPrice],
-        quality: Qualities,
-        include_black_market: bool = True,
-    ) -> CityPrice:
-        filtered = self._get_prices_for_quality(prices, quality, include_black_market)
-        return max(filtered, key=lambda p: p.buy_price_max)
+        return min(filtered, key=lambda p: p.buy_price_max)
 
     async def get_expensive_item_sell_price(self, query: MarketQuery) -> CityPrice:
         prices = await self.albion.get_item_prices(query.item_or_id)
@@ -99,4 +72,4 @@ class MarketHelper:
         include_black_market: bool = True,
     ) -> CityPrice:
         filtered = self._get_prices_for_quality(prices, quality, include_black_market)
-        return max(filtered, key=lambda p: p.sell_price_max)
+        return max(filtered, key=lambda p: p.sell_price_min)
