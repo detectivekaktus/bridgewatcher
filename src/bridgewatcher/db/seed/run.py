@@ -6,6 +6,7 @@ from typing import Any
 
 from aiohttp import ClientSession
 
+from bridgewatcher.api.model import Cities
 from bridgewatcher.db import db
 from bridgewatcher.db.schema import Version, Item, CraftingRequirement, ItemName
 
@@ -26,6 +27,63 @@ NOT_INCLUDED_IN_DATABASE = (
     "shopcategories",
     "trashitem",
 )
+
+# https://wiki.albiononline.com/wiki/Local_Production_Bonus
+CITIES_WITH_CRAFTING_BONUSES = {
+    Cities.FORT_STERLING: [
+        "hammer",
+        "holystaff",
+        "spear",
+        "cloth_armor",
+        "plate_helmet",
+        "planks",
+    ],
+    Cities.LYMHURST: [
+        "bow",
+        "sword",
+        "arcanestaff",
+        "leather_helmet",
+        "leather_shoes",
+        "cloth",
+    ],
+    Cities.BRIDGEWATCH: [
+        "crossbow",
+        "dagger",
+        "cursestaff",
+        "plate_armor",
+        "cloth_shoes",
+        "stoneblock",
+    ],
+    Cities.MARTLOCK: [
+        "axe",
+        "quarterstaff",
+        "froststaff",
+        "plate_shoes",
+        "torchtype",
+        "shieldtype",
+        "booktype",
+    ],
+    Cities.THETFORD: [
+        "mace",
+        "naturestaff",
+        "firestaff",
+        "leather_armor",
+        "cloth_helmet",
+        "metalbars",
+        "leather",
+    ],
+    Cities.CAERLEON: [
+        "ore",
+        "fiber",
+        "wood",
+        "rock",
+        "hide",
+        "toolkit",
+        "knuckles",
+        "shapeshifterstaff",
+    ],
+    Cities.BRECILIEN: ["accessoires_capes_capes", "bags", "potions"],
+}
 
 
 # It may be tricky to understand what this function is all about without seeing what
@@ -95,14 +153,25 @@ async def seed_items_collection() -> None:
                         requirements.append(requirement)
                 else:
                     requirement = CraftingRequirement(
-                        resources["@uniquename"], resources["@count"]
+                        resources["@uniquename"], int(resources["@count"])
                     )
                     requirements.append(requirement)
+
+            subcategory = category_item.get("@shopsubcategory1")
+            subcategory_type = category_item.get("@shopsubcategory2")
+            city_with_bonus = None
+            for city, bonuses in CITIES_WITH_CRAFTING_BONUSES.items():
+                for bonus in bonuses:
+                    if subcategory == bonus or subcategory_type == bonus:
+                        city_with_bonus = city
+                        break
 
             item = Item(
                 category_item["@uniquename"],
                 category_item["@shopcategory"],
-                category_item["@shopsubcategory1"],
+                subcategory,
+                subcategory_type,
+                city_with_bonus,
                 requirements if requirements else None,
             )
             items.append(item.to_mongo())
