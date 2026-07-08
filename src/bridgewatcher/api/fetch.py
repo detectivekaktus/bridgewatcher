@@ -1,14 +1,15 @@
 from enum import StrEnum
 from json import dumps, loads
-from typing import overload
+from typing import Any, overload
 
-from aiohttp import ClientSession, ClientTimeout
+from aiohttp import ClientError, ClientSession, ClientTimeout
 from dacite import from_dict
 
 from bridgewatcher.api.model import CityPrice, GoldPrice
 from bridgewatcher.db import redis
 from bridgewatcher.db.schema import Item
 from bridgewatcher.loggers import LOGGER
+from bridgewatcher.util.exc import PriceProviderError
 
 
 class AlbionOnlineServers(StrEnum):
@@ -37,6 +38,20 @@ class AlbionOnline:
     def __init__(self, server: AlbionOnlineServers) -> None:
         self.server = server
 
+    async def _fetch_prices(self, url: str) -> list[dict[str, Any]]:
+        try:
+            async with ClientSession(timeout=ClientTimeout(total=5)) as session:
+                async with session.get(url) as res:
+                    if not res.ok:
+                        raise PriceProviderError(
+                            f"Albion Online data returned: {res.status}"
+                        )
+                    return await res.json()
+        except TimeoutError as e:
+            raise PriceProviderError("Albion Online data timed out") from e
+        except ClientError as e:
+            raise PriceProviderError("Albion Online data is unavailable") from e
+
     @overload
     async def get_item_prices(self, item_or_id: Item) -> list[CityPrice]: ...
 
@@ -56,17 +71,8 @@ class AlbionOnline:
             ]
             return prices
 
-        async with ClientSession(timeout=ClientTimeout(total=5)) as session:
-            url = f"https://{self.server.value}.{self.base_uri}/prices/{id}"
-            async with session.get(url) as res:
-                if not res.ok:
-                    LOGGER.warning(
-                        f"{res.status}: Couldn't fetch item prices for {id}."
-                    )
-                    return []
-
-                body = await res.json()
-
+        url = f"https://{self.server.value}.{self.base_uri}/prices/{id}"
+        body = await self._fetch_prices(url)
         prices = [from_dict(data_class=CityPrice, data=price) for price in body]
         await redis.set(key, dumps(body), ex=self.ITEM_CACHE_EXPIRATION_PERIOD)
         return prices
@@ -81,15 +87,8 @@ class AlbionOnline:
             ]
             return prices
 
-        async with ClientSession(timeout=ClientTimeout(total=5)) as session:
-            url = f"https://{self.server.value}.{self.base_uri}/gold?count={self.MAX_GOLD_PRICE_COUNT}"
-            async with session.get(url) as res:
-                if not res.ok:
-                    LOGGER.warning(f"{res.status}: Couldn't fetch gold prices.")
-                    return []
-
-                body = await res.json()
-
+        url = f"https://{self.server.value}.{self.base_uri}/gold?count={self.MAX_GOLD_PRICE_COUNT}"
+        body = await self._fetch_prices(url)
         prices = [from_dict(data_class=GoldPrice, data=price) for price in body]
         await redis.set(key, dumps(body), ex=self.GOLD_CACHE_EXPIRATION_PERIOD)
         return prices
