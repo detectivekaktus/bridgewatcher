@@ -1,8 +1,8 @@
-from dataclasses import dataclass
-
-from bridgewatcher.calc import MarketHelper
+from bridgewatcher.market import MarketHelper
 from bridgewatcher.db import db
 from bridgewatcher.db.schema import Item
+from bridgewatcher.market.model import Craft
+from bridgewatcher.util.exc import UncraftableItemCraftedError
 
 
 class Crafter(MarketHelper):
@@ -21,9 +21,6 @@ class Crafter(MarketHelper):
     BONUS_CRAFTING_RETURN_RATE = 0.248
     BONUS_CRAFTING_RETURN_RATE_WITH_FOCUS = 0.479
 
-    @dataclass
-    class Response: ...
-
     async def _get_item_from_item_or_id(self, item_or_id: Item | str) -> Item:
         if isinstance(item_or_id, Item):
             return item_or_id
@@ -38,7 +35,9 @@ class Crafter(MarketHelper):
 
     async def craft(
         self, item_or_id: Item | str, count: int = 1, has_premium: bool = True
-    ) -> Response:
+    ) -> Craft:
         item = await self._get_item_from_item_or_id(item_or_id)
-        # WIP
-        return self.Response()
+        if item.crafting_requirements is None:
+            raise UncraftableItemCraftedError(f"{item.name} is uncraftable")
+
+        return ...
