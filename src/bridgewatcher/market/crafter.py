@@ -10,7 +10,11 @@ from bridgewatcher.market.model import (
     MaterialLeftover,
     MaterialPurchase,
 )
-from bridgewatcher.util.exc import InsufficientDataError, UncraftableItemCraftedError
+from bridgewatcher.util.exc import (
+    InsufficientDataError,
+    NoItemFoundError,
+    UncraftableItemCraftedError,
+)
 
 
 class Crafter(MarketHelper):
@@ -41,7 +45,7 @@ class Crafter(MarketHelper):
         mongo_item = await items_collection.find_one({"name": item_or_id})
 
         if mongo_item is None:
-            raise ValueError(f"No such item with id {item_or_id}")
+            raise NoItemFoundError(f"No such item with id {item_or_id}")
 
         return Item.from_mongo(mongo_item)
 
@@ -121,6 +125,9 @@ class Crafter(MarketHelper):
         has_premium: bool = True,
         using_focus: bool = False,
     ) -> Craft:
+        if count <= 0:
+            raise ValueError("Count cannot be negative")
+
         item = await self._get_item_from_item_or_id(item_or_id)
         if item.crafting_requirements is None:
             raise UncraftableItemCraftedError(f"{item.name} is uncraftable")
