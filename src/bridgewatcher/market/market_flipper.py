@@ -11,7 +11,7 @@ class MarketFlipper(MarketHelper):
             raise InsufficientDataError(f"No fresh prices on {query.item_or_id}")
 
         sell_price = await self.get_expensive_item_sell_price(query)
-        if sell_price.sell_price_min:
+        if sell_price.sell_price_min == 0:
             raise InsufficientDataError(f"No fresh prices on {query.item_or_id}")
 
         return MarketFlip(
