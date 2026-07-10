@@ -57,7 +57,8 @@ class MarketHelper:
         include_black_market: bool = True,
     ) -> CityPrice:
         filtered = self._get_prices_for_quality(prices, quality, include_black_market)
-        return min(filtered, key=lambda p: p.buy_price_max)
+        non_zero = [price for price in filtered if price.buy_price_max > 0]
+        return min(non_zero if non_zero else filtered, key=lambda p: p.buy_price_max)
 
     async def get_expensive_item_sell_price(self, query: MarketQuery) -> CityPrice:
         prices = await self.albion.get_item_prices(query.item_or_id)
@@ -72,4 +73,5 @@ class MarketHelper:
         include_black_market: bool = True,
     ) -> CityPrice:
         filtered = self._get_prices_for_quality(prices, quality, include_black_market)
-        return max(filtered, key=lambda p: p.sell_price_min)
+        non_zero = [price for price in filtered if price.sell_price_min > 0]
+        return max(non_zero if non_zero else filtered, key=lambda p: p.sell_price_min)
