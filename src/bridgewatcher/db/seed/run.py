@@ -130,7 +130,6 @@ def get_enchanted_versions_of_item(item: Item) -> list[Item]:
     if (
         item.shop_category not in CAN_BE_ENCHANTED
         or item.crafting_requirements is None
-        or item.shop_category == "crafting"
         or "UNIQUE" in item.name
         or item.name[1] in ("1", "2", "3")  # unenchantable tiers
     ):
@@ -202,10 +201,12 @@ async def seed_items_collection() -> None:
         items = []
         for category_item in category_items:
             print(f"Attempting to insert {category_item["@uniquename"]}")
-            # for now let's ignore multiple recipes
+            # this is the most stupid shit ive ever done, messing up with the types
+            # of the variable but hey, python allows me to write shitty code, why not
+            # to get used to it ;)
             source_requirements = category_item.get("craftingrequirements")
             if isinstance(source_requirements, list):
-                continue
+                source_requirements = source_requirements[0]
 
             requirements = get_crafting_requirements(source_requirements)
             city_with_bonus = get_city_with_crafting_bonus(category_item)

@@ -30,6 +30,7 @@ class MaterialPurchase:
     item: Item
     buy_city: Cities
     count: int
+    unit_price: int
     cost: int
     fees: int
 
@@ -38,6 +39,7 @@ class MaterialPurchase:
 class MaterialLeftover:
     item: Item
     count: int
+    unit_price: int
     value: int
 
 
@@ -46,7 +48,7 @@ class Craft:
     item: Item
     count: int
     has_premium: bool
-    crafting_city: Cities
+    crafting_city: Cities | None
     income: CraftingIncome
     purchases: list[MaterialPurchase]
     leftovers: list[MaterialLeftover]
