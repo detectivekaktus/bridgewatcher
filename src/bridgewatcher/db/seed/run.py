@@ -240,7 +240,7 @@ async def seed_item_names_collection() -> None:
 
     names_collection = db.get_collection("item_names")
     await names_collection.drop()
-    await names_collection.create_index("identifier")
+    await names_collection.create_index("id")
     await names_collection.create_index("name")
 
     names = []
@@ -255,7 +255,13 @@ async def seed_item_names_collection() -> None:
     await names_collection.insert_many(names)
 
 
+async def add_needed_constraints() -> None:
+    servers = db.get_collection("discord_servers")
+    await servers.create_index("id", unique=True)
+
+
 async def seed() -> None:
+    await add_needed_constraints()
     await seed_items_collection()
     await seed_item_names_collection()
 
