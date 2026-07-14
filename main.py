@@ -3,13 +3,11 @@ from sys import stderr
 
 from dotenv import load_dotenv
 
-from bridgewatcher.db.seed.run import seed_if_needed_sync
 from bridgewatcher.discord import bot
 from bridgewatcher.loggers import load_logging_config
 
 
 def main() -> None:
-    seed_if_needed_sync()
     load_logging_config()
     load_dotenv()
 

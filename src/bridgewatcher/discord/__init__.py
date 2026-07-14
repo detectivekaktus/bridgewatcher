@@ -4,6 +4,7 @@ from typing import override
 from discord import Intents
 from discord.ext.commands import Bot
 
+from bridgewatcher.db.seed.run import seed_if_needed
 from bridgewatcher.loggers import LOGGER
 
 
@@ -19,6 +20,9 @@ class Bridgewatcher(Bot):
 
     @override
     async def setup_hook(self) -> None:
+        LOGGER.info("Running seeding checks...")
+        await seed_if_needed()
+
         LOGGER.info("Loading commands from cogs...")
         await self._load_cogs()
 
