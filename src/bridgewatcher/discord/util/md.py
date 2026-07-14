@@ -11,7 +11,7 @@ class Markdown:
     def bold_italic(self, s: Any) -> str:
         return f"***{str(s)}***"
 
-    def codeblock(self, s: Any) -> str:
+    def inline_code(self, s: Any) -> str:
         return f"`{str(s)}`"
 
     def underline(self, s: Any) -> str:

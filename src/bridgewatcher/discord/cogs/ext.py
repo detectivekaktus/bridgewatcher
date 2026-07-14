@@ -16,7 +16,7 @@ class Ext(Cog):
     async def show_utc(self, interaction: Interaction) -> None:
         now = datetime.now(timezone.utc)
         await interaction.response.send_message(
-            f"Currently it's {md.bold(f"{now.hour}:{now.minute}")} in Albion Online"
+            f"Currently it's {md.bold(f"{now.hour}:{now.minute:02d}")} in Albion Online"
         )
 
     @command(name="conf", description="Shows Bridgewatcher configuration")
