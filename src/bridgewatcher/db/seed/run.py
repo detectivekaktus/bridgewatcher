@@ -10,6 +10,7 @@ from aiohttp import ClientSession
 from bridgewatcher.api.model import Cities
 from bridgewatcher.db import db
 from bridgewatcher.db.schema import Version, Item, CraftingRequirement, ItemName
+from bridgewatcher.loggers import LOGGER
 
 ITEMS_URL = "https://raw.githubusercontent.com/ao-data/ao-bin-dumps/refs/heads/master/items.json"
 ITEM_NAMES_URL = "https://raw.githubusercontent.com/ao-data/ao-bin-dumps/refs/heads/master/formatted/items.txt"
@@ -200,7 +201,6 @@ async def seed_items_collection() -> None:
     for category_items in dump_items.values():
         items = []
         for category_item in category_items:
-            print(f"Attempting to insert {category_item["@uniquename"]}")
             # this is the most stupid shit ive ever done, messing up with the types
             # of the variable but hey, python allows me to write shitty code, why not
             # to get used to it ;)
@@ -292,15 +292,14 @@ async def seed_if_needed(forced: bool = False) -> None:
         if version_doc is not None:
             version = Version.from_mongo(version_doc)
             if version.hash == current_hash:
-                print("Hashes match. No seeding will run")
+                LOGGER.info("Hashes match. No seeding will run")
                 return
     else:
-        print("Forced seeding detected")
+        LOGGER.info("Forced seeding detected")
 
-    print("Seeding the database")
+    LOGGER.info("Seeding the database")
     await seed()
     await update_hash(current_hash)
-    print("Seeding complete")
 
 
 def seed_if_needed_sync(forced: bool = False) -> None:
