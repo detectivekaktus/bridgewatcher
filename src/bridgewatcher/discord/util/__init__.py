@@ -1,4 +1,4 @@
-from .guild import ServerManager
+from .server import ServerManager
 from .md import Markdown
 
 md = Markdown()

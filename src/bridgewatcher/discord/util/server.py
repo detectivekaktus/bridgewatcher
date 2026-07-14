@@ -30,7 +30,8 @@ class ServerManager:
         server.fetch_server = fetch_server
         servers = db.get_collection("discord_servers")
         await servers.update_one(
-            filter={"id": guild.id}, update={"fetch_server": server.fetch_server}
+            filter={"id": guild.id},
+            update={"$set": {"fetch_server": server.fetch_server}},
         )
         return server
 

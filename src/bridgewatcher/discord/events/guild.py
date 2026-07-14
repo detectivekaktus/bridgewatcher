@@ -1,7 +1,7 @@
 from discord import Guild
 
 from bridgewatcher.discord import bot
-from bridgewatcher.discord.util.guild import ServerManager
+from bridgewatcher.discord.util import ServerManager
 from bridgewatcher.loggers import LOGGER
 
 
