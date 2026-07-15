@@ -28,7 +28,7 @@ class Bridgewatcher(Bot):
 
         LOGGER.info("Synchronizing commands with Discord...")
         commands = len(await self.tree.sync())
-        LOGGER.info(f"Successfully synchronized {commands} with Discord")
+        LOGGER.info(f"Successfully synchronized {commands} commands with Discord")
 
 
 intents = Intents.default()

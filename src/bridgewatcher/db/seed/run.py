@@ -6,6 +6,7 @@ from json import dumps, loads
 from typing import Any
 
 from aiohttp import ClientSession
+from pymongo.collation import Collation
 
 from bridgewatcher.api.model import Cities
 from bridgewatcher.db import db
@@ -240,6 +241,10 @@ async def seed_item_names_collection() -> None:
 
     names_collection = db.get_collection("item_names")
     await names_collection.drop()
+
+    names_collection = await db.create_collection(
+        "item_names", collation=Collation(locale="en_US", strength=2)
+    )
     await names_collection.create_index("id")
     await names_collection.create_index("name")
 
