@@ -14,3 +14,20 @@ class BridgewatcherEmbed(Embed):
             name=f"Requested by {interaction.user.display_name}",
             icon_url=interaction.user.display_avatar,
         )
+
+
+class NoItemFoundEmbed(Embed):
+    def __init__(self, item_name: str):
+        super().__init__(color=Color.red(), title=f"{item_name} does not exist")
+
+
+class UntrackedItemEmbed(Embed):
+    def __init__(self, item_name: str):
+        super().__init__(
+            color=Color.red(), title=f"{item_name} is not tracked by Bridgewatcher"
+        )
+
+
+class TimeoutEmbed(Embed):
+    def __init__(self):
+        super().__init__(color=Color.red(), title=f"Your time has run out")

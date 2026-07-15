@@ -32,7 +32,7 @@ NOT_INCLUDED_IN_DATABASE = (
 )
 
 CAN_BE_ENCHANTED = (
-    "weapon",
+    "weapons",
     "transformationweapon",
     "armors",
     # "crafting", for some reason the ao dump does include the enchanted versions of raw and refined materials
