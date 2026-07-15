@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Any
 
 
@@ -22,3 +23,12 @@ class Markdown:
 
     def spoiler(self, s: Any) -> str:
         return f"||{str(s)}||"
+
+
+def readable_timestamp(timestamp: str) -> str:
+    time = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S")
+    return f"{time.day:02d}/{time.month:02d}/{time.year} at {time.hour:02d}:{time.minute:02d}"
+
+
+def format_number(n: int) -> str:
+    return f"{n:,}"

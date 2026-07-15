@@ -8,7 +8,7 @@ from bridgewatcher.api import AlbionOnlineServers
 from bridgewatcher.discord.util import md, ServerManager
 
 
-class Ext(Cog):
+class ExtCog(Cog):
     def __init__(self) -> None:
         super().__init__()
 
@@ -46,4 +46,4 @@ class Ext(Cog):
 
 
 async def setup(bot: Bot) -> None:
-    await bot.add_cog(Ext())
+    await bot.add_cog(ExtCog())

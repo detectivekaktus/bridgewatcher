@@ -1,9 +1,7 @@
 from .server import ServerManager
-from .md import Markdown
+from .text import Markdown
+from .embed import BridgewatcherEmbed
 
 md = Markdown()
 
-__all__ = (
-    "md",
-    "ServerManager",
-)
+__all__ = ("md", "ServerManager", "BridgewatcherEmbed")
