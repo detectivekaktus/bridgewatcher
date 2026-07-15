@@ -11,13 +11,21 @@ class ItemPickerView(View):
         self.selected_index: int | None = None
 
         for i, item in enumerate(items):
-            button = Button(label=item.name, custom_id=item.id)
+            level = item.id[-1]
+            display_name = (
+                item.name
+                if level not in ("1", "2", "3", "4")
+                else f"{item.name} (level {level})"
+            )
+
+            button = Button(label=display_name, custom_id=item.id)
             button.callback = self._make_callback(i)
             self.add_item(button)
 
     def _make_callback(self, index: int):
         async def callback(interaction: Interaction) -> None:
             self.selected_index = index
+            await interaction.response.defer()
             self.stop()
 
         return callback

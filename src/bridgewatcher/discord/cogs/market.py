@@ -90,7 +90,7 @@ class MarketCog(Cog):
     async def _guess_item_by_name(self, interaction: Interaction, name: str) -> Item:
         names = db.get_collection("item_names")
         regex = compile(f"^.*{name}.*$", IGNORECASE)
-        results = await names.find({"name": regex}, limit=4).to_list()
+        results = await names.find({"name": regex}, limit=5).to_list()
 
         if not results:
             raise NoItemFoundError(f"{name} doesn't exist")
