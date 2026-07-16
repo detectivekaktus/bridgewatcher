@@ -56,3 +56,12 @@ class UntrackedItemEmbed(Embed):
 class TimeoutEmbed(Embed):
     def __init__(self):
         super().__init__(color=Color.red(), title=f"Your time has run out")
+
+
+class InsufficientDataEmbed(Embed):
+    def __init__(self):
+        super().__init__(
+            color=Color.red(),
+            title=f"No fresh data on your item",
+            description=f"Tired of these incidents? Download and install the {md.link("Albion Online Data Project client", "https://www.albion-online-data.com/client")} and feed the bot fresh prices for the items you browse in-game!",
+        )

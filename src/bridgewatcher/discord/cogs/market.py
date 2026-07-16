@@ -1,27 +1,18 @@
-from re import IGNORECASE, compile
-
 from discord import Color, Guild, Interaction
 from discord.app_commands import Choice, check, choices, command, describe, guild_only
 from discord.ext.commands import Bot, Cog
 
 from bridgewatcher.api.model import Qualities
-from bridgewatcher.db import db
-from bridgewatcher.db.schema import Item, ItemName
-from bridgewatcher.discord.embed import (
-    BridgewatcherEmbed,
-    NoItemFoundEmbed,
-    TimeoutEmbed,
-    UntrackedItemEmbed,
-)
+from bridgewatcher.discord.embed import BridgewatcherEmbed
 from bridgewatcher.discord.util import ServerManager, md
+from bridgewatcher.discord.util.decorators import guard_item_errors
 from bridgewatcher.discord.util.text import (
+    ItemGuesser,
     format_number,
     get_item_icon,
     readable_timestamp,
 )
-from bridgewatcher.discord.views import ItemPickerView
 from bridgewatcher.market import MarketFlipper, MarketQuery
-from bridgewatcher.util.exc import NoItemFoundError, UntrackedItemRequested
 
 
 class MarketCog(Cog):
@@ -76,50 +67,6 @@ class MarketCog(Cog):
 
         await interaction.response.send_message(embed=embed)
 
-    async def _get_item_by_id_from_list(
-        self, item_names: list[dict], index: int
-    ) -> tuple[Item, ItemName]:
-        items = db.get_collection("items")
-
-        item_name = ItemName.from_mongo(item_names[index])
-        item = await items.find_one({"name": item_name.id})
-        # interestingly enough this result may be null cause not all
-        # items are stored in the db. if it's not stored it's unimportant
-        if item is None:
-            raise UntrackedItemRequested(
-                f"{item_name.name} is not stored in the database"
-            )
-        return Item.from_mongo(item), item_name
-
-    async def _guess_item_by_name(
-        self, interaction: Interaction, name: str
-    ) -> tuple[Item, ItemName]:
-        await interaction.response.send_message("Searching...", ephemeral=True)
-
-        names = db.get_collection("item_names")
-        regex = compile(f"^.*{name}.*$", IGNORECASE)
-        results = await names.find({"name": regex}, limit=5).to_list()
-
-        if not results:
-            raise NoItemFoundError(f"{name} doesn't exist")
-        elif len(results) == 1:
-            return await self._get_item_by_id_from_list(results, 0)
-
-        names = [ItemName.from_mongo(result) for result in results]
-        view = ItemPickerView(names)
-        await interaction.response.edit_message(
-            content="Please, select the item you're looking for from the options below",
-            view=view,
-        )
-
-        timed_out = await view.wait()
-        if timed_out:
-            raise TimeoutError("User didn't select an item")
-        await interaction.delete_original_response()
-
-        index: int = view.selected_index  # type: ignore
-        return await self._get_item_by_id_from_list(results, index)
-
     @command(name="flip", description="Calculate the profit from flipping an item")
     @describe(
         item_name="Name of the item you want to flip",
@@ -134,6 +81,7 @@ class MarketCog(Cog):
     )
     @guild_only()
     @check(lambda ctx: ctx.guild is not None)
+    @guard_item_errors
     async def flip_item(
         self,
         interaction: Interaction,
@@ -141,19 +89,7 @@ class MarketCog(Cog):
         quality: Choice[int],
         has_premium: bool,
     ) -> None:
-        try:
-            item, name = await self._guess_item_by_name(interaction, item_name)
-        except NoItemFoundError:
-            await interaction.followup.send(
-                embed=NoItemFoundEmbed(item_name), ephemeral=True
-            )
-            return
-        except UntrackedItemRequested:
-            await interaction.followup.send(embed=UntrackedItemEmbed(), ephemeral=True)
-            return
-        except TimeoutError:
-            await interaction.followup.send(embed=TimeoutEmbed(), ephemeral=True)
-            return
+        item, name = await ItemGuesser.guess_item_by_name(interaction, item_name)
 
         guild: Guild = interaction.guild  # type: ignore
         albion = await ServerManager.get_albion(guild)
