@@ -47,7 +47,9 @@ class NoItemFoundEmbed(Embed):
 class UntrackedItemEmbed(Embed):
     def __init__(self):
         super().__init__(
-            color=Color.red(), title=f"This item is not tracked by Bridgewatcher"
+            color=Color.red(),
+            title=f"This item is not tracked by Bridgewatcher",
+            description=f"If you think Bridgwatcher should track this item, {md.link("open an issue", "https://github.com/detectivekaktus/bridgewatcher/issues/new")} on GitHub",
         )
 
 

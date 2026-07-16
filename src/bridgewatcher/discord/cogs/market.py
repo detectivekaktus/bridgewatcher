@@ -94,6 +94,8 @@ class MarketCog(Cog):
     async def _guess_item_by_name(
         self, interaction: Interaction, name: str
     ) -> tuple[Item, ItemName]:
+        await interaction.response.send_message("Searching...", ephemeral=True)
+
         names = db.get_collection("item_names")
         regex = compile(f"^.*{name}.*$", IGNORECASE)
         results = await names.find({"name": regex}, limit=5).to_list()
@@ -105,13 +107,16 @@ class MarketCog(Cog):
 
         names = [ItemName.from_mongo(result) for result in results]
         view = ItemPickerView(names)
-        await interaction.response.send_message(
-            "Found multiple items matching the query...", view=view, ephemeral=True
+        await interaction.response.edit_message(
+            content="Please, select the item you're looking for from the options below",
+            view=view,
         )
 
         timed_out = await view.wait()
         if timed_out:
             raise TimeoutError("User didn't select an item")
+        await interaction.delete_original_response()
+
         index: int = view.selected_index  # type: ignore
         return await self._get_item_by_id_from_list(results, index)
 
@@ -184,7 +189,6 @@ class MarketCog(Cog):
         )
         embed.set_thumbnail(url=get_item_icon(name.id, flip.quality))
 
-        await interaction.delete_original_response()
         await interaction.followup.send(embed=embed)
 
 
