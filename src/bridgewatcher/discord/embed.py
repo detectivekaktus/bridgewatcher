@@ -1,7 +1,7 @@
 from discord import Color, Embed, Interaction
 
-from bridgewatcher.discord.util import md
-from bridgewatcher.discord.util.server import ServerManager
+from bridgewatcher.discord.formatting import md
+from bridgewatcher.discord.server import ServerManager
 
 
 class BridgewatcherEmbed(Embed):

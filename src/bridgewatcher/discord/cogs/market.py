@@ -4,14 +4,11 @@ from discord.ext.commands import Bot, Cog
 
 from bridgewatcher.api.model import Qualities
 from bridgewatcher.discord.embed import BridgewatcherEmbed
-from bridgewatcher.discord.util import ServerManager, md
-from bridgewatcher.discord.util.decorators import guard_item_errors
-from bridgewatcher.discord.util.text import (
-    ItemGuesser,
-    format_number,
-    get_item_icon,
-    readable_timestamp,
-)
+from bridgewatcher.discord.formatting import md
+from bridgewatcher.discord.server import ServerManager
+from bridgewatcher.discord.items.decorators import guard_item_errors
+from bridgewatcher.discord.formatting import format_number, readable_timestamp
+from bridgewatcher.discord.items import ItemGuesser, get_item_icon
 from bridgewatcher.market import MarketFlipper, MarketQuery
 
 
