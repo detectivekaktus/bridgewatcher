@@ -35,6 +35,8 @@ CAN_BE_ENCHANTED = (
     "weapons",
     "transformationweapon",
     "armors",
+    "head",
+    "shoes",
     # "crafting", for some reason the ao dump does include the enchanted versions of raw and refined materials
 )
 
