@@ -1,9 +1,10 @@
 from re import IGNORECASE, compile
 
 from discord import Color, Guild, Interaction
-from discord.app_commands import check, command, describe, guild_only
+from discord.app_commands import Choice, check, choices, command, describe, guild_only
 from discord.ext.commands import Bot, Cog
 
+from bridgewatcher.api.model import Qualities
 from bridgewatcher.db import db
 from bridgewatcher.db.schema import Item, ItemName
 from bridgewatcher.discord.embed import (
@@ -13,8 +14,13 @@ from bridgewatcher.discord.embed import (
     UntrackedItemEmbed,
 )
 from bridgewatcher.discord.util import ServerManager, md
-from bridgewatcher.discord.util.text import format_number, readable_timestamp
+from bridgewatcher.discord.util.text import (
+    format_number,
+    get_item_icon,
+    readable_timestamp,
+)
 from bridgewatcher.discord.views import ItemPickerView
+from bridgewatcher.market import MarketFlipper, MarketQuery
 from bridgewatcher.util.exc import NoItemFoundError, UntrackedItemRequested
 
 
@@ -33,10 +39,10 @@ class MarketCog(Cog):
         prices = await albion.get_gold_prices()
 
         entries = [
-            f"{md.italic(readable_timestamp(price.timestamp))} - {md.bold(format_number(price.price))}"
+            f"{readable_timestamp(price.timestamp)}: {md.bold(format_number(price.price))} silver"
             for price in prices
         ]
-        embed = BridgewatcherEmbed(
+        embed = await BridgewatcherEmbed.from_interaction(
             interaction,
             title="Gold prices",
             color=Color.gold(),
@@ -59,22 +65,20 @@ class MarketCog(Cog):
             f"{md.bold("3 months")}: {format_number(current_price.price * self.QUARTER_PREMIUM)} silver",
             f"{md.bold("6 months")}: {format_number(current_price.price * self.SEMIANNUAL_PREMIUM)} silver",
             f"{md.bold("12 months")}: {format_number(current_price.price * self.ANNUAL_PREMIUM)} silver",
+            f"Last time updated: {readable_timestamp(current_price.timestamp)}",
         ]
-        embed = BridgewatcherEmbed(
+        embed = await BridgewatcherEmbed.from_interaction(
             interaction,
             title="Premium prices",
             color=Color.dark_red(),
             description="\n".join(entries),
-        )
-        embed.set_footer(
-            text=f"Last time updated: {readable_timestamp(current_price.timestamp)}"
         )
 
         await interaction.response.send_message(embed=embed)
 
     async def _get_item_by_id_from_list(
         self, item_names: list[dict], index: int
-    ) -> Item:
+    ) -> tuple[Item, ItemName]:
         items = db.get_collection("items")
 
         item_name = ItemName.from_mongo(item_names[index])
@@ -85,9 +89,11 @@ class MarketCog(Cog):
             raise UntrackedItemRequested(
                 f"{item_name.name} is not stored in the database"
             )
-        return Item.from_mongo(item)
+        return Item.from_mongo(item), item_name
 
-    async def _guess_item_by_name(self, interaction: Interaction, name: str) -> Item:
+    async def _guess_item_by_name(
+        self, interaction: Interaction, name: str
+    ) -> tuple[Item, ItemName]:
         names = db.get_collection("item_names")
         regex = compile(f"^.*{name}.*$", IGNORECASE)
         results = await names.find({"name": regex}, limit=5).to_list()
@@ -112,30 +118,74 @@ class MarketCog(Cog):
     @command(name="flip", description="Calculate the profit from flipping an item")
     @describe(
         item_name="Name of the item you want to flip",
+        quality="Quality of the item you want to flip",
         has_premium="Your premium subscription status",
+    )
+    @choices(
+        quality=[
+            Choice(name=quality.name.lower(), value=quality.value)
+            for quality in Qualities
+        ]
     )
     @guild_only()
     @check(lambda ctx: ctx.guild is not None)
     async def flip_item(
-        self, interaction: Interaction, item_name: str, has_premium: bool
+        self,
+        interaction: Interaction,
+        item_name: str,
+        quality: Choice[int],
+        has_premium: bool,
     ) -> None:
         try:
-            item = await self._guess_item_by_name(interaction, item_name)
+            item, name = await self._guess_item_by_name(interaction, item_name)
         except NoItemFoundError:
             await interaction.followup.send(
                 embed=NoItemFoundEmbed(item_name), ephemeral=True
             )
             return
         except UntrackedItemRequested:
-            await interaction.followup.send(
-                embed=UntrackedItemEmbed(item_name), ephemeral=True
-            )
+            await interaction.followup.send(embed=UntrackedItemEmbed(), ephemeral=True)
             return
         except TimeoutError:
             await interaction.followup.send(embed=TimeoutEmbed(), ephemeral=True)
             return
 
-        print(item.name)
+        guild: Guild = interaction.guild  # type: ignore
+        albion = await ServerManager.get_albion(guild)
+        flipper = MarketFlipper(albion)
+        flip = await flipper.flip(
+            MarketQuery.with_black_market_included(
+                item, Qualities.from_int(quality.value)
+            ),
+            has_premium,
+        )
+
+        embed = await BridgewatcherEmbed.from_interaction(
+            interaction,
+            title=f"📦 Flipping {name.name}",
+            color=Color.orange(),
+            description=(
+                f"The expected profit from flipping {name.name} of {md.bold(flip.quality.name.lower())} "
+                f"quality from {md.bold(flip.buy_city.capitalize())} to {md.bold(flip.sell_city.capitalize())} "
+                f"is {md.bold(format_number(flip.profit))} silver, given by:\n"
+                f"* +{format_number(flip.sell_price)} sell price\n"
+                f"* -{format_number(flip.buy_price)} buy price\n"
+                f"* -{format_number(flip.taxes)} sale tax\n"
+                f"* -{format_number(flip.fees)} buying and selling order fees"
+            ),
+        )
+        embed.add_field(name="🌆Buy city", value=md.bold(flip.buy_city.capitalize()))
+        embed.add_field(
+            name="💲Buy price", value=md.bold(format_number(flip.buy_price))
+        )
+        embed.add_field(name="🏙️Sell city", value=md.bold(flip.sell_city.capitalize()))
+        embed.add_field(
+            name="💲Sell price", value=md.bold(format_number(flip.sell_price))
+        )
+        embed.set_thumbnail(url=get_item_icon(name.id, flip.quality))
+
+        await interaction.delete_original_response()
+        await interaction.followup.send(embed=embed)
 
 
 async def setup(bot: Bot) -> None:

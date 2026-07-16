@@ -11,11 +11,11 @@ class ItemPickerView(View):
         self.selected_index: int | None = None
 
         for i, item in enumerate(items):
-            level = item.id[-1]
+            level = item.id[-2:]
             display_name = (
                 item.name
-                if level not in ("1", "2", "3", "4")
-                else f"{item.name} (level {level})"
+                if level not in ("@1", "@2", "@3", "@4")
+                else f"{item.name} (level {level[-1]})"
             )
 
             button = Button(label=display_name, custom_id=item.id)

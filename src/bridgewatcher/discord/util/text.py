@@ -1,6 +1,8 @@
 from datetime import datetime
 from typing import Any
 
+from bridgewatcher.api.model import Qualities
+
 
 class Markdown:
     def italic(self, s: Any) -> str:
@@ -32,3 +34,8 @@ def readable_timestamp(timestamp: str) -> str:
 
 def format_number(n: int) -> str:
     return f"{n:,}"
+
+
+# not sure if this function belongs to this file
+def get_item_icon(item_id: str, quality: Qualities = Qualities.NORMAL) -> str:
+    return f"https://render.albiononline.com/v1/item/{item_id}?quality={quality.value}"
