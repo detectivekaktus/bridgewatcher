@@ -4,11 +4,9 @@ from discord.ext.commands import Bot, Cog
 
 from bridgewatcher.api.model import Qualities
 from bridgewatcher.discord.embed import BridgewatcherEmbed
-from bridgewatcher.discord.formatting import md
+from bridgewatcher.discord.formatting import md, format_number, readable_timestamp
+from bridgewatcher.discord.items import ItemGuesser, get_item_icon, guard_item_errors
 from bridgewatcher.discord.server import ServerManager
-from bridgewatcher.discord.items.decorators import guard_item_errors
-from bridgewatcher.discord.formatting import format_number, readable_timestamp
-from bridgewatcher.discord.items import ItemGuesser, get_item_icon
 from bridgewatcher.market import MarketFlipper, MarketQuery
 
 
@@ -112,6 +110,7 @@ class MarketCog(Cog):
                 f"* -{format_number(flip.fees)} buying and selling order fees"
             ),
         )
+        embed.set_thumbnail(url=get_item_icon(name.id, flip.quality))
         embed.add_field(name="🌆Buy city", value=md.bold(flip.buy_city.title()))
         embed.add_field(
             name="💲Buy price", value=md.bold(format_number(flip.buy_price))
@@ -120,7 +119,6 @@ class MarketCog(Cog):
         embed.add_field(
             name="💲Sell price", value=md.bold(format_number(flip.sell_price))
         )
-        embed.set_thumbnail(url=get_item_icon(name.id, flip.quality))
 
         await interaction.followup.send(embed=embed)
 
