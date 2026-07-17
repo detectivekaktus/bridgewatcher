@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from discord import Color, Guild, Interaction
 from discord.app_commands import Choice, check, choices, command, describe, guild_only
 from discord.ext.commands import Bot, Cog
@@ -5,6 +7,7 @@ from discord.ext.commands import Bot, Cog
 from bridgewatcher.api.model import Qualities
 from bridgewatcher.discord.embed import BridgewatcherEmbed
 from bridgewatcher.discord.formatting import md, format_number, readable_timestamp
+from bridgewatcher.discord.formatting.text import get_datetime_from_timestamp
 from bridgewatcher.discord.items import ItemGuesser, get_item_icon, guard_item_errors
 from bridgewatcher.discord.server import ServerManager
 from bridgewatcher.market import Crafter, MarketFlipper, MarketQuery
@@ -61,6 +64,58 @@ class MarketCog(Cog):
         )
 
         await interaction.response.send_message(embed=embed)
+
+    @command(name="price", description="Get latest prices for an item")
+    @describe(
+        item_name="Name of item you want to get prices for",
+        quality="Quality of the item",
+    )
+    @choices(
+        quality=[
+            Choice(name=quality.name.lower(), value=quality.value)
+            for quality in Qualities
+        ]
+    )
+    @guild_only()
+    @check(lambda ctx: ctx.guild is not None)
+    @guard_item_errors
+    async def get_item_prices(
+        self, interaction: Interaction, item_name: str, quality: Choice[int]
+    ) -> None:
+        item, name = await ItemGuesser.guess_item_by_name(interaction, item_name)
+
+        guild: Guild = interaction.guild  # type: ignore
+        albion = await ServerManager.get_albion(guild)
+        prices = await albion.get_item_prices(item)
+        filtered = [price for price in prices if price.quality == quality.value]
+
+        entries = []
+        for price in filtered:
+            city_price = (
+                f"{md.bold(format_number(price.sell_price_min))} silver"
+                if price.sell_price_min != 0
+                else "No data"
+            )
+            entry = f"{price.city.title()}: {city_price}"
+
+            time = get_datetime_from_timestamp(price.sell_price_min_date)
+            timediff = datetime.now(timezone.utc) - time
+            if price.sell_price_min != 0 and timediff.seconds >= 60 * 60 * 2:
+                entry += f" {md.italic("outdated")}"
+
+            entries.append(entry)
+
+        embed = await BridgewatcherEmbed.from_interaction(
+            interaction,
+            title=f"💵Prices for {name.name}",
+            color=Color.green(),
+            description="\n".join(entries),
+        )
+        embed.set_thumbnail(
+            url=get_item_icon(item.name, Qualities.from_int(quality.value))
+        )
+
+        await interaction.followup.send(embed=embed)
 
     @command(name="flip", description="Calculate the profit from flipping an item")
     @describe(

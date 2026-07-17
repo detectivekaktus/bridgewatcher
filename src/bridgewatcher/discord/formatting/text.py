@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 
@@ -28,8 +28,14 @@ class Markdown:
         return f"[{display}]({url})"
 
 
+def get_datetime_from_timestamp(timestamp: str) -> datetime:
+    return datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S").replace(
+        tzinfo=timezone.utc
+    )
+
+
 def readable_timestamp(timestamp: str) -> str:
-    time = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S")
+    time = get_datetime_from_timestamp(timestamp)
     return f"{time.day:02d}/{time.month:02d}/{time.year} at {time.hour:02d}:{time.minute:02d}"
 
 
