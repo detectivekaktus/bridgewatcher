@@ -104,7 +104,7 @@ class MarketCog(Cog):
             color=Color.orange(),
             description=(
                 f"The expected profit from flipping {name.name} of {md.bold(flip.quality.name.lower())} "
-                f"quality from {md.bold(flip.buy_city.capitalize())} to {md.bold(flip.sell_city.capitalize())} "
+                f"quality from {md.bold(flip.buy_city.title())} to {md.bold(flip.sell_city.title())} "
                 f"is {md.bold(format_number(flip.profit))} silver, given by:\n"
                 f"* +{format_number(flip.sell_price)} sell price\n"
                 f"* -{format_number(flip.buy_price)} buy price\n"
@@ -112,11 +112,11 @@ class MarketCog(Cog):
                 f"* -{format_number(flip.fees)} buying and selling order fees"
             ),
         )
-        embed.add_field(name="🌆Buy city", value=md.bold(flip.buy_city.capitalize()))
+        embed.add_field(name="🌆Buy city", value=md.bold(flip.buy_city.title()))
         embed.add_field(
             name="💲Buy price", value=md.bold(format_number(flip.buy_price))
         )
-        embed.add_field(name="🏙️Sell city", value=md.bold(flip.sell_city.capitalize()))
+        embed.add_field(name="🏙️Sell city", value=md.bold(flip.sell_city.title()))
         embed.add_field(
             name="💲Sell price", value=md.bold(format_number(flip.sell_price))
         )

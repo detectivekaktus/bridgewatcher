@@ -42,7 +42,7 @@ class Crafter(MarketHelper):
         mongo_item = await items_collection.find_one({"name": item_or_id})
 
         if mongo_item is None:
-            raise NoItemFoundError(f"No such item with id {item_or_id}")
+            raise NoItemFoundError(f"No such item with id {item_or_id}", item_or_id)
 
         return Item.from_mongo(mongo_item)
 
@@ -72,19 +72,19 @@ class Crafter(MarketHelper):
                 requirement.name, Qualities.NORMAL
             )
             price = await self.get_cheapest_item_buy_price(query)
-            if price.buy_price_max == 0:
+            if price.sell_price_min == 0:
                 raise InsufficientDataError(f"No fresh data on {requirement.name}")
 
             requirement_item = await self._get_item_from_item_or_id(requirement.name)
             requirement_count = requirement.amount * count
-            total_cost = price.buy_price_max * requirement_count
+            total_cost = price.sell_price_min * requirement_count
             fees = ceil(total_cost * ORDER_FEE)
             purchases.append(
                 MaterialPurchase(
                     requirement_item,
                     Cities.from_str(price.city),
                     requirement_count,
-                    price.buy_price_max,
+                    price.sell_price_min,
                     total_cost,
                     fees,
                 )

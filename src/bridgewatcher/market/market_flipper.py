@@ -16,7 +16,7 @@ class MarketFlipper(MarketHelper):
         )
 
         buy_price = await self.get_cheapest_item_buy_price(buy_query)
-        if buy_price.buy_price_max == 0:
+        if buy_price.sell_price_min == 0:
             raise InsufficientDataError(f"No fresh prices on {query.item_or_id}")
 
         sell_price = await self.get_expensive_item_sell_price(query)
@@ -26,11 +26,11 @@ class MarketFlipper(MarketHelper):
         applied_tax = PREMIUM_TAX if has_premium else ORDINARY_TAX
         taxes = ceil(sell_price.sell_price_min * applied_tax)
         fees = ceil(
-            buy_price.buy_price_max * ORDER_FEE + sell_price.sell_price_min * ORDER_FEE
+            buy_price.sell_price_min * ORDER_FEE + sell_price.sell_price_min * ORDER_FEE
         )
 
         return MarketFlip(
-            buy_price=buy_price.buy_price_max,
+            buy_price=buy_price.sell_price_min,
             buy_city=Cities.from_str(buy_price.city),
             sell_price=sell_price.sell_price_min,
             sell_city=Cities.from_str(sell_price.city),
