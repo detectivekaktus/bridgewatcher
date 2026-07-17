@@ -32,6 +32,8 @@ class Bridgewatcher(Bot):
         commands = len(await self.tree.sync())
         LOGGER.info(f"Successfully synchronized {commands} commands with Discord")
 
+        LOGGER.info(f"Ready for {self.guilds} servers")
+
 
 intents = Intents.default()
 intents.message_content = True
