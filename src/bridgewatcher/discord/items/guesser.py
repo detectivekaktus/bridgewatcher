@@ -1,4 +1,4 @@
-from re import IGNORECASE, compile
+from re import IGNORECASE, compile, escape
 
 from discord import Interaction
 
@@ -16,10 +16,11 @@ class ItemGuesser:
         await interaction.response.send_message("Searching...", ephemeral=True)
 
         names = db.get_collection("item_names")
-        regex = compile(f"^.*{item_name}.*$", IGNORECASE)
+        regex = compile(f"^.*{escape(item_name)}.*$", IGNORECASE)
         results = await names.find({"name": regex}, limit=5).to_list()
 
         if not results:
+            await interaction.delete_original_response()
             raise NoItemFoundError(f"{item_name} doesn't exist", item_name)
         elif len(results) == 1:
             await interaction.delete_original_response()
@@ -34,6 +35,7 @@ class ItemGuesser:
 
         timed_out = await view.wait()
         if timed_out:
+            await interaction.delete_original_response()
             raise TimeoutError("User didn't select an item")
         await interaction.delete_original_response()
 
