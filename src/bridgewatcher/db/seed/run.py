@@ -257,8 +257,17 @@ async def seed_item_names_collection() -> None:
         if len(items) < 3:
             continue
 
-        name = ItemName(items[1].strip(), items[2].strip())
-        names.append(name.to_mongo())
+        id = items[1].strip()
+        name = items[2].strip()
+        # for some unknowngly stupid reason the naming for materials in items.txt
+        # is different from items.json, so we have to convert it
+        if any(
+            enchantment in id
+            for enchantment in ("LEVEL1", "LEVEL2", "LEVEL3", "LEVEL4")
+        ):
+            id = id[:-2]
+
+        names.append(ItemName(id, name).to_mongo())
     await names_collection.insert_many(names)
 
 

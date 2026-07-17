@@ -54,14 +54,25 @@ class Craft:
     item: Item
     count: int
     has_premium: bool
-    crafting_city: Cities | None
+    _crafting_city: Cities | None
+    return_rate: float
     income: CraftingIncome
     purchases: list[MaterialPurchase]
     leftovers: list[MaterialLeftover]
 
     @property
+    def crafting_city(self) -> str:
+        return (
+            self._crafting_city.value if self._crafting_city is not None else "Any city"
+        )
+
+    @property
     def total_cost(self) -> int:
         return sum(purchase.cost + purchase.fees for purchase in self.purchases)
+
+    @property
+    def total_fees(self) -> int:
+        return self.income.fees + sum(purchase.fees for purchase in self.purchases)
 
     @property
     def leftovers_value(self) -> int:
