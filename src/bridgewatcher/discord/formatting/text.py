@@ -24,6 +24,9 @@ class Markdown:
     def spoiler(self, s: Any) -> str:
         return f"||{str(s)}||"
 
+    def link(self, display: str, url: str) -> str:
+        return f"[{display}]({url})"
+
 
 def readable_timestamp(timestamp: str) -> str:
     time = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S")

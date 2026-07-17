@@ -33,7 +33,7 @@ class ServerManager:
         cls, guild: Guild, fetch_server: AlbionOnlineServers
     ) -> DiscordServer:
         server = await cls.get_or_create_conf(guild)
-        server.fetch_server = fetch_server
+        server.fetch_server = fetch_server.value
         servers = db.get_collection("discord_servers")
         await servers.update_one(
             filter={"id": guild.id},

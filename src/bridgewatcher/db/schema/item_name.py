@@ -11,7 +11,7 @@ class ItemName(MongoCollectionItem):
 
     @override
     @classmethod
-    def from_mongo(cls, doc: dict[Any, Any]) -> MongoCollectionItem:
+    def from_mongo(cls, doc: dict[Any, Any]) -> "ItemName":
         return cls(doc["id"], doc["name"])
 
     @override

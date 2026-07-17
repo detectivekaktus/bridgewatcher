@@ -6,11 +6,17 @@ from bridgewatcher.db.schema import Item
 
 @dataclass
 class MarketFlip:
+    quality: Qualities
     buy_price: int
     buy_city: Cities
     sell_price: int
     sell_city: Cities
-    quality: Qualities
+    taxes: int
+    fees: int
+
+    @property
+    def profit(self) -> int:
+        return self.sell_price - self.buy_price - self.fees - self.taxes
 
 
 @dataclass

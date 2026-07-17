@@ -5,7 +5,8 @@ from discord.ext.commands import Bot, Cog
 from discord import Guild, Interaction
 
 from bridgewatcher.api import AlbionOnlineServers
-from bridgewatcher.discord.util import md, ServerManager
+from bridgewatcher.discord.formatting import md
+from bridgewatcher.discord.server import ServerManager
 
 
 class ExtCog(Cog):
