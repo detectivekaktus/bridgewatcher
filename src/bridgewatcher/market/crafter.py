@@ -93,7 +93,7 @@ class Crafter(MarketHelper):
 
     async def _get_leftovers(
         self, item: Item, purchases: list[MaterialPurchase], using_focus: bool
-    ) -> list[MaterialLeftover]:
+    ) -> tuple[list[MaterialLeftover], float]:
         is_refining = item.shop_subcategory == "refinedresources"
         base_rate, bonus_rate = self.RETURN_RATES[is_refining][using_focus]
         return_rate = bonus_rate if item.city_with_bonus is not None else base_rate
@@ -112,7 +112,7 @@ class Crafter(MarketHelper):
                 MaterialLeftover(purchase.item, returned, purchase.unit_price, value)
             )
 
-        return leftovers
+        return leftovers, return_rate
 
     async def craft(
         self,
@@ -130,13 +130,14 @@ class Crafter(MarketHelper):
 
         income = await self._get_income(item, count, has_premium)
         purchases = await self._get_purchases(item, count)
-        leftovers = await self._get_leftovers(item, purchases, using_focus)
+        leftovers, return_rate = await self._get_leftovers(item, purchases, using_focus)
 
         return Craft(
             item=item,
             count=count,
             has_premium=has_premium,
-            crafting_city=item.city_with_bonus,
+            _crafting_city=item.city_with_bonus,
+            return_rate=return_rate,
             income=income,
             purchases=purchases,
             leftovers=leftovers,

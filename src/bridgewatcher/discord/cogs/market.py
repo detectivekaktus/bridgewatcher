@@ -7,7 +7,7 @@ from bridgewatcher.discord.embed import BridgewatcherEmbed
 from bridgewatcher.discord.formatting import md, format_number, readable_timestamp
 from bridgewatcher.discord.items import ItemGuesser, get_item_icon, guard_item_errors
 from bridgewatcher.discord.server import ServerManager
-from bridgewatcher.market import MarketFlipper, MarketQuery
+from bridgewatcher.market import Crafter, MarketFlipper, MarketQuery
 
 
 class MarketCog(Cog):
@@ -119,6 +119,66 @@ class MarketCog(Cog):
         embed.add_field(
             name="💲Sell price", value=md.bold(format_number(flip.sell_price))
         )
+
+        await interaction.followup.send(embed=embed)
+
+    @command(name="craft", description="Calculate the profit from crafting an item")
+    @describe(
+        item_name="Name of the item you want to craft",
+        has_premium="Your premium subscription status",
+        count="Number of items you want to craft",
+        using_focus="Use of focus during crafting",
+    )
+    @guild_only()
+    @check(lambda ctx: ctx.guild is not None)
+    @guard_item_errors
+    async def craft_item(
+        self,
+        interaction: Interaction,
+        item_name: str,
+        has_premium: bool,
+        count: int = 1,
+        using_focus: bool = True,
+    ) -> None:
+        item, name = await ItemGuesser.guess_item_by_name(interaction, item_name)
+
+        guild: Guild = interaction.guild  # type: ignore
+        albion = await ServerManager.get_albion(guild)
+        crafter = Crafter(albion)
+        craft = await crafter.craft(item, count, has_premium, using_focus)
+
+        embed = await BridgewatcherEmbed.from_interaction(
+            interaction,
+            title=f"⚒️ Crafting {name.name}",
+            color=Color.blurple(),
+            description=(
+                f"This is a brief summary of crafting {name.name} in {craft.crafting_city.title()} "
+                f"with the sell destination in {md.bold(craft.income.sell_city.title())}. "
+                f"Your profit is expected to be {format_number(craft.profit)} silver, given by:\n"
+                f"* +{format_number(craft.income.income)} income\n"
+                f"* -{format_number(craft.income.taxes)} taxes\n"
+                f"* -{format_number(craft.total_fees)} fees\n"
+                f"* -{format_number(craft.total_cost)} materials\n"
+                f"* +{format_number(craft.leftovers_value)} leftovers"
+            ),
+        )
+        embed.set_thumbnail(url=get_item_icon(name.id))
+        embed.add_field(
+            name="🔄Return rate", value=f"{md.bold(round(craft.return_rate * 100, 2))}%"
+        )
+        embed.add_field(
+            name="🏭Crafting city", value=md.bold(craft.crafting_city.title())
+        )
+        embed.add_field(
+            name="🏪Selling city", value=md.bold(craft.income.sell_city.title())
+        )
+        embed.add_field(name="📦Items crafted", value=md.bold(craft.count))
+        embed.add_field(
+            name="💲Taxes", value=md.bold(format_number(craft.income.taxes))
+        )
+        embed.add_field(name="💲Fees", value=md.bold(format_number(craft.total_fees)))
+        embed.add_field(name="🔍Focus", value=md.bold("Yes" if using_focus else "No"))
+        embed.add_field(name="👑Premium", value=md.bold("Yes" if has_premium else "No"))
 
         await interaction.followup.send(embed=embed)
 
