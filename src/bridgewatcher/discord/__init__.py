@@ -26,6 +26,8 @@ class Bridgewatcher(Bot):
         LOGGER.info("Loading commands from cogs...")
         await self._load_cogs()
 
+        self.remove_command("help")
+
         LOGGER.info("Synchronizing commands with Discord...")
         commands = len(await self.tree.sync())
         LOGGER.info(f"Successfully synchronized {commands} commands with Discord")
@@ -35,4 +37,6 @@ intents = Intents.default()
 intents.message_content = True
 bot = Bridgewatcher(intents)
 
-__all__ = ("bot",)
+DETECTIVEKAKTUS_ID = 692305905123065918
+
+__all__ = ("bot", "DETECTIVEKAKTUS_ID")

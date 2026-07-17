@@ -2,9 +2,12 @@ from datetime import datetime, timezone
 
 from discord.app_commands import Choice, check, choices, command, describe, guild_only
 from discord.ext.commands import Bot, Cog
-from discord import Guild, Interaction
+from discord import Color, Guild, Interaction
 
+from bridgewatcher import __version__
 from bridgewatcher.api import AlbionOnlineServers
+from bridgewatcher.discord import DETECTIVEKAKTUS_ID
+from bridgewatcher.discord.embed import BridgewatcherEmbed
 from bridgewatcher.discord.formatting import md
 from bridgewatcher.discord.server import ServerManager
 
@@ -12,6 +15,38 @@ from bridgewatcher.discord.server import ServerManager
 class ExtCog(Cog):
     def __init__(self) -> None:
         super().__init__()
+
+    @command(name="help")
+    async def show_help(self, interaction: Interaction) -> None:
+        embed = await BridgewatcherEmbed.from_interaction(
+            interaction,
+            title="👋 Hello!",
+            color=Color.teal(),
+            description=(
+                f"I'm Bridgewatcher, a Discord bot created by <@{DETECTIVEKAKTUS_ID}>.\n"
+                "I can help you with 🛠️ crafting, 🧱 refining, 🤝 trading, and "
+                "📦 transporting goods 🌐 all around Albion on all the servers.\n\n"
+                f"{md.bold("My commands:")}\n"
+                "🤖 `/conf`: get my configuration information\n"
+                "🌐 `/server`: set Albion Online server\n"
+                "🪙 `/gold`: get last 12 gold prices\n"
+                "👑 `/premium`: get any premium status price\n"
+                "🏷️ `/price`: get any item price\n"
+                "🛠️ `/craft`: get profit from crafting an item\n"
+                "💹 `/flip`: get profit from market flipping\n"
+                "⏰ `/utc`: get UTC time\n"
+            ),
+        )
+        embed.set_author(
+            name="Made by DetectiveKaktus", url="https://github.com/detectivekaktus"
+        )
+        embed.set_footer(text=f"Version: {__version__}")
+        embed.add_field(
+            name="🐞Found a bug?",
+            value=f"You can {md.link("report bugs", "https://github.com/detectivekaktus/bridgewatcher/issues/new?template=bug_report.md")} back to developer on GitHub",
+        )
+
+        await interaction.response.send_message(embed=embed)
 
     @command(name="utc", description="Shows current UTC time")
     async def show_utc(self, interaction: Interaction) -> None:
