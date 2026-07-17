@@ -25,9 +25,10 @@ class MarketFlipper(MarketHelper):
 
         applied_tax = PREMIUM_TAX if has_premium else ORDINARY_TAX
         taxes = ceil(sell_price.sell_price_min * applied_tax)
-        fees = ceil(
-            buy_price.sell_price_min * ORDER_FEE + sell_price.sell_price_min * ORDER_FEE
-        )
+
+        buy_fee = ceil(buy_price.sell_price_min * ORDER_FEE)
+        sell_fee = ceil(sell_price.sell_price_min * ORDER_FEE)
+        fees = buy_fee + sell_fee
 
         return MarketFlip(
             buy_price=buy_price.sell_price_min,
