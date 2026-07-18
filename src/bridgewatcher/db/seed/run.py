@@ -98,6 +98,7 @@ CITIES_WITH_CRAFTING_BONUSES = {
         "toolkit",
         "knuckles",
         "shapeshifterstaff",
+        "food",
     ],
     Cities.BRECILIEN: ["accessoires_capes_capes", "bags", "potions"],
 }
