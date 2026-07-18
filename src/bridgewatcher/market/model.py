@@ -1,7 +1,9 @@
 from dataclasses import dataclass
+from math import ceil
 
 from bridgewatcher.api.model import Cities, Qualities
 from bridgewatcher.db.schema import Item
+from bridgewatcher.market.consts import ORDER_FEE
 
 
 @dataclass
@@ -23,8 +25,11 @@ class MarketFlip:
 class CraftingIncome:
     sell_city: Cities
     income: int
-    fees: int
     taxes: int
+
+    @property
+    def fees(self) -> int:
+        return ceil(self.income * ORDER_FEE)
 
     @property
     def net(self) -> int:
@@ -37,8 +42,18 @@ class MaterialPurchase:
     buy_city: Cities
     count: int
     unit_price: int
-    cost: int
-    fees: int
+
+    @property
+    def cost(self) -> int:
+        return self.unit_price * self.count
+
+    @property
+    def fees(self) -> int:
+        return ceil(self.cost * ORDER_FEE)
+
+    @property
+    def total(self) -> int:
+        return self.cost + self.fees
 
 
 @dataclass

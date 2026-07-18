@@ -55,13 +55,11 @@ class Crafter(MarketHelper):
             raise InsufficientDataError(f"No fresh data on {item.name}")
 
         income = sell_price.sell_price_min * count
-        fees = ceil(income * ORDER_FEE)
         applied_tax = PREMIUM_TAX if has_premium else ORDINARY_TAX
         taxes = ceil(income * applied_tax)
         return CraftingIncome(
             Cities.from_str(sell_price.city),
             income,
-            fees,
             taxes,
         )
 
@@ -77,16 +75,12 @@ class Crafter(MarketHelper):
 
             requirement_item = await self._get_item_from_item_or_id(requirement.name)
             requirement_count = requirement.amount * count
-            total_cost = price.sell_price_min * requirement_count
-            fees = ceil(total_cost * ORDER_FEE)
             purchases.append(
                 MaterialPurchase(
                     requirement_item,
                     Cities.from_str(price.city),
                     requirement_count,
                     price.sell_price_min,
-                    total_cost,
-                    fees,
                 )
             )
         return purchases

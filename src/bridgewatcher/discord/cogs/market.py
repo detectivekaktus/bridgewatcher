@@ -6,8 +6,13 @@ from discord.ext.commands import Bot, Cog
 
 from bridgewatcher.api.model import Qualities
 from bridgewatcher.discord.embed import BridgewatcherEmbed
-from bridgewatcher.discord.formatting import md, format_number, readable_timestamp
-from bridgewatcher.discord.formatting.text import get_datetime_from_timestamp
+from bridgewatcher.discord.formatting import (
+    md,
+    format_number,
+    readable_timestamp,
+    get_datetime_from_timestamp,
+    get_item_name_by_id,
+)
 from bridgewatcher.discord.items import ItemGuesser, get_item_icon, guard_item_errors
 from bridgewatcher.discord.server import ServerManager
 from bridgewatcher.market import Crafter, MarketFlipper, MarketQuery
@@ -195,7 +200,9 @@ class MarketCog(Cog):
         count: int = 1,
         using_focus: bool = True,
     ) -> None:
-        item, name = await ItemGuesser.guess_item_by_name(interaction, item_name)
+        item, purchase_name = await ItemGuesser.guess_item_by_name(
+            interaction, item_name
+        )
 
         guild: Guild = interaction.guild  # type: ignore
         albion = await ServerManager.get_albion(guild)
@@ -204,10 +211,10 @@ class MarketCog(Cog):
 
         embed = await BridgewatcherEmbed.from_interaction(
             interaction,
-            title=f"⚒️ Crafting {name.name}",
+            title=f"⚒️ Crafting {purchase_name.name}",
             color=Color.blurple(),
             description=(
-                f"This is a brief summary of crafting {name.name} in {craft.crafting_city.title()} "
+                f"This is a brief summary of crafting {purchase_name.name} in {craft.crafting_city.title()} "
                 f"with the sell destination in {md.bold(craft.income.sell_city.title())}. "
                 f"Your profit is expected to be {format_number(craft.profit)} silver, given by:\n"
                 f"* +{format_number(craft.income.income)} income\n"
@@ -217,7 +224,7 @@ class MarketCog(Cog):
                 f"* +{format_number(craft.leftovers_value)} leftovers"
             ),
         )
-        embed.set_thumbnail(url=get_item_icon(name.id))
+        embed.set_thumbnail(url=get_item_icon(purchase_name.id))
         embed.add_field(
             name="🔄Return rate", value=f"{md.bold(round(craft.return_rate * 100, 2))}%"
         )
@@ -228,12 +235,18 @@ class MarketCog(Cog):
             name="🏪Selling city", value=md.bold(craft.income.sell_city.title())
         )
         embed.add_field(name="📦Items crafted", value=md.bold(craft.count))
-        embed.add_field(
-            name="💲Taxes", value=md.bold(format_number(craft.income.taxes))
-        )
-        embed.add_field(name="💲Fees", value=md.bold(format_number(craft.total_fees)))
         embed.add_field(name="🔍Focus", value=md.bold("Yes" if using_focus else "No"))
         embed.add_field(name="👑Premium", value=md.bold("Yes" if has_premium else "No"))
+
+        for purchase in craft.purchases:
+            if len(embed.fields) >= 25:
+                break
+
+            purchase_name = await get_item_name_by_id(purchase.item.name)
+            embed.add_field(
+                name=purchase_name.name,
+                value=f"Bought in {md.bold(purchase.buy_city.title())} for {format_number(purchase.cost)} silver",
+            )
 
         await interaction.followup.send(embed=embed)
 
