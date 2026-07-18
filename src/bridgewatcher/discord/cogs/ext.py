@@ -10,6 +10,7 @@ from bridgewatcher.discord import DETECTIVEKAKTUS_ID
 from bridgewatcher.discord.embed import BridgewatcherEmbed
 from bridgewatcher.discord.formatting import md
 from bridgewatcher.discord.server import ServerManager
+from bridgewatcher.discord.views import HelpView
 
 
 class ExtCog(Cog):
@@ -46,7 +47,7 @@ class ExtCog(Cog):
             value=f"You can {md.link("report bugs", "https://github.com/detectivekaktus/bridgewatcher/issues/new?template=bug_report.md")} back to developer on GitHub",
         )
 
-        await interaction.response.send_message(embed=embed)
+        await interaction.response.send_message(embed=embed, view=HelpView())
 
     @command(name="utc", description="Shows current UTC time")
     async def show_utc(self, interaction: Interaction) -> None:
